@@ -1,23 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Users, Building, ShieldCheck, FileText, FileCheck2, CalendarDays, Ticket, MessageSquare, BookUser, PhoneCall, Bell, PieChart, Settings, LogOut, Menu } from 'lucide-react';
+import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu } from 'lucide-react';
 import { cn } from './ui';
 
 const navItems = [
-  { name: 'Tổng quan', href: '/', icon: LayoutDashboard },
-  { name: 'Cán bộ', href: '/staff', icon: Users },
-  { name: 'Phòng ban', href: '/departments', icon: Building },
   { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
+  { name: 'Phòng ban', href: '/departments', icon: Building },
+  { name: 'Cán bộ', href: '/staff', icon: Users },
   { name: 'Tin tức', href: '/news', icon: FileText },
-  { name: 'Thủ tục hành chính', href: '/procedures', icon: FileCheck2 },
-  { name: 'Lịch hẹn', href: '/appointments', icon: CalendarDays },
-  { name: 'Xếp hàng', href: '/queue', icon: Ticket },
-  { name: 'Phản ánh', href: '/feedback', icon: MessageSquare },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
-  { name: 'Liên hệ khẩn', href: '/emergency-contacts', icon: PhoneCall },
-  { name: 'Thông báo', href: '/notifications', icon: Bell },
-  { name: 'Báo cáo', href: '/reports', icon: PieChart },
-  { name: 'Cài đặt', href: '/settings', icon: Settings },
+  { name: 'Điều phối', href: '/routing', icon: Waypoints },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {

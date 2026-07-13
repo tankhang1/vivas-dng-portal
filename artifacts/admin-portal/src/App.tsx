@@ -1,20 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import Staff from './pages/Staff';
 import Departments from './pages/Departments';
 import Roles from './pages/Roles';
 import News from './pages/News';
-import Procedures from './pages/Procedures';
-import Appointments from './pages/Appointments';
-import Queue from './pages/Queue';
-import Feedback from './pages/Feedback';
+import Routing from './pages/Routing';
 import Citizens from './pages/Citizens';
-import EmergencyContacts from './pages/EmergencyContacts';
-import Notifications from './pages/Notifications';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
 
 const queryClient = new QueryClient();
 
@@ -34,20 +26,15 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
-      <Route path="/" component={Dashboard} />
+      <Route path="/">
+        <Redirect to="/roles" />
+      </Route>
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
       <Route path="/roles" component={Roles} />
       <Route path="/news" component={News} />
-      <Route path="/procedures" component={Procedures} />
-      <Route path="/appointments" component={Appointments} />
-      <Route path="/queue" component={Queue} />
-      <Route path="/feedback" component={Feedback} />
       <Route path="/citizens" component={Citizens} />
-      <Route path="/emergency-contacts" component={EmergencyContacts} />
-      <Route path="/notifications" component={Notifications} />
-      <Route path="/reports" component={Reports} />
-      <Route path="/settings" component={Settings} />
+      <Route path="/routing" component={Routing} />
       <Route component={NotFound} />
     </Switch>
   );
