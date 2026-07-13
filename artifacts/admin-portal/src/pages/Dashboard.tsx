@@ -1,37 +1,122 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '../components/ui';
-import { mockStaff, mockDepartments, mockRoles, mockNews, mockCitizens, mockRoutedItems } from '../data/mock';
-import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, ArrowRight, CheckCircle2, Globe, FileEdit } from 'lucide-react';
+import { mockStaff, mockDepartments, mockRoles, mockNews, mockCitizens, mockRoutedItems, mockRoutingRules } from '../data/mock';
+import {
+  Users, Building, FileText, BookUser, Waypoints, ArrowRight, CheckCircle2, Globe, FileEdit,
+  AlertTriangle, UserX, ShieldAlert,
+} from 'lucide-react';
 import { Link } from 'wouter';
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+const STATUS_COLORS = { published: '#16a34a', draft: '#94a3b8' };
 
 export default function Dashboard() {
   const activeStaff = mockStaff.filter(s => s.status === 'active').length;
+  const inactiveStaff = mockStaff.filter(s => s.status === 'inactive');
   const publishedNews = mockNews.filter(n => n.status === 'published').length;
   const draftNews = mockNews.filter(n => n.status === 'draft').length;
+  const urgentDraftNews = mockNews.filter(n => n.category === 'khan-cap' && n.status === 'draft');
+  const unmanagedDepartments = mockDepartments.filter(d => !d.manager);
   const totalInteractions = mockCitizens.reduce((sum, c) => sum + c.interactions, 0);
+  const uncoveredFields = mockRoutingRules.filter(r => !r.staff);
+
+  const alerts = [
+    urgentDraftNews.length > 0 && {
+      title: 'Bản tin khẩn cấp chưa xuất bản',
+      description: `${urgentDraftNews.length} bản tin khẩn cấp đang ở dạng nháp, cần duyệt và đăng ngay.`,
+      icon: AlertTriangle,
+      href: '/news',
+      tone: 'danger' as const,
+    },
+    inactiveStaff.length > 0 && {
+      title: 'Cán bộ đang tạm khóa',
+      description: `${inactiveStaff.length} tài khoản cán bộ (${inactiveStaff.map(s => s.name).join(', ')}) đang tạm khóa, cần rà soát.`,
+      icon: UserX,
+      href: '/staff',
+      tone: 'warning' as const,
+    },
+    unmanagedDepartments.length > 0 && {
+      title: 'Phòng ban chưa có trưởng bộ phận',
+      description: `${unmanagedDepartments.length} phòng ban chưa được phân công trưởng bộ phận.`,
+      icon: ShieldAlert,
+      href: '/departments',
+      tone: 'warning' as const,
+    },
+    uncoveredFields.length > 0 && {
+      title: 'Lĩnh vực chưa có cán bộ tiếp nhận',
+      description: `${uncoveredFields.length} lĩnh vực điều phối chưa gán cán bộ xử lý.`,
+      icon: Waypoints,
+      href: '/routing',
+      tone: 'warning' as const,
+    },
+  ].filter(Boolean) as { title: string; description: string; icon: any; href: string; tone: 'danger' | 'warning' }[];
 
   const stats = [
     { label: 'Cán bộ đang hoạt động', value: `${activeStaff}/${mockStaff.length}`, icon: Users, href: '/staff', color: 'text-blue-600 bg-blue-50' },
-    { label: 'Phòng ban', value: mockDepartments.length, icon: Building, href: '/departments', color: 'text-indigo-600 bg-indigo-50' },
-    { label: 'Vai trò hệ thống', value: mockRoles.length, icon: ShieldCheck, href: '/roles', color: 'text-violet-600 bg-violet-50' },
-    { label: 'Bản tin đã xuất bản', value: publishedNews, icon: FileText, href: '/news', color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'Bản tin đã xuất bản', value: `${publishedNews}/${mockNews.length}`, icon: FileText, href: '/news', color: 'text-emerald-600 bg-emerald-50' },
     { label: 'Công dân trong danh bạ', value: mockCitizens.length, icon: BookUser, href: '/citizens', color: 'text-amber-600 bg-amber-50' },
     { label: 'Thông tin đã điều phối', value: mockRoutedItems.length, icon: Waypoints, href: '/routing', color: 'text-rose-600 bg-rose-50' },
   ];
 
+  const secondaryStats = [
+    { label: 'Phòng ban', value: mockDepartments.length, href: '/departments', icon: Building },
+    { label: 'Vai trò hệ thống', value: mockRoles.length, href: '/roles', icon: ShieldAlert },
+    { label: 'Lượt tương tác công dân', value: totalInteractions, href: '/citizens', icon: BookUser },
+  ];
+
+  const staffByDept = useMemo(
+    () => mockDepartments.map(d => ({ name: d.name, soLuong: mockStaff.filter(s => s.department === d.name).length })),
+    []
+  );
+
+  const newsByStatus = useMemo(() => ([
+    { name: 'Đã xuất bản', value: publishedNews, key: 'published' },
+    { name: 'Bản nháp', value: draftNews, key: 'draft' },
+  ]), [publishedNews, draftNews]);
+
   const recentNews = [...mockNews].slice(-4).reverse();
   const recentRouted = [...mockRoutedItems].slice(0, 4);
+
+  const toneStyles = {
+    danger: 'border-red-200 bg-red-50',
+    warning: 'border-amber-200 bg-amber-50',
+  };
+  const toneIconStyles = {
+    danger: 'text-red-600 bg-red-100',
+    warning: 'text-amber-600 bg-amber-100',
+  };
 
   return (
     <Layout>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tổng quan</h1>
-          <p className="text-muted-foreground mt-1">Số liệu hoạt động chung của Ủy ban Nhân dân Xã Tây Hồ.</p>
+          <p className="text-muted-foreground mt-1">Tình hình hoạt động và các nội dung cần xử lý của Ủy ban Nhân dân Xã Tây Hồ.</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {alerts.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cần xử lý</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {alerts.map((alert) => (
+                <Link key={alert.title} href={alert.href}>
+                  <div className={`flex items-start gap-3 rounded-lg border p-4 transition-shadow hover:shadow-sm cursor-pointer ${toneStyles[alert.tone]}`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneIconStyles[alert.tone]}`}>
+                      <alert.icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm">{alert.title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{alert.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <Link key={stat.label} href={stat.href}>
               <Card className="cursor-pointer transition-shadow hover:shadow-md">
@@ -47,6 +132,56 @@ export default function Dashboard() {
               </Card>
             </Link>
           ))}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          {secondaryStats.map((s) => (
+            <Link key={s.label} href={s.href}>
+              <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm hover:bg-slate-50 cursor-pointer">
+                <s.icon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">{s.value}</span>
+                <span className="text-muted-foreground">{s.label}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">Nhân sự theo phòng ban</CardTitle>
+            </CardHeader>
+            <CardContent className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={staffByDept} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="soLuong" name="Số cán bộ" fill="#1d4ed8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Tin tức theo trạng thái</CardTitle>
+            </CardHeader>
+            <CardContent className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={newsByStatus} dataKey="value" nameKey="name" cx="50%" cy="45%" innerRadius={45} outerRadius={70} paddingAngle={3} isAnimationActive={false}>
+                    {newsByStatus.map((entry) => (
+                      <Cell key={entry.key} fill={STATUS_COLORS[entry.key as keyof typeof STATUS_COLORS]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" height={32} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -96,19 +231,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Tương tác với công dân</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Tổng cộng <span className="font-semibold text-foreground">{totalInteractions}</span> lượt tương tác được ghi nhận từ{' '}
-              <span className="font-semibold text-foreground">{mockCitizens.length}</span> công dân trong danh bạ.
-              Hiện có <span className="font-semibold text-foreground">{draftNews}</span> bản tin đang ở dạng bản nháp chưa xuất bản.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );

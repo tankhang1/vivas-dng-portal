@@ -47,6 +47,7 @@ export const mockNews = [
   { id: '6', title: 'Thông báo tạm ngừng cấp nước để sửa chữa', category: 'thong-bao', status: 'draft', date: '2023-10-18', source: 'Công ty Cấp nước' },
   { id: '7', title: 'Hội nghị tổng kết công tác năm', category: 'su-kien', status: 'draft', date: '2023-10-20', source: 'Văn phòng UBND Xã' },
   { id: '8', title: 'Cảnh báo mưa lũ, sạt lở đất', category: 'khan-cap', status: 'published', date: '2023-10-22', source: 'Ban Chỉ huy PCTT Xã' },
+  { id: '9', title: 'Cảnh báo ngập úng cục bộ tại khu phố 4', category: 'khan-cap', status: 'draft', date: '2023-10-25', source: 'Ban Chỉ huy PCTT Xã' },
 ];
 
 export const mockCitizens = [
