@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Textarea, Pagination } from '../components/ui';
 import { mockNews } from '../data/mock';
-import { Plus, Search, Edit2, Trash2, Globe, FileEdit, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Globe, FileEdit } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -71,7 +71,6 @@ export default function News() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
               <Select className="w-[150px]" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}>
                 <option value="all">Tất cả danh mục</option>
                 <option value="thong-bao">Thông báo</option>

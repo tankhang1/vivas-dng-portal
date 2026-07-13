@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockRoutingRules, mockRoutedItems, mockDepartments, mockStaff } from '../data/mock';
-import { Waypoints, Plus, Edit2, Trash2, ArrowRight, CheckCircle2, Search, Filter } from 'lucide-react';
+import { Waypoints, Plus, Edit2, Trash2, ArrowRight, CheckCircle2, Search } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -91,7 +91,6 @@ export default function Routing() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={ruleDeptFilter} onChange={e => { setRuleDeptFilter(e.target.value); setRulePage(1); }} className="w-48">
                   <option value="all">Tất cả phòng ban</option>
                   {mockDepartments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
@@ -152,7 +151,6 @@ export default function Routing() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={itemFieldFilter} onChange={e => { setItemFieldFilter(e.target.value); setItemPage(1); }} className="w-44">
                   <option value="all">Tất cả lĩnh vực</option>
                   {itemFields.map(f => <option key={f} value={f}>{f}</option>)}

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, Badge, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockCitizens } from '../data/mock';
-import { Search, Eye, MapPin, Phone, Plus, Edit2, Trash2, Filter } from 'lucide-react';
+import { Search, Eye, MapPin, Phone, Plus, Edit2, Trash2 } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -71,7 +71,6 @@ export default function Citizens() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
               <Select value={areaFilter} onChange={e => { setAreaFilter(e.target.value); setPage(1); }} className="w-48">
                 <option value="all">Tất cả khu vực</option>
                 {areas.map(a => <option key={a} value={a}>{a}</option>)}

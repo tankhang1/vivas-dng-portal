@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, Badge, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockStaff, mockDepartments, mockRoles } from '../data/mock';
-import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -76,7 +76,6 @@ export default function Staff() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
               <Select value={departmentFilter} onChange={e => updateFilters(() => setDepartmentFilter(e.target.value))} className="w-44">
                 <option value="all">Tất cả phòng ban</option>
                 {mockDepartments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}

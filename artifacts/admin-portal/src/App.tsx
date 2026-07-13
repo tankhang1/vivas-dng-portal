@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 import Staff from './pages/Staff';
 import Departments from './pages/Departments';
 import Roles from './pages/Roles';
@@ -27,8 +28,9 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/">
-        <Redirect to="/roles" />
+        <Redirect to="/dashboard" />
       </Route>
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
       <Route path="/roles" component={Roles} />

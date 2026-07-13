@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu, Landmark } from 'lucide-react';
+import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu, Landmark, LayoutDashboard } from 'lucide-react';
 import { cn } from './ui';
 
 const navItems = [
+  { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
   { name: 'Phòng ban', href: '/departments', icon: Building },
   { name: 'Cán bộ', href: '/staff', icon: Users },
