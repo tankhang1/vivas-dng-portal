@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Textarea, Pagination } from '../components/ui';
+import { MediaUpload } from '../components/MediaUpload';
 import { mockNews } from '../data/mock';
-import { Plus, Search, Edit2, Trash2, Globe, FileEdit } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Globe, FileEdit, Paperclip } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
@@ -27,7 +28,7 @@ export default function News() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleOpenDialog = (article: any = null) => {
-    setCurrentArticle(article || { id: '', title: '', category: 'thong-bao', status: 'draft', date: new Date().toISOString().split('T')[0], source: '' });
+    setCurrentArticle(article || { id: '', title: '', category: 'thong-bao', status: 'draft', date: new Date().toISOString().split('T')[0], source: '', media: [] });
     setIsDialogOpen(true);
   };
 
@@ -99,7 +100,16 @@ export default function News() {
               <TableBody>
                 {paginated.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium max-w-[400px] truncate">{item.title}</TableCell>
+                    <TableCell className="font-medium max-w-[400px]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate">{item.title}</span>
+                        {item.media?.length > 0 && (
+                          <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
+                            <Paperclip className="h-3 w-3" /> {item.media.length}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{item.category}</Badge>
                     </TableCell>
@@ -181,6 +191,14 @@ export default function News() {
           <div className="grid gap-2">
             <Label>Tóm tắt (Trích yếu)</Label>
             <Textarea placeholder="Nhập đoạn tóm tắt bài viết..." />
+          </div>
+          <div className="grid gap-2">
+            <Label>Hình ảnh / Video đính kèm</Label>
+            <MediaUpload
+              value={currentArticle?.media || []}
+              onChange={(media) => setCurrentArticle({ ...currentArticle, media })}
+              hint="Kéo thả ảnh hoặc video minh họa cho bài viết, hoặc chọn tệp từ máy."
+            />
           </div>
           <div className="grid gap-2">
             <Label>Trạng thái</Label>

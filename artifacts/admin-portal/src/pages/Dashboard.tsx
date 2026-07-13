@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { Layout } from '../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '../components/ui';
-import { mockStaff, mockDepartments, mockRoles, mockNews, mockCitizens, mockRoutedItems, mockRoutingRules } from '../data/mock';
+import { mockStaff, mockDepartments, mockRoles, mockNews, mockCitizens, mockRoutedItems, mockRoutingRules, mockFeedback, mockAppointments } from '../data/mock';
 import {
   Users, Building, FileText, BookUser, Waypoints, ArrowRight, CheckCircle2, Globe, FileEdit,
-  AlertTriangle, UserX, ShieldAlert,
+  AlertTriangle, UserX, ShieldAlert, MessageSquareWarning, CalendarClock,
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -20,8 +20,24 @@ export default function Dashboard() {
   const unmanagedDepartments = mockDepartments.filter(d => !d.manager);
   const totalInteractions = mockCitizens.reduce((sum, c) => sum + c.interactions, 0);
   const uncoveredFields = mockRoutingRules.filter(r => !r.staff);
+  const pendingFeedback = mockFeedback.filter(f => f.status === 'pending');
+  const pendingAppointments = mockAppointments.filter(a => a.status === 'pending');
 
   const alerts = [
+    pendingFeedback.length > 0 && {
+      title: 'Phản ánh chưa được xử lý',
+      description: `${pendingFeedback.length} phản ánh của công dân đang chờ xử lý, cần phân công cán bộ tiếp nhận.`,
+      icon: MessageSquareWarning,
+      href: '/feedback',
+      tone: 'danger' as const,
+    },
+    pendingAppointments.length > 0 && {
+      title: 'Lịch hẹn chờ xác nhận',
+      description: `${pendingAppointments.length} lịch hẹn làm việc đang chờ xác nhận từ cán bộ phụ trách.`,
+      icon: CalendarClock,
+      href: '/appointments',
+      tone: 'warning' as const,
+    },
     urgentDraftNews.length > 0 && {
       title: 'Bản tin khẩn cấp chưa xuất bản',
       description: `${urgentDraftNews.length} bản tin khẩn cấp đang ở dạng nháp, cần duyệt và đăng ngay.`,
@@ -54,6 +70,8 @@ export default function Dashboard() {
 
   const stats = [
     { label: 'Cán bộ đang hoạt động', value: `${activeStaff}/${mockStaff.length}`, icon: Users, href: '/staff', color: 'text-blue-600 bg-blue-50' },
+    { label: 'Phản ánh chờ xử lý', value: `${pendingFeedback.length}/${mockFeedback.length}`, icon: MessageSquareWarning, href: '/feedback', color: 'text-red-600 bg-red-50' },
+    { label: 'Lịch hẹn chờ xác nhận', value: `${pendingAppointments.length}/${mockAppointments.length}`, icon: CalendarClock, href: '/appointments', color: 'text-purple-600 bg-purple-50' },
     { label: 'Bản tin đã xuất bản', value: `${publishedNews}/${mockNews.length}`, icon: FileText, href: '/news', color: 'text-emerald-600 bg-emerald-50' },
     { label: 'Công dân trong danh bạ', value: mockCitizens.length, icon: BookUser, href: '/citizens', color: 'text-amber-600 bg-amber-50' },
     { label: 'Thông tin đã điều phối', value: mockRoutedItems.length, icon: Waypoints, href: '/routing', color: 'text-rose-600 bg-rose-50' },
@@ -116,7 +134,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {stats.map((stat) => (
             <Link key={stat.label} href={stat.href}>
               <Card className="cursor-pointer transition-shadow hover:shadow-md">

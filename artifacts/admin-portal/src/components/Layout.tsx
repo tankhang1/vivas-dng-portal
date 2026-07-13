@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu, Landmark, LayoutDashboard } from 'lucide-react';
+import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu, LayoutDashboard, MessageSquareWarning, CalendarClock } from 'lucide-react';
 import { cn } from './ui';
+import { BrandMark } from './BrandMark';
 
 const navItems = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
@@ -10,6 +11,8 @@ const navItems = [
   { name: 'Cán bộ', href: '/staff', icon: Users },
   { name: 'Tin tức', href: '/news', icon: FileText },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
+  { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
+  { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
 ];
 
@@ -22,13 +25,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar - Desktop */}
       <aside className="hidden w-64 flex-col bg-sidebar md:flex">
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
-            <Landmark className="h-5 w-5" />
-          </div>
-          <div className="leading-tight">
-            <p className="font-bold text-sm text-white">Cổng Quản Trị</p>
-            <p className="text-[11px] text-sidebar-foreground/70">UBND Xã Tây Hồ</p>
-          </div>
+          <BrandMark compact />
         </div>
         <div className="flex-1 overflow-auto py-4">
           <p className="px-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
@@ -74,10 +71,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-foreground">
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="font-bold text-primary flex items-center gap-2">
-                <Landmark className="h-5 w-5" />
-                <span>Cổng Quản Trị</span>
-              </div>
+              <BrandMark
+                compact
+                showText={false}
+                className="gap-2"
+              />
             </div>
             <div className="hidden md:flex flex-1">
               <h1 className="text-lg font-semibold text-foreground">

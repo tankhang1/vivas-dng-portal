@@ -1,3 +1,11 @@
+import feedbackGarbage1 from '../../../../attached_assets/1783961533732_143563953939806758_7334235742624065552_23678616a_1783961699771.jpg';
+import feedbackGarbage2 from '../../../../attached_assets/1783961533762_143563953939806758_7334235742624065552_65c255582_1783961699762.jpg';
+import feedbackStreetlight from '../../../../attached_assets/1783961533782_143563953939806758_7334235742624065552_5bc882ab3_1783961699770.jpg';
+import feedbackConstruction1 from '../../../../attached_assets/1783961533799_143563953939806758_7334235742624065552_f646eff7a_1783961699769.jpg';
+import feedbackConstruction2 from '../../../../attached_assets/1783961533815_143563953939806758_7334235742624065552_10b485e9e_1783961699770.jpg';
+import feedbackDrain from '../../../../attached_assets/1783961533827_143563953939806758_7334235742624065552_383d836c0_1783961699770.jpg';
+import feedbackSecurity from '../../../../attached_assets/1783961533839_143563953939806758_7334235742624065552_32ae612c3_1783961699770.jpg';
+
 export const mockStaff = [
   { id: '1', name: 'Nguyễn Văn A', username: 'nva', department: 'Văn phòng UBND', role: 'Super Admin', status: 'active' },
   { id: '2', name: 'Trần Thị B', username: 'ttb', department: 'Tư pháp', role: 'Admin', status: 'active' },
@@ -20,34 +28,37 @@ export const mockDepartments = [
 ];
 
 export const mockRoles = [
-  { id: '1', name: 'Super Admin', desc: 'Toàn quyền hệ thống', users: 1, permissions: ['Xem tổng quan', 'Quản lý hồ sơ', 'Quản lý phản ánh', 'Quản lý tin tức', 'Quản lý cán bộ', 'Quản lý thiết lập'] },
-  { id: '2', name: 'Admin', desc: 'Quản trị viên', users: 2, permissions: ['Xem tổng quan', 'Quản lý hồ sơ', 'Quản lý phản ánh', 'Quản lý tin tức', 'Quản lý cán bộ', 'Quản lý thiết lập'] },
-  { id: '3', name: 'Cán bộ xử lý', desc: 'Xử lý hồ sơ, phản ánh', users: 15, permissions: ['Quản lý hồ sơ', 'Quản lý phản ánh'] },
-  { id: '4', name: 'Biên tập viên', desc: 'Đăng tin tức', users: 3, permissions: ['Quản lý tin tức'] },
-  { id: '5', name: 'Lãnh đạo', desc: 'Xem báo cáo, phê duyệt', users: 4, permissions: ['Xem tổng quan', 'Quản lý thiết lập'] },
-  { id: '6', name: 'Kế toán viên', desc: 'Quản lý thu chi ngân sách', users: 2, permissions: ['Xem tổng quan'] },
-  { id: '7', name: 'Nhân viên văn thư', desc: 'Quản lý công văn, lưu trữ hồ sơ', users: 3, permissions: ['Quản lý hồ sơ'] },
+  { id: '1', name: 'Super Admin', desc: 'Toàn quyền hệ thống', users: 1, permissions: ['Tổng quan', 'Vai trò', 'Phòng ban', 'Cán bộ', 'Tin tức', 'Công dân', 'Phản ánh', 'Đặt lịch hẹn', 'Điều phối'] },
+  { id: '2', name: 'Admin', desc: 'Quản trị viên hệ thống', users: 2, permissions: ['Tổng quan', 'Phòng ban', 'Cán bộ', 'Tin tức', 'Công dân', 'Phản ánh', 'Đặt lịch hẹn', 'Điều phối'] },
+  { id: '3', name: 'Cán bộ xử lý', desc: 'Xử lý phản ánh, lịch hẹn và điều phối', users: 15, permissions: ['Tổng quan', 'Công dân', 'Phản ánh', 'Đặt lịch hẹn', 'Điều phối'] },
+  { id: '4', name: 'Biên tập viên', desc: 'Đăng và quản lý tin tức', users: 3, permissions: ['Tổng quan', 'Tin tức'] },
+  { id: '5', name: 'Lãnh đạo', desc: 'Theo dõi tổng quan và phê duyệt nghiệp vụ', users: 4, permissions: ['Tổng quan', 'Công dân', 'Phản ánh', 'Đặt lịch hẹn', 'Điều phối'] },
+  { id: '6', name: 'Kế toán viên', desc: 'Chỉ xem tổng quan vận hành', users: 2, permissions: ['Tổng quan'] },
+  { id: '7', name: 'Nhân viên văn thư', desc: 'Quản lý công dân và hồ sơ tiếp nhận', users: 3, permissions: ['Tổng quan', 'Công dân'] },
 ];
 
 export const allPermissions = [
-  'Xem tổng quan',
-  'Quản lý hồ sơ',
-  'Quản lý phản ánh',
-  'Quản lý tin tức',
-  'Quản lý cán bộ',
-  'Quản lý thiết lập',
+  'Tổng quan',
+  'Vai trò',
+  'Phòng ban',
+  'Cán bộ',
+  'Tin tức',
+  'Công dân',
+  'Phản ánh',
+  'Đặt lịch hẹn',
+  'Điều phối',
 ];
 
 export const mockNews = [
-  { id: '1', title: 'Thông báo về việc làm CCCD gắn chip', category: 'thong-bao', status: 'published', date: '2023-10-01', source: 'Cổng TTĐT Xã Tây Hồ' },
-  { id: '2', title: 'Khởi công xây dựng nhà văn hóa khu phố 3', category: 'su-kien', status: 'draft', date: '2023-10-05', source: 'Văn phòng UBND Xã' },
-  { id: '3', title: 'Cảnh báo dịch sốt xuất huyết trên địa bàn', category: 'khan-cap', status: 'published', date: '2023-10-10', source: 'Trung tâm Y tế Xã Tây Hồ' },
-  { id: '4', title: 'Lịch tiêm chủng mở rộng tháng 11', category: 'thong-bao', status: 'published', date: '2023-10-12', source: 'Trạm Y tế Xã Tây Hồ' },
-  { id: '5', title: 'Ra quân tổng vệ sinh môi trường toàn xã', category: 'su-kien', status: 'published', date: '2023-10-15', source: 'Đoàn Thanh niên Xã' },
-  { id: '6', title: 'Thông báo tạm ngừng cấp nước để sửa chữa', category: 'thong-bao', status: 'draft', date: '2023-10-18', source: 'Công ty Cấp nước' },
-  { id: '7', title: 'Hội nghị tổng kết công tác năm', category: 'su-kien', status: 'draft', date: '2023-10-20', source: 'Văn phòng UBND Xã' },
-  { id: '8', title: 'Cảnh báo mưa lũ, sạt lở đất', category: 'khan-cap', status: 'published', date: '2023-10-22', source: 'Ban Chỉ huy PCTT Xã' },
-  { id: '9', title: 'Cảnh báo ngập úng cục bộ tại khu phố 4', category: 'khan-cap', status: 'draft', date: '2023-10-25', source: 'Ban Chỉ huy PCTT Xã' },
+  { id: '1', title: 'Thông báo về việc làm CCCD gắn chip', category: 'thong-bao', status: 'published', date: '2023-10-01', source: 'Cổng TTĐT Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
+  { id: '2', title: 'Khởi công xây dựng nhà văn hóa khu phố 3', category: 'su-kien', status: 'draft', date: '2023-10-05', source: 'Văn phòng UBND Xã', media: [] as { id: string; name: string; url: string }[] },
+  { id: '3', title: 'Cảnh báo dịch sốt xuất huyết trên địa bàn', category: 'khan-cap', status: 'published', date: '2023-10-10', source: 'Trung tâm Y tế Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
+  { id: '4', title: 'Lịch tiêm chủng mở rộng tháng 11', category: 'thong-bao', status: 'published', date: '2023-10-12', source: 'Trạm Y tế Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
+  { id: '5', title: 'Ra quân tổng vệ sinh môi trường toàn xã', category: 'su-kien', status: 'published', date: '2023-10-15', source: 'Đoàn Thanh niên Xã', media: [] as { id: string; name: string; url: string }[] },
+  { id: '6', title: 'Thông báo tạm ngừng cấp nước để sửa chữa', category: 'thong-bao', status: 'draft', date: '2023-10-18', source: 'Công ty Cấp nước', media: [] as { id: string; name: string; url: string }[] },
+  { id: '7', title: 'Hội nghị tổng kết công tác năm', category: 'su-kien', status: 'draft', date: '2023-10-20', source: 'Văn phòng UBND Xã', media: [] as { id: string; name: string; url: string }[] },
+  { id: '8', title: 'Cảnh báo mưa lũ, sạt lở đất', category: 'khan-cap', status: 'published', date: '2023-10-22', source: 'Ban Chỉ huy PCTT Xã', media: [] as { id: string; name: string; url: string }[] },
+  { id: '9', title: 'Cảnh báo ngập úng cục bộ tại khu phố 4', category: 'khan-cap', status: 'draft', date: '2023-10-25', source: 'Ban Chỉ huy PCTT Xã', media: [] as { id: string; name: string; url: string }[] },
 ];
 
 export const mockCitizens = [
@@ -79,4 +90,83 @@ export const mockRoutedItems = [
   { id: '6', date: '2023-10-17 13:05', sender: 'Vũ Thị Nga', field: 'Văn hóa', routedDepartment: 'Văn hóa - Xã hội', routedStaff: 'Hoàng Thị E' },
   { id: '7', date: '2023-10-16 09:50', sender: 'Bùi Văn Sơn', field: 'Môi trường', routedDepartment: 'Địa chính', routedStaff: 'Lê Văn C' },
   { id: '8', date: '2023-10-15 11:15', sender: 'Ngô Thị Tuyết', field: 'Trật tự', routedDepartment: 'Công an', routedStaff: 'Phạm Thị D' },
+];
+
+export const feedbackCategories = [
+  { value: 'hanh-chinh', label: 'Hành chính' },
+  { value: 'trat-tu', label: 'Trật tự đô thị' },
+  { value: 'moi-truong', label: 'Môi trường' },
+  { value: 'an-ninh', label: 'An ninh' },
+  { value: 'can-bo-tiep-dan', label: 'Cán bộ tiếp dân' },
+  { value: 'khac', label: 'Khác' },
+];
+
+export const mockFeedback = [
+  {
+    id: '1', title: 'Rác tồn đọng tại ngõ 12', content: 'Rác thải sinh hoạt bị đổ tràn ra lối đi, tồn đọng nhiều ngày chưa được thu gom, gây mùi hôi khó chịu.',
+    category: 'moi-truong', name: 'Đoàn Tấn Khang', phone: '0975862265', address: 'Ngõ 12, Khu phố 1', location: 'Ngõ 12, Khu phố 1',
+    privacy: 'public', status: 'pending', date: '2023-10-24', images: [
+      feedbackGarbage1,
+      feedbackGarbage2,
+    ], assignedStaff: '',
+  },
+  {
+    id: '2', title: 'Đèn đường hư hỏng trước cổng chợ', content: 'Đèn đường trước cổng chợ Tây Hồ đã tắt hơn một tuần, khu vực tối vào ban đêm gây mất an toàn giao thông.',
+    category: 'trat-tu', name: 'Nguyễn Thị Hoa', phone: '0912345678', address: 'Cổng chợ, Khu phố 2', location: 'Cổng chợ, Khu phố 2',
+    privacy: 'public', status: 'processing', date: '2023-10-22', images: [
+      feedbackStreetlight,
+    ], assignedStaff: 'Phạm Thị D',
+  },
+  {
+    id: '3', title: 'Cán bộ tiếp dân thái độ chưa đúng mực', content: 'Phản ánh về cách ứng xử khi làm thủ tục đăng ký tạm trú tại bộ phận một cửa.',
+    category: 'can-bo-tiep-dan', name: 'Ẩn danh', phone: '', address: '', location: 'Bộ phận một cửa',
+    privacy: 'anonymous', status: 'resolved', date: '2023-10-18', images: [] as string[], assignedStaff: 'Nguyễn Văn A',
+  },
+  {
+    id: '4', title: 'Xây dựng lấn chiếm lòng đường', content: 'Một hộ dân tập kết vật liệu xây dựng lấn chiếm lòng đường gây cản trở giao thông.',
+    category: 'trat-tu', name: 'Trần Văn Khánh', phone: '0923456789', address: 'Đường số 5, Khu phố 1', location: 'Đường số 5, Khu phố 1',
+    privacy: 'public', status: 'pending', date: '2023-10-25', images: [
+      feedbackConstruction1,
+      feedbackConstruction2,
+      feedbackConstruction1,
+    ], assignedStaff: '',
+  },
+  {
+    id: '5', title: 'Yêu cầu hỗ trợ cấp lại giấy chứng nhận', content: 'Đề nghị hướng dẫn thủ tục cấp lại giấy chứng nhận quyền sử dụng đất bị mất.',
+    category: 'hanh-chinh', name: 'Phạm Thị Lan', phone: '0934567890', address: 'Khu phố 3', location: '',
+    privacy: 'public', status: 'processing', date: '2023-10-20', images: [] as string[], assignedStaff: 'Lê Văn C',
+  },
+  {
+    id: '6', title: 'Nước thải chảy tràn ra đường', content: 'Cống thoát nước bị nghẽn khiến nước thải tràn ra mặt đường, ảnh hưởng sinh hoạt của người dân.',
+    category: 'moi-truong', name: 'Đỗ Văn Minh', phone: '0945678901', address: 'Khu phố 2', location: 'Khu phố 2',
+    privacy: 'public', status: 'resolved', date: '2023-10-15', images: [
+      feedbackDrain,
+    ], assignedStaff: 'Lê Văn C',
+  },
+  {
+    id: '7', title: 'Nhóm thanh niên tụ tập gây mất an ninh', content: 'Phản ánh tình trạng tụ tập, gây ồn ào vào ban đêm tại khu vực công viên.',
+    category: 'an-ninh', name: 'Ẩn danh', phone: '', address: '', location: 'Công viên trung tâm',
+    privacy: 'anonymous', status: 'pending', date: '2023-10-26', images: [
+      feedbackSecurity,
+    ], assignedStaff: '',
+  },
+];
+
+export const appointmentServices = [
+  'Đăng ký khai sinh',
+  'Đăng ký tạm trú',
+  'Chứng thực bản sao từ bản chính',
+  'Đăng ký hộ kinh doanh',
+  'Xác nhận tình trạng hôn nhân',
+];
+
+export const mockAppointments = [
+  { id: '1', service: 'Đăng ký khai sinh', citizenName: 'Đoàn Tấn Khang', phone: '0912345678', date: '2023-10-13', time: '08:00', content: 'Đăng ký khai sinh cho con mới sinh.', status: 'confirmed', assignedStaff: 'Trần Thị B' },
+  { id: '2', service: 'Đăng ký tạm trú', citizenName: 'Nguyễn Thị Hoa', phone: '0912345678', date: '2023-10-13', time: '09:30', content: 'Đăng ký tạm trú cho người thuê nhà.', status: 'pending', assignedStaff: '' },
+  { id: '3', service: 'Chứng thực bản sao từ bản chính', citizenName: 'Trần Văn Khánh', phone: '0923456789', date: '2023-10-14', time: '10:00', content: 'Chứng thực 3 bản sao bằng đại học.', status: 'completed', assignedStaff: 'Trần Thị B' },
+  { id: '4', service: 'Đăng ký hộ kinh doanh', citizenName: 'Phạm Thị Lan', phone: '0934567890', date: '2023-10-15', time: '14:00', content: 'Đăng ký hộ kinh doanh tạp hóa nhỏ.', status: 'pending', assignedStaff: '' },
+  { id: '5', service: 'Xác nhận tình trạng hôn nhân', citizenName: 'Đỗ Văn Minh', phone: '0945678901', date: '2023-10-16', time: '15:30', content: 'Xác nhận tình trạng hôn nhân để làm hồ sơ.', status: 'confirmed', assignedStaff: 'Trần Thị B' },
+  { id: '6', service: 'Đăng ký khai sinh', citizenName: 'Vũ Thị Nga', phone: '0956789012', date: '2023-10-17', time: '08:30', content: 'Bổ sung hồ sơ khai sinh.', status: 'cancelled', assignedStaff: '' },
+  { id: '7', service: 'Đăng ký tạm trú', citizenName: 'Bùi Văn Sơn', phone: '0967890123', date: '2023-10-18', time: '10:30', content: 'Đăng ký tạm trú cho cả gia đình.', status: 'completed', assignedStaff: 'Trần Thị B' },
+  { id: '8', service: 'Chứng thực bản sao từ bản chính', citizenName: 'Ngô Thị Tuyết', phone: '0978901234', date: '2023-10-19', time: '16:00', content: 'Chứng thực hộ khẩu.', status: 'pending', assignedStaff: '' },
 ];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Button, Label } from '../components/ui';
-import { Landmark } from 'lucide-react';
+import { BrandMark } from '../components/BrandMark';
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -18,10 +18,14 @@ export default function Login() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
-      <Card className="w-full max-w-md relative z-10 shadow-xl border-t-4 border-t-primary">
-        <CardHeader className="space-y-3 pb-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Landmark className="h-8 w-8 text-primary" />
+        <Card className="w-full max-w-md relative z-10 shadow-xl border-t-4 border-t-primary">
+          <CardHeader className="space-y-3 pb-6 text-center">
+          <div className="mx-auto">
+            <BrandMark
+              compact
+              showText={false}
+              className="justify-center"
+            />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold">Cổng Quản Trị Hệ Thống</CardTitle>

@@ -8,6 +8,8 @@ import Roles from './pages/Roles';
 import News from './pages/News';
 import Routing from './pages/Routing';
 import Citizens from './pages/Citizens';
+import Feedback from './pages/Feedback';
+import Appointments from './pages/Appointments';
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ function Router() {
       <Route path="/news" component={News} />
       <Route path="/citizens" component={Citizens} />
       <Route path="/routing" component={Routing} />
+      <Route path="/feedback" component={Feedback} />
+      <Route path="/appointments" component={Appointments} />
       <Route component={NotFound} />
     </Switch>
   );
