@@ -10,7 +10,7 @@ export default function News() {
   const [currentArticle, setCurrentArticle] = useState<any>(null);
 
   const handleOpenDialog = (article: any = null) => {
-    setCurrentArticle(article || { id: '', title: '', category: 'thong-bao', status: 'draft', date: new Date().toISOString().split('T')[0] });
+    setCurrentArticle(article || { id: '', title: '', category: 'thong-bao', status: 'draft', date: new Date().toISOString().split('T')[0], source: '' });
     setIsDialogOpen(true);
   };
 
@@ -63,6 +63,7 @@ export default function News() {
                 <TableRow>
                   <TableHead>Tiêu đề</TableHead>
                   <TableHead>Danh mục</TableHead>
+                  <TableHead>Nguồn tin</TableHead>
                   <TableHead>Ngày đăng</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
@@ -75,6 +76,7 @@ export default function News() {
                     <TableCell>
                       <Badge variant="outline">{item.category}</Badge>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{item.source || 'Chưa rõ nguồn'}</TableCell>
                     <TableCell>{item.date}</TableCell>
                     <TableCell>
                       {item.status === 'published' ? (
@@ -133,6 +135,14 @@ export default function News() {
                 onChange={e => setCurrentArticle({...currentArticle, date: e.target.value})} 
               />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Nguồn tin</Label>
+            <Input
+              value={currentArticle?.source || ''}
+              onChange={e => setCurrentArticle({ ...currentArticle, source: e.target.value })}
+              placeholder="Ví dụ: Cổng TTĐT Xã Tây Hồ, Báo Nhân Dân..."
+            />
           </div>
           <div className="grid gap-2">
             <Label>Tóm tắt (Trích yếu)</Label>
