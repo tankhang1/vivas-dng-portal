@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label } from '../components/ui';
+import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockDepartments } from '../data/mock';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
+
+const PAGE_SIZE = 5;
 
 export default function Departments() {
   const [departments, setDepartments] = useState(mockDepartments);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [managerFilter, setManagerFilter] = useState('all');
+  const [page, setPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentDept, setCurrentDept] = useState<any>(null);
+
+  const managers = useMemo(() => Array.from(new Set(departments.map(d => d.manager).filter(Boolean))), [departments]);
+
+  const filtered = useMemo(() => {
+    return departments.filter(d =>
+      d.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (managerFilter === 'all' || d.manager === managerFilter)
+    );
+  }, [departments, searchTerm, managerFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleOpenDialog = (dept: any = null) => {
     setCurrentDept(dept || { id: '', name: '', manager: '', staffCount: 0 });
@@ -43,7 +60,25 @@ export default function Departments() {
         </div>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardHeader className="pb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative w-full md:max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm theo tên phòng ban..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Select value={managerFilter} onChange={e => { setManagerFilter(e.target.value); setPage(1); }} className="w-48">
+                <option value="all">Tất cả trưởng bộ phận</option>
+                {managers.map(m => <option key={m} value={m}>{m}</option>)}
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -54,7 +89,7 @@ export default function Departments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {departments.map((dept) => (
+                {paginated.map((dept) => (
                   <TableRow key={dept.id}>
                     <TableCell className="font-medium">{dept.name}</TableCell>
                     <TableCell>{dept.manager || 'Chưa phân công'}</TableCell>
@@ -69,8 +104,16 @@ export default function Departments() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {paginated.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                      Không tìm thấy phòng ban nào.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} pageSize={PAGE_SIZE} />
           </CardContent>
         </Card>
       </div>

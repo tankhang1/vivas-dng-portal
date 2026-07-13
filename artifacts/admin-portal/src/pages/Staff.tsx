@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, Badge, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select } from '../components/ui';
+import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Button, Input, Badge, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockStaff, mockDepartments, mockRoles } from '../data/mock';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
+
+const PAGE_SIZE = 5;
 
 export default function Staff() {
   const [staffList, setStaffList] = useState(mockStaff);
   const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentStaff, setCurrentStaff] = useState<any>(null);
 
-  const filteredStaff = staffList.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.username.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredStaff = useMemo(() => {
+    return staffList.filter(s =>
+      (s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.username.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (departmentFilter === 'all' || s.department === departmentFilter) &&
+      (statusFilter === 'all' || s.status === statusFilter)
+    );
+  }, [staffList, searchTerm, departmentFilter, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredStaff.length / PAGE_SIZE));
+  const paginated = filteredStaff.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const updateFilters = (fn: () => void) => {
+    fn();
+    setPage(1);
+  };
 
   const handleOpenDialog = (staff: any = null) => {
     setCurrentStaff(staff || { id: '', name: '', username: '', department: mockDepartments[0].name, role: mockRoles[0].name, status: 'active' });
@@ -46,15 +65,27 @@ export default function Staff() {
         </div>
 
         <Card>
-          <CardHeader className="pb-3">
-            <div className="relative">
+          <CardHeader className="pb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative w-full md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm kiếm theo tên hoặc tài khoản..."
-                className="pl-9 w-full md:w-[300px]"
+                className="pl-9"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => updateFilters(() => setSearchTerm(e.target.value))}
               />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Select value={departmentFilter} onChange={e => updateFilters(() => setDepartmentFilter(e.target.value))} className="w-44">
+                <option value="all">Tất cả phòng ban</option>
+                {mockDepartments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+              </Select>
+              <Select value={statusFilter} onChange={e => updateFilters(() => setStatusFilter(e.target.value))} className="w-40">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Tạm khóa</option>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -70,7 +101,7 @@ export default function Staff() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStaff.map((staff) => (
+                {paginated.map((staff) => (
                   <TableRow key={staff.id}>
                     <TableCell className="font-medium">{staff.name}</TableCell>
                     <TableCell>{staff.username}</TableCell>
@@ -91,7 +122,7 @@ export default function Staff() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredStaff.length === 0 && (
+                {paginated.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       Không tìm thấy cán bộ nào.
@@ -100,6 +131,7 @@ export default function Staff() {
                 )}
               </TableBody>
             </Table>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} totalItems={filteredStaff.length} pageSize={PAGE_SIZE} />
           </CardContent>
         </Card>
       </div>

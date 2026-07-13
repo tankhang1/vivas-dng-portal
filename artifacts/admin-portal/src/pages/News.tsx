@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Textarea } from '../components/ui';
+import { Card, CardContent, CardHeader, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Textarea, Pagination } from '../components/ui';
 import { mockNews } from '../data/mock';
-import { Plus, Search, Edit2, Trash2, Globe, FileEdit } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Globe, FileEdit, Filter } from 'lucide-react';
+
+const PAGE_SIZE = 5;
 
 export default function News() {
   const [news, setNews] = useState(mockNews);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentArticle, setCurrentArticle] = useState<any>(null);
+
+  const filtered = useMemo(() => {
+    return news.filter(n =>
+      n.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (categoryFilter === 'all' || n.category === categoryFilter) &&
+      (statusFilter === 'all' || n.status === statusFilter)
+    );
+  }, [news, searchTerm, categoryFilter, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleOpenDialog = (article: any = null) => {
     setCurrentArticle(article || { id: '', title: '', category: 'thong-bao', status: 'draft', date: new Date().toISOString().split('T')[0], source: '' });
@@ -43,18 +60,29 @@ export default function News() {
         </div>
 
         <Card>
-          <CardHeader className="pb-3 flex flex-row justify-between items-center">
-            <div className="relative w-full max-w-md">
+          <CardHeader className="pb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative w-full md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Tìm kiếm tiêu đề bản tin..." className="pl-9" />
+              <Input
+                placeholder="Tìm kiếm tiêu đề bản tin..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+              />
             </div>
-            <div className="flex gap-2">
-               <Select className="w-[150px]">
-                 <option value="all">Tất cả danh mục</option>
-                 <option value="thong-bao">Thông báo</option>
-                 <option value="tin-tuc">Tin tức</option>
-                 <option value="su-kien">Sự kiện</option>
-               </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Select className="w-[150px]" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}>
+                <option value="all">Tất cả danh mục</option>
+                <option value="thong-bao">Thông báo</option>
+                <option value="su-kien">Sự kiện</option>
+                <option value="khan-cap">Khẩn cấp</option>
+              </Select>
+              <Select className="w-[150px]" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
+                <option value="all">Tất cả trạng thái</option>
+                <option value="published">Đã xuất bản</option>
+                <option value="draft">Bản nháp</option>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -70,7 +98,7 @@ export default function News() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {news.map((item) => (
+                {paginated.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium max-w-[400px] truncate">{item.title}</TableCell>
                     <TableCell>
@@ -95,8 +123,16 @@ export default function News() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {paginated.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      Không tìm thấy bản tin nào.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} pageSize={PAGE_SIZE} />
           </CardContent>
         </Card>
       </div>
@@ -122,7 +158,6 @@ export default function News() {
                 onChange={e => setCurrentArticle({...currentArticle, category: e.target.value})}
               >
                 <option value="thong-bao">Thông báo</option>
-                <option value="tin-tuc">Tin tức</option>
                 <option value="su-kien">Sự kiện</option>
                 <option value="khan-cap">Khẩn cấp</option>
               </Select>

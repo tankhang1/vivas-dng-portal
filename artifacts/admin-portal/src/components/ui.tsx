@@ -154,6 +154,35 @@ export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLD
   return <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)} {...props} />;
 }
 
+export function Pagination({ page, totalPages, onPageChange, totalItems, pageSize }: { page: number; totalPages: number; onPageChange: (page: number) => void; totalItems?: number; pageSize?: number }) {
+  if (totalPages <= 1) return null;
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  return (
+    <div className="flex flex-col gap-3 border-t border-border px-1 pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-muted-foreground">
+        {typeof totalItems === 'number' && typeof pageSize === 'number'
+          ? `Hiển thị ${Math.min((page - 1) * pageSize + 1, totalItems)}–${Math.min(page * pageSize, totalItems)} trên tổng ${totalItems} kết quả`
+          : `Trang ${page} / ${totalPages}`}
+      </p>
+      <div className="flex items-center gap-1">
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>Trước</Button>
+        {pages.map(p => (
+          <Button
+            key={p}
+            variant={p === page ? 'default' : 'outline'}
+            size="sm"
+            className="h-9 w-9 p-0"
+            onClick={() => onPageChange(p)}
+          >
+            {p}
+          </Button>
+        ))}
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>Sau</Button>
+      </div>
+    </div>
+  );
+}
+
 export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(({ className, ...props }, ref) => {
   return (
     <textarea

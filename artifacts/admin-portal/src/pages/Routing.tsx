@@ -1,14 +1,43 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select } from '../components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge, Button, Input, Dialog, DialogHeader, DialogTitle, DialogFooter, Label, Select, Pagination } from '../components/ui';
 import { mockRoutingRules, mockRoutedItems, mockDepartments, mockStaff } from '../data/mock';
-import { Waypoints, Plus, Edit2, Trash2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Waypoints, Plus, Edit2, Trash2, ArrowRight, CheckCircle2, Search, Filter } from 'lucide-react';
+
+const PAGE_SIZE = 5;
 
 export default function Routing() {
   const [rules, setRules] = useState(mockRoutingRules);
   const [items] = useState(mockRoutedItems);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentRule, setCurrentRule] = useState<any>(null);
+
+  const [ruleSearch, setRuleSearch] = useState('');
+  const [ruleDeptFilter, setRuleDeptFilter] = useState('all');
+  const [rulePage, setRulePage] = useState(1);
+
+  const [itemSearch, setItemSearch] = useState('');
+  const [itemFieldFilter, setItemFieldFilter] = useState('all');
+  const [itemPage, setItemPage] = useState(1);
+
+  const filteredRules = useMemo(() => {
+    return rules.filter(r =>
+      r.field.toLowerCase().includes(ruleSearch.toLowerCase()) &&
+      (ruleDeptFilter === 'all' || r.department === ruleDeptFilter)
+    );
+  }, [rules, ruleSearch, ruleDeptFilter]);
+  const ruleTotalPages = Math.max(1, Math.ceil(filteredRules.length / PAGE_SIZE));
+  const paginatedRules = filteredRules.slice((rulePage - 1) * PAGE_SIZE, rulePage * PAGE_SIZE);
+
+  const itemFields = useMemo(() => Array.from(new Set(items.map(i => i.field))), [items]);
+  const filteredItems = useMemo(() => {
+    return items.filter(i =>
+      i.sender.toLowerCase().includes(itemSearch.toLowerCase()) &&
+      (itemFieldFilter === 'all' || i.field === itemFieldFilter)
+    );
+  }, [items, itemSearch, itemFieldFilter]);
+  const itemTotalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const paginatedItems = filteredItems.slice((itemPage - 1) * PAGE_SIZE, itemPage * PAGE_SIZE);
 
   const handleOpenDialog = (rule: any = null) => {
     setCurrentRule(rule || { id: '', field: '', department: mockDepartments[0].name, staff: mockStaff[0].name });
@@ -46,11 +75,29 @@ export default function Routing() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Waypoints className="h-5 w-5 text-primary" />
               Quy tắc điều phối theo lĩnh vực phụ trách
             </CardTitle>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm theo lĩnh vực..."
+                  className="pl-9"
+                  value={ruleSearch}
+                  onChange={e => { setRuleSearch(e.target.value); setRulePage(1); }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={ruleDeptFilter} onChange={e => { setRuleDeptFilter(e.target.value); setRulePage(1); }} className="w-48">
+                  <option value="all">Tất cả phòng ban</option>
+                  {mockDepartments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -63,7 +110,7 @@ export default function Routing() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rules.map((rule) => (
+                {paginatedRules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell className="font-medium">{rule.field}</TableCell>
                     <TableCell>{rule.department}</TableCell>
@@ -78,14 +125,40 @@ export default function Routing() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {paginatedRules.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                      Không tìm thấy quy tắc nào.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
+            <Pagination page={rulePage} totalPages={ruleTotalPages} onPageChange={setRulePage} totalItems={filteredRules.length} pageSize={PAGE_SIZE} />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <CardTitle>Thông tin tiếp nhận gần đây</CardTitle>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm theo người gửi..."
+                  className="pl-9"
+                  value={itemSearch}
+                  onChange={e => { setItemSearch(e.target.value); setItemPage(1); }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Select value={itemFieldFilter} onChange={e => { setItemFieldFilter(e.target.value); setItemPage(1); }} className="w-44">
+                  <option value="all">Tất cả lĩnh vực</option>
+                  {itemFields.map(f => <option key={f} value={f}>{f}</option>)}
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -99,7 +172,7 @@ export default function Routing() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
+                {paginatedItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="whitespace-nowrap">{item.date}</TableCell>
                     <TableCell className="font-medium">{item.sender}</TableCell>
@@ -118,8 +191,16 @@ export default function Routing() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {paginatedItems.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      Không tìm thấy kết quả nào.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
+            <Pagination page={itemPage} totalPages={itemTotalPages} onPageChange={setItemPage} totalItems={filteredItems.length} pageSize={PAGE_SIZE} />
           </CardContent>
         </Card>
       </div>
