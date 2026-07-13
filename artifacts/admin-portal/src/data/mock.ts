@@ -37,17 +37,25 @@ export const mockRoles = [
   { id: '7', name: 'Nhân viên văn thư', desc: 'Quản lý công dân và hồ sơ tiếp nhận', users: 3, permissions: ['Tổng quan', 'Công dân'] },
 ];
 
-export const allPermissions = [
-  'Tổng quan',
-  'Vai trò',
-  'Phòng ban',
-  'Cán bộ',
-  'Tin tức',
-  'Công dân',
-  'Phản ánh',
-  'Đặt lịch hẹn',
-  'Điều phối',
-];
+export const permissionGroups = [
+  {
+    label: 'Quản trị hệ thống',
+    description: 'Các quyền liên quan đến cấu hình, tổ chức và vận hành lõi.',
+    permissions: ['Tổng quan', 'Vai trò', 'Phòng ban', 'Cán bộ'],
+  },
+  {
+    label: 'Nội dung & hồ sơ',
+    description: 'Các quyền quản lý nội dung và dữ liệu công dân.',
+    permissions: ['Tin tức', 'Công dân'],
+  },
+  {
+    label: 'Nghiệp vụ tiếp nhận',
+    description: 'Các quyền xử lý phản ánh, lịch hẹn và điều phối nội bộ.',
+    permissions: ['Phản ánh', 'Đặt lịch hẹn', 'Điều phối'],
+  },
+] as const;
+
+export const allPermissions = permissionGroups.flatMap((group) => group.permissions);
 
 export const mockNews = [
   { id: '1', title: 'Thông báo về việc làm CCCD gắn chip', category: 'thong-bao', status: 'published', date: '2023-10-01', source: 'Cổng TTĐT Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },

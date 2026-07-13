@@ -16,7 +16,7 @@ import {
   Pagination,
   cn,
 } from "../components/ui";
-import { mockRoles, allPermissions } from "../data/mock";
+import { mockRoles, allPermissions, permissionGroups } from "../data/mock";
 import {
   Shield,
   Plus,
@@ -26,6 +26,8 @@ import {
   CheckSquare,
   Square,
   Users,
+  Layers3,
+  ShieldCheck,
 } from "lucide-react";
 
 const PAGE_SIZE = 5;
@@ -49,6 +51,10 @@ export default function Roles() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId) || roles[0];
+  const selectedPermissions = selectedRole?.permissions || [];
+  const completion = allPermissions.length
+    ? Math.round((selectedPermissions.length / allPermissions.length) * 100)
+    : 0;
 
   useEffect(() => {
     // Keep a valid selection whenever the visible/filtered list changes.
@@ -99,7 +105,29 @@ export default function Roles() {
         ? selectedRole.permissions.filter((p: string) => p !== perm)
         : [...selectedRole.permissions, perm],
     };
-    setRoles(roles.map((r) => (r.id === updated.id ? updated : r)));
+    setRoles((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  };
+
+  const replaceSelectedPermissions = (permissions: string[]) => {
+    if (!selectedRole) return;
+    const updated = {
+      ...selectedRole,
+      permissions,
+    };
+    setRoles((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  };
+
+  const setGroupPermissions = (groupPermissions: readonly string[], enable: boolean) => {
+    if (!selectedRole) return;
+    const next = new Set(selectedRole.permissions);
+    groupPermissions.forEach((perm) => {
+      if (enable) {
+        next.add(perm);
+      } else {
+        next.delete(perm);
+      }
+    });
+    replaceSelectedPermissions(Array.from(next));
   };
 
   return (
@@ -215,55 +243,159 @@ export default function Roles() {
           <Card>
             {selectedRole ? (
               <>
-                <CardHeader className="flex flex-row items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-primary" />
-                      {selectedRole.name}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {selectedRole.desc || "Chưa có mô tả"}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
-                      <Users className="h-3.5 w-3.5" /> {selectedRole.users}{" "}
-                      người dùng đang giữ vai trò này
+                <CardHeader className="space-y-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                          <Shield className="h-5 w-5 text-primary" />
+                          {selectedRole.name}
+                        </CardTitle>
+                        <Badge variant="secondary" className="shrink-0">
+                          {selectedPermissions.length}/{allPermissions.length} quyền
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedRole.desc || "Chưa có mô tả"}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Users className="h-3.5 w-3.5" /> {selectedRole.users}{" "}
+                        người dùng đang giữ vai trò này
+                      </div>
+                    </div>
+                    <div className="min-w-[260px] rounded-xl border bg-slate-50 p-4">
+                      <div className="mb-2 flex items-center justify-between text-sm">
+                        <span className="font-medium">Mức độ cấp quyền</span>
+                        <span className="text-muted-foreground">{completion}%</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{ width: `${completion}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Vai trò này đang có {selectedPermissions.length} quyền trong tổng {allPermissions.length} quyền khả dụng.
+                      </p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="shrink-0">
-                    {selectedRole.permissions.length}/{allPermissions.length}{" "}
-                    quyền
-                  </Badge>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm font-medium mb-3">Quyền hạn được cấp</p>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {allPermissions.map((perm) => {
-                      const granted = selectedRole.permissions.includes(perm);
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div>
+                      <p className="text-sm font-medium">Quyền hạn được cấp</p>
+                      <p className="text-xs text-muted-foreground">
+                        Chọn nhanh theo từng nhóm hoặc bật tắt từng quyền riêng lẻ.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => replaceSelectedPermissions(allPermissions)}
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        Chọn tất cả
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => replaceSelectedPermissions([])}
+                      >
+                        Bỏ chọn tất cả
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    {permissionGroups.map((group) => {
+                      const grantedCount = group.permissions.filter((perm) =>
+                        selectedPermissions.includes(perm),
+                      ).length;
+                      const allGranted = grantedCount === group.permissions.length;
+                      const someGranted = grantedCount > 0 && !allGranted;
+
                       return (
-                        <button
-                          key={perm}
-                          type="button"
-                          onClick={() => togglePermission(perm)}
-                          className={cn(
-                            "flex items-center gap-2 rounded-md border px-3 py-2.5 text-sm text-left transition-colors",
-                            granted
-                              ? "border-primary/30 bg-primary/5 text-foreground"
-                              : "border-input text-muted-foreground hover:bg-slate-50",
-                          )}
+                        <div
+                          key={group.label}
+                          className="rounded-xl border bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm"
                         >
-                          {granted ? (
-                            <CheckSquare className="h-4 w-4 text-primary shrink-0" />
-                          ) : (
-                            <Square className="h-4 w-4 text-muted-foreground shrink-0" />
-                          )}
-                          {perm}
-                        </button>
+                          <div className="mb-4 flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Layers3 className="h-4 w-4 text-primary" />
+                                <h3 className="font-semibold text-foreground">
+                                  {group.label}
+                                </h3>
+                              </div>
+                              <p className="text-xs leading-relaxed text-muted-foreground">
+                                {group.description}
+                              </p>
+                            </div>
+                            <Badge variant={allGranted ? "default" : someGranted ? "secondary" : "outline"}>
+                              {grantedCount}/{group.permissions.length}
+                            </Badge>
+                          </div>
+
+                          <div className="grid gap-2">
+                            {group.permissions.map((perm) => {
+                              const granted = selectedPermissions.includes(perm);
+                              return (
+                                <button
+                                  key={perm}
+                                  type="button"
+                                  onClick={() => togglePermission(perm)}
+                                  className={cn(
+                                    "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm text-left transition-all",
+                                    granted
+                                      ? "border-primary/30 bg-primary/5 text-foreground shadow-sm"
+                                      : "border-input bg-white text-muted-foreground hover:border-primary/20 hover:bg-primary/[0.03]",
+                                  )}
+                                >
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    {granted ? (
+                                      <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
+                                    ) : (
+                                      <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                    )}
+                                    <span className="truncate">{perm}</span>
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                                      granted
+                                        ? "bg-primary/10 text-primary"
+                                        : "bg-slate-100 text-muted-foreground",
+                                    )}
+                                  >
+                                    {granted ? "Đã cấp" : "Chưa cấp"}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setGroupPermissions(group.permissions, true)}
+                            >
+                              Chọn nhóm
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setGroupPermissions(group.permissions, false)}
+                            >
+                              Bỏ nhóm
+                            </Button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-4">
-                    Nhấn vào một quyền để cấp hoặc thu hồi cho vai trò này.
-                  </p>
                 </CardContent>
               </>
             ) : (
