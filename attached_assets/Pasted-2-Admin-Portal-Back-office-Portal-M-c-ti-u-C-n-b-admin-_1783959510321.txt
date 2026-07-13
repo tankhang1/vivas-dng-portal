@@ -1,0 +1,109 @@
+2. Admin Portal / Back-office Portal
+
+Mục tiêu: Cán bộ, admin và lãnh đạo dùng để quản lý nội dung, lịch hẹn, phản ánh, người dân, nhân sự và báo cáo.
+
+2.1. Đăng nhập & phân quyền
+Feature	Mô tả
+Đăng nhập portal	Cán bộ đăng nhập bằng tài khoản nội bộ
+Quản lý vai trò	Super Admin, Admin, Cán bộ xử lý, Biên tập viên, Lãnh đạo
+Phân quyền chức năng	Mỗi vai trò được quyền xem/tạo/sửa/xóa/xử lý khác nhau
+Khóa tài khoản	Admin có thể disable tài khoản cán bộ
+Nhật ký đăng nhập	Ghi nhận lịch sử đăng nhập và thao tác quan trọng
+2.2. Dashboard tổng quan
+Feature	Mô tả
+Tổng số lịch hẹn	Hôm nay, tuần này, tháng này
+Tổng số phản ánh	Mới, đang xử lý, quá hạn, đã hoàn tất
+Biểu đồ xử lý	Theo phòng ban, theo trạng thái, theo thời gian
+Tin tức đã đăng	Tổng số tin đang publish/draft
+Cảnh báo quá hạn	Hiển thị phản ánh hoặc lịch cần xử lý gấp
+2.3. Quản lý cán bộ / tài khoản
+Feature	Mô tả
+Danh sách cán bộ	Xem toàn bộ cán bộ trong hệ thống
+Thêm/sửa/xóa cán bộ	Quản lý thông tin cán bộ
+Gán phòng ban	Mỗi cán bộ thuộc một hoặc nhiều phòng ban
+Gán vai trò	Ví dụ: cán bộ tiếp nhận, cán bộ xử lý, lãnh đạo duyệt
+Trạng thái hoạt động	Active / inactive
+2.4. Quản lý phòng ban / chức vụ
+Feature	Mô tả
+Danh sách phòng ban	Ví dụ: Văn phòng UBND, Tư pháp, Địa chính, Công an, Quân sự
+Quản lý chức vụ	Chủ tịch, Phó chủ tịch, Trưởng bộ phận, Cán bộ xử lý
+Mapping phòng ban - cán bộ	Gán cán bộ vào phòng ban
+Phân tuyến xử lý	Loại phản ánh nào đi về phòng ban nào
+2.5. Quản lý tin tức & sự kiện
+Feature	Mô tả
+Tạo bài viết	Admin tạo tin tức, thông báo, sự kiện
+Lưu nháp	Bài viết chưa publish
+Xuất bản / gỡ bài	Publish/unpublish
+Ghim bài quan trọng	Đưa tin quan trọng lên đầu app
+Quản lý danh mục	Tin tức, thông báo, sự kiện, khẩn cấp
+Upload hình ảnh	Thêm ảnh đại diện và ảnh trong nội dung
+Lên lịch đăng	Chọn thời gian publish nếu cần
+2.6. Quản lý hướng dẫn thủ tục
+Feature	Mô tả
+Danh sách thủ tục	Admin tạo và quản lý thủ tục hành chính
+Nội dung hướng dẫn	Mô tả, giấy tờ cần chuẩn bị, phí, thời gian xử lý
+Checklist hồ sơ	Tạo danh sách giấy tờ cần có
+Link hệ thống ngoài	Gắn link Cổng Dịch vụ công
+Bật/tắt hiển thị	Thủ tục nào active thì hiện trên app
+Sắp xếp ưu tiên	Đưa thủ tục phổ biến lên đầu
+2.7. Quản lý lịch hẹn
+Feature	Mô tả
+Danh sách lịch hẹn	Xem lịch theo ngày/tuần/tháng
+Bộ lọc lịch	Theo trạng thái, phòng ban, cán bộ phụ trách, loại thủ tục
+Chi tiết lịch hẹn	Xem thông tin người dân, nội dung, thời gian
+Duyệt / xác nhận lịch	Nếu cần cán bộ xác nhận trước
+Đổi lịch / hủy lịch	Cán bộ có thể điều chỉnh
+Gán cán bộ phụ trách	Lịch hẹn được assign cho cán bộ/phòng ban
+Ghi chú nội bộ	Cán bộ ghi chú nhưng người dân không thấy
+Trạng thái lịch	Mới, đã xác nhận, đã đến, vắng mặt, hoàn tất, hủy
+2.8. Quản lý số thứ tự / queue
+Feature	Mô tả
+Danh sách số thứ tự	Xem số đã đăng ký trong ngày
+Gọi số tiếp theo	Cán bộ gọi số
+Check-in QR	Quét mã người dân để xác nhận đã đến
+Cập nhật trạng thái	Đang chờ, đang phục vụ, đã hoàn tất, bỏ qua
+Cấu hình slot	Số lượng lượt mỗi khung giờ
+2.9. Quản lý phản ánh / kiến nghị
+Feature	Mô tả
+Inbox phản ánh	Danh sách phản ánh mới từ người dân
+Chi tiết phản ánh	Xem nội dung, hình ảnh, vị trí, người gửi
+Phân loại phản ánh	Theo lĩnh vực: môi trường, trật tự, hành chính, an ninh…
+Gán người xử lý	Assign cho phòng ban hoặc cán bộ cụ thể
+Tự động phân luồng	Hệ thống tự gán theo loại phản ánh
+Cập nhật trạng thái	Mới, đã tiếp nhận, đang xử lý, cần bổ sung, hoàn tất, từ chối
+Phản hồi người dân	Nhập nội dung phản hồi
+Yêu cầu bổ sung	Yêu cầu người dân bổ sung thông tin/hình ảnh
+Lịch sử xử lý	Lưu toàn bộ timeline xử lý
+SLA / quá hạn	Cảnh báo nếu quá thời gian xử lý
+2.10. Quản lý người dân
+Feature	Mô tả
+Danh sách người dân	Xem người dùng đã tương tác với app
+Hồ sơ người dân	Họ tên, số điện thoại, địa chỉ, Zalo user ID
+Lịch sử tương tác	Lịch hẹn, phản ánh, đánh giá
+Tìm kiếm người dân	Theo tên, số điện thoại, mã hồ sơ
+Ghi chú nội bộ	Cán bộ có thể ghi chú nếu cần
+Quản lý consent	Lưu thông tin người dân đã đồng ý chia sẻ dữ liệu nào
+2.11. Quản lý danh bạ khẩn cấp
+Feature	Mô tả
+Danh sách liên hệ	Quản lý số điện thoại công an, y tế, UBND, đường dây nóng
+Thêm/sửa/xóa liên hệ	Admin cập nhật thông tin
+Phân loại liên hệ	Khẩn cấp, hành chính, hỗ trợ
+Bật/tắt hiển thị	Chỉ liên hệ active mới hiện trên app
+2.12. Quản lý thông báo
+Feature	Mô tả
+Gửi thông báo lịch hẹn	Xác nhận, nhắc lịch, hủy lịch
+Gửi thông báo phản ánh	Khi trạng thái phản ánh thay đổi
+Gửi thông báo tin quan trọng	Tin khẩn hoặc thông báo chung
+Template tin nhắn	Quản lý mẫu nội dung thông báo
+Lịch sử gửi	Xem thông báo đã gửi, thành công/thất bại
+2.13. Báo cáo & thống kê
+Feature	Mô tả
+Báo cáo lịch hẹn	Số lịch theo ngày/tháng, tỉ lệ hoàn tất, vắng mặt
+Báo cáo phản ánh	Số phản ánh theo trạng thái, phòng ban, loại vấn đề
+Báo cáo hiệu suất cán bộ	Số case xử lý, thời gian xử lý trung bình
+Báo cáo hài lòng	Điểm đánh giá trung bình, phản hồi tiêu cực
+Báo cáo người dùng	Số người dùng mới, người dùng active
+Export Excel	Xuất dữ liệu báo cáo
+2.14. Cấu hình hệ thống
+Feature	Mô tả
+Cấu hình thông tin xã/phường	Tên đơn vị, địa chỉ, hotl...
