@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../components/Layout';
+import { Layout } from '../../components/Layout';
 import {
   Badge,
   Button,
@@ -16,95 +16,58 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../components/ui';
-import { getNews, deleteNews } from './news/store';
+} from '../../components/ui';
+import { deleteEvent, getEvents } from './store';
 import {
   categoryLabel,
-  formatDate,
-  sourceLabel,
-  statusOptions,
-  type NewsArticle,
-} from './news/types';
-import { NewsDetailDialog } from './news/NewsDetailDialog';
-import {
-  Edit2,
-  Eye,
-  FileEdit,
-  Globe,
-  ImageUp,
-  Paperclip,
-  Plus,
-  Search,
-  Trash2,
-} from 'lucide-react';
+  formatDateTime,
+  statusLabel,
+  statusVariant,
+  type EventItem,
+} from './types';
+import { Edit2, Globe, FileEdit, ImageUp, Plus, Search, Trash2, Clock3 } from 'lucide-react';
 
 const PAGE_SIZE = 5;
 
-const statusBadge = (status: NewsArticle['status']) => {
-  if (status === 'published') {
-    return (
-      <Badge variant="success" className="gap-1 bg-green-100 text-green-800">
-        <Globe className="h-3 w-3" /> Đã xuất bản
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge variant="secondary" className="gap-1">
-      <FileEdit className="h-3 w-3" /> Bản nháp
-    </Badge>
-  );
-};
-
-export default function News() {
+export default function EventsPage() {
   const [, navigate] = useLocation();
-  const [news, setNews] = useState<NewsArticle[]>(() => getNews());
+  const [events, setEvents] = useState<EventItem[]>(() => getEvents());
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
-  const [detailArticle, setDetailArticle] = useState<NewsArticle | null>(null);
 
   const filtered = useMemo(() => {
-    return news.filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (categoryFilter === 'all' || item.category === categoryFilter) &&
-        (statusFilter === 'all' || item.status === statusFilter),
+    return events.filter(
+      (event) =>
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (categoryFilter === 'all' || event.category === categoryFilter) &&
+        (statusFilter === 'all' || event.status === statusFilter),
     );
-  }, [news, searchTerm, categoryFilter, statusFilter]);
+  }, [events, searchTerm, categoryFilter, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const goToCreate = () => navigate('/news/new');
-  const goToEdit = (id: string) => navigate(`/news/${id}/edit`);
-
-  const openDetail = (article: NewsArticle) => {
-    setDetailArticle(article);
-  };
-
   const handleDelete = (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa bản tin này?')) return;
-    deleteNews(id);
-    setDetailArticle((current) => (current?.id === id ? null : current));
-    setNews(getNews());
+    if (!window.confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
+    deleteEvent(id);
+    setEvents(getEvents());
   };
 
   return (
     <Layout>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Tin tức & Thông báo
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Sự kiện</h1>
             <p className="mt-1 text-muted-foreground">
-              Quản lý bài viết, thông báo hiển thị trên Cổng thông tin điện tử.
+              Quản lý lịch sự kiện, hội nghị và hoạt động nổi bật trên cổng thông tin.
             </p>
           </div>
-          <Button onClick={goToCreate} className="gap-2">
-            <Plus className="h-4 w-4" /> Tạo mới
+          <Button onClick={() => navigate('/events/new')} className="gap-2 self-start">
+            <Plus className="h-4 w-4" />
+            Thêm sự kiện
           </Button>
         </div>
 
@@ -113,7 +76,7 @@ export default function News() {
             <div className="relative w-full md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tìm kiếm tiêu đề bản tin..."
+                placeholder="Tìm kiếm tiêu đề sự kiện..."
                 className="pl-9"
                 value={searchTerm}
                 onChange={(e) => {
@@ -124,7 +87,7 @@ export default function News() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select
-                className="w-[150px]"
+                className="w-[160px]"
                 value={categoryFilter}
                 onChange={(e) => {
                   setCategoryFilter(e.target.value);
@@ -132,14 +95,12 @@ export default function News() {
                 }}
               >
                 <option value="all">Tất cả danh mục</option>
-                {['thong-bao', 'su-kien', 'khan-cap'].map((value) => (
-                  <option key={value} value={value}>
-                    {categoryLabel(value as NewsArticle['category'])}
-                  </option>
-                ))}
+                <option value="hoi-nghi">Hội nghị</option>
+                <option value="tap-huan">Tập huấn</option>
+                <option value="le-hoat-dong">Lễ / Hoạt động</option>
               </Select>
               <Select
-                className="w-[150px]"
+                className="w-[160px]"
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
@@ -147,11 +108,8 @@ export default function News() {
                 }}
               >
                 <option value="all">Tất cả trạng thái</option>
-                {statusOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
+                <option value="published">Đã xuất bản</option>
+                <option value="draft">Bản nháp</option>
               </Select>
             </div>
           </CardHeader>
@@ -162,8 +120,8 @@ export default function News() {
                   <TableHead>Ảnh</TableHead>
                   <TableHead>Tiêu đề</TableHead>
                   <TableHead>Danh mục</TableHead>
-                  <TableHead>Nguồn tin</TableHead>
-                  <TableHead>Ngày đăng</TableHead>
+                  <TableHead>Thời gian</TableHead>
+                  <TableHead>Địa điểm</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
@@ -189,44 +147,49 @@ export default function News() {
                     <TableCell className="max-w-[400px] font-medium">
                       <div className="flex items-center gap-1.5">
                         <span className="truncate">{item.title}</span>
-                        {item.media?.length > 0 && (
-                          <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
-                            <Paperclip className="h-3 w-3" /> {item.media.length}
-                          </span>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{categoryLabel(item.category)}</Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {sourceLabel(item.source)}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <Clock3 className="h-3.5 w-3.5" />
+                          <span>{formatDateTime(item.startAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock3 className="h-3.5 w-3.5" />
+                          <span>{formatDateTime(item.endAt)}</span>
+                        </div>
+                      </div>
                     </TableCell>
-                    <TableCell>{formatDate(item.date)}</TableCell>
-                    <TableCell>{statusBadge(item.status)}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.location}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant(item.status)} className="gap-1">
+                        {item.status === 'published' ? (
+                          <Globe className="h-3 w-3" />
+                        ) : (
+                          <FileEdit className="h-3 w-3" />
+                        )}
+                        {statusLabel(item.status)}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => openDetail(item)}
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="h-4 w-4 text-slate-700" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => goToEdit(item.id)}
                           title="Chỉnh sửa"
+                          onClick={() => navigate(`/events/${item.id}/edit`)}
                         >
                           <Edit2 className="h-4 w-4 text-blue-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(item.id)}
                           title="Xóa"
+                          onClick={() => handleDelete(item.id)}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
@@ -236,17 +199,13 @@ export default function News() {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Không tìm thấy bản tin nào.
+                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                      Không tìm thấy sự kiện nào.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-
             <Pagination
               page={page}
               totalPages={totalPages}
@@ -257,16 +216,6 @@ export default function News() {
           </CardContent>
         </Card>
       </div>
-
-      <NewsDetailDialog
-        open={Boolean(detailArticle)}
-        article={detailArticle}
-        onOpenChange={(open) => {
-          if (!open) setDetailArticle(null);
-        }}
-        onEdit={(id) => navigate(`/news/${id}/edit`)}
-        onDelete={handleDelete}
-      />
     </Layout>
   );
 }

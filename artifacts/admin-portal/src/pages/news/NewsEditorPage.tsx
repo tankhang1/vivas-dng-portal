@@ -15,7 +15,7 @@ import {
 import { MediaUpload } from "../../components/MediaUpload";
 import { FormEditor } from "../../components/FormEditor";
 import { saveNews, getNewsById } from "./store";
-import { ArrowLeft, CalendarDays, Link as LinkIcon } from "lucide-react";
+import { CalendarDays, Link as LinkIcon } from "lucide-react";
 import {
   audienceLabel,
   audienceOptions,
@@ -103,15 +103,6 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1 pl-0"
-                onClick={() => navigate("/news")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Quay lại
-              </Button>
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
               <p className="text-muted-foreground">{subtitle}</p>
             </div>
@@ -346,16 +337,6 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="outline" onClick={() => navigate("/news")}>
-              Hủy
-            </Button>
-            <Button variant="outline" onClick={() => handleSave("draft")}>
-              Lưu nháp
-            </Button>
-            <Button onClick={() => handleSave("published")}>Xuất bản</Button>
           </div>
         </div>
       )}

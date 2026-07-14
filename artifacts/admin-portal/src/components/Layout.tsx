@@ -1,14 +1,34 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { Users, Building, ShieldCheck, FileText, BookUser, Waypoints, LogOut, Menu, LayoutDashboard, MessageSquareWarning, CalendarClock } from 'lucide-react';
+import {
+  Users,
+  Building,
+  ShieldCheck,
+  FileText,
+  BookUser,
+  Waypoints,
+  LogOut,
+  Menu,
+  LayoutDashboard,
+  MessageSquareWarning,
+  CalendarClock,
+  ChevronDown,
+} from 'lucide-react';
 import { cn } from './ui';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { BrandMark } from './BrandMark';
 
 const navItems = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
-  { name: 'Phòng ban', href: '/departments', icon: Building },
-  { name: 'Cán bộ', href: '/staff', icon: Users },
+  {
+    name: 'Danh bạ nội bộ',
+    icon: Users,
+    children: [
+      { name: 'Cán bộ', href: '/staff', icon: Users },
+      { name: 'Phòng ban', href: '/departments', icon: Building },
+      { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
+    ],
+  },
   { name: 'Tin tức', href: '/news', icon: FileText },
   { name: 'Sự kiện', href: '/events', icon: CalendarClock },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
@@ -17,9 +37,20 @@ const navItems = [
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
 ];
 
+function isGroupItem(
+  item: (typeof navItems)[number],
+): item is (typeof navItems)[number] & { children: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }[] } {
+  return 'children' in item;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [internalMenuOpen, setInternalMenuOpen] = React.useState(
+    location.startsWith('/staff') ||
+      location.startsWith('/departments') ||
+      location.startsWith('/roles'),
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -32,8 +63,63 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <p className="px-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
             Quản lý hệ thống
           </p>
-          <nav className="grid gap-1 px-2">
-            {navItems.map((item) => {
+            <nav className="grid gap-1 px-2">
+              {navItems.map((item) => {
+              if (isGroupItem(item)) {
+                const isChildActive = item.children.some(
+                  (child) => location === child.href || location.startsWith(child.href),
+                );
+
+                return (
+                  <Collapsible
+                    key={item.name}
+                    open={internalMenuOpen || isChildActive}
+                    onOpenChange={setInternalMenuOpen}
+                    className="grid gap-1"
+                  >
+                    <CollapsibleTrigger
+                      className={cn(
+                        'flex items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
+                        isChildActive
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                      )}
+                    >
+                      <span className="flex items-center gap-3">
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {item.name}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'h-4 w-4 transition-transform',
+                          (internalMenuOpen || isChildActive) && 'rotate-180',
+                        )}
+                      />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="grid gap-1 pb-1 pl-4">
+                      {item.children.map((child) => {
+                        const isActive = location === child.href || location.startsWith(child.href);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                              isActive
+                                ? 'bg-sidebar-primary/15 text-sidebar-primary'
+                                : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                            )}
+                          >
+                            <child.icon className="h-4 w-4 shrink-0" />
+                            {child.name}
+                          </Link>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
+
               const isActive = location === item.href || (item.href !== '/' && location.startsWith(item.href));
               return (
                 <Link key={item.href} href={item.href} className={cn(
@@ -100,6 +186,60 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="md:hidden border-b border-sidebar-border bg-sidebar absolute top-16 left-0 right-0 z-50 shadow-lg max-h-[80vh] overflow-auto">
             <nav className="grid gap-1 p-4">
               {navItems.map((item) => {
+                if (isGroupItem(item)) {
+                  const isChildActive = item.children.some(
+                    (child) => location === child.href || location.startsWith(child.href),
+                  );
+                  return (
+                    <div key={item.name} className="grid gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setInternalMenuOpen((open) => !open)}
+                        className={cn(
+                          'flex items-center justify-between rounded-md px-3 py-3 text-sm font-medium transition-colors',
+                          isChildActive
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent',
+                        )}
+                      >
+                        <span className="flex items-center gap-3">
+                          <item.icon className="h-5 w-5" />
+                          {item.name}
+                        </span>
+                        <ChevronDown
+                          className={cn(
+                            'h-4 w-4 transition-transform',
+                            (internalMenuOpen || isChildActive) && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                      {(internalMenuOpen || isChildActive) && (
+                        <div className="grid gap-1 pl-4">
+                          {item.children.map((child) => {
+                            const isActive = location === child.href || location.startsWith(child.href);
+                            return (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={cn(
+                                  'flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors',
+                                  isActive
+                                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                                    : 'text-sidebar-foreground hover:bg-sidebar-accent',
+                                )}
+                              >
+                                <child.icon className="h-5 w-5" />
+                                {child.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 const isActive = location === item.href || (item.href !== '/' && location.startsWith(item.href));
                 return (
                   <Link 
