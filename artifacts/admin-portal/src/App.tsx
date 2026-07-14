@@ -6,6 +6,7 @@ import Staff from './pages/Staff';
 import Departments from './pages/Departments';
 import Roles from './pages/Roles';
 import News from './pages/News';
+import Events from './pages/Events';
 import Routing from './pages/Routing';
 import Citizens from './pages/Citizens';
 import Feedback from './pages/Feedback';
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/departments" component={Departments} />
       <Route path="/roles" component={Roles} />
       <Route path="/news" component={News} />
+      <Route path="/events" component={Events} />
       <Route path="/citizens" component={Citizens} />
       <Route path="/routing" component={Routing} />
       <Route path="/feedback" component={Feedback} />

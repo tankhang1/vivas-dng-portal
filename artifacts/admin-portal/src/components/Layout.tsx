@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Phòng ban', href: '/departments', icon: Building },
   { name: 'Cán bộ', href: '/staff', icon: Users },
   { name: 'Tin tức', href: '/news', icon: FileText },
+  { name: 'Sự kiện', href: '/events', icon: CalendarClock },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
   { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
