@@ -13,6 +13,8 @@ import {
   MessageSquareWarning,
   CalendarClock,
   ChevronDown,
+  Tag,
+  Image,
 } from 'lucide-react';
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -22,6 +24,7 @@ const navItems = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
   {
     name: 'Danh bạ nội bộ',
+    menuKey: 'internal',
     icon: Users,
     children: [
       { name: 'Cán bộ', href: '/staff', icon: Users },
@@ -29,7 +32,16 @@ const navItems = [
       { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
     ],
   },
-  { name: 'Tin tức', href: '/news', icon: FileText },
+  {
+    name: 'Quản trị CMS',
+    menuKey: 'cms',
+    icon: FileText,
+    children: [
+      { name: 'Bài viết', href: '/news', icon: FileText },
+      { name: 'Danh mục', href: '/categories', icon: Tag },
+      { name: 'Banner', href: '/banners', icon: Image },
+    ],
+  },
   { name: 'Sự kiện', href: '/events', icon: CalendarClock },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
@@ -46,11 +58,16 @@ function isGroupItem(
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [internalMenuOpen, setInternalMenuOpen] = React.useState(
-    location.startsWith('/staff') ||
+  const [menuOpen, setMenuOpen] = React.useState({
+    internal:
+      location.startsWith('/staff') ||
       location.startsWith('/departments') ||
       location.startsWith('/roles'),
-  );
+    cms:
+      location.startsWith('/news') ||
+      location.startsWith('/categories') ||
+      location.startsWith('/banners'),
+  });
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -69,12 +86,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 const isChildActive = item.children.some(
                   (child) => location === child.href || location.startsWith(child.href),
                 );
+                const groupOpen =
+                  item.menuKey === 'cms' ? menuOpen.cms : menuOpen.internal;
+                const setGroupOpen = (open: boolean) =>
+                  setMenuOpen((current) => ({
+                    ...current,
+                    [item.menuKey === 'cms' ? 'cms' : 'internal']: open,
+                  }));
 
                 return (
                   <Collapsible
                     key={item.name}
-                    open={internalMenuOpen || isChildActive}
-                    onOpenChange={setInternalMenuOpen}
+                    open={groupOpen || isChildActive}
+                    onOpenChange={setGroupOpen}
                     className="grid gap-1"
                   >
                     <CollapsibleTrigger
@@ -92,7 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <ChevronDown
                         className={cn(
                           'h-4 w-4 transition-transform',
-                          (internalMenuOpen || isChildActive) && 'rotate-180',
+                          (groupOpen || isChildActive) && 'rotate-180',
                         )}
                       />
                     </CollapsibleTrigger>
@@ -190,11 +214,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   const isChildActive = item.children.some(
                     (child) => location === child.href || location.startsWith(child.href),
                   );
+                  const groupOpen =
+                    item.menuKey === 'cms' ? menuOpen.cms : menuOpen.internal;
+                  const toggleGroup = () =>
+                    setMenuOpen((current) => ({
+                      ...current,
+                      [item.menuKey === 'cms' ? 'cms' : 'internal']: !(
+                        item.menuKey === 'cms' ? current.cms : current.internal
+                      ),
+                    }));
                   return (
                     <div key={item.name} className="grid gap-1">
                       <button
                         type="button"
-                        onClick={() => setInternalMenuOpen((open) => !open)}
+                        onClick={toggleGroup}
                         className={cn(
                           'flex items-center justify-between rounded-md px-3 py-3 text-sm font-medium transition-colors',
                           isChildActive
@@ -209,11 +242,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <ChevronDown
                           className={cn(
                             'h-4 w-4 transition-transform',
-                            (internalMenuOpen || isChildActive) && 'rotate-180',
+                            (groupOpen || isChildActive) && 'rotate-180',
                           )}
                         />
                       </button>
-                      {(internalMenuOpen || isChildActive) && (
+                      {(groupOpen || isChildActive) && (
                         <div className="grid gap-1 pl-4">
                           {item.children.map((child) => {
                             const isActive = location === child.href || location.startsWith(child.href);
