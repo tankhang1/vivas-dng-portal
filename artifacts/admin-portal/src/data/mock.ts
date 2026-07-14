@@ -6,6 +6,12 @@ import feedbackConstruction2 from '../../../../attached_assets/1783961533815_143
 import feedbackDrain from '../../../../attached_assets/1783961533827_143563953939806758_7334235742624065552_383d836c0_1783961699770.jpg';
 import feedbackSecurity from '../../../../attached_assets/1783961533839_143563953939806758_7334235742624065552_32ae612c3_1783961699770.jpg';
 
+const newsAttachment = (
+  id: string,
+  name: string,
+  url: string,
+): { id: string; name: string; url: string } => ({ id, name, url });
+
 export const mockStaff = [
   { id: '1', name: 'Nguyễn Văn A', username: 'nva', department: 'Văn phòng UBND', role: 'Super Admin', status: 'active' },
   { id: '2', name: 'Trần Thị B', username: 'ttb', department: 'Tư pháp', role: 'Admin', status: 'active' },
@@ -58,15 +64,217 @@ export const permissionGroups = [
 export const allPermissions = permissionGroups.flatMap((group) => group.permissions);
 
 export const mockNews = [
-  { id: '1', title: 'Thông báo về việc làm CCCD gắn chip', category: 'thong-bao', status: 'published', date: '2023-10-01', source: 'Cổng TTĐT Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
-  { id: '2', title: 'Khởi công xây dựng nhà văn hóa khu phố 3', category: 'su-kien', status: 'draft', date: '2023-10-05', source: 'Văn phòng UBND Xã', media: [] as { id: string; name: string; url: string }[] },
-  { id: '3', title: 'Cảnh báo dịch sốt xuất huyết trên địa bàn', category: 'khan-cap', status: 'published', date: '2023-10-10', source: 'Trung tâm Y tế Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
-  { id: '4', title: 'Lịch tiêm chủng mở rộng tháng 11', category: 'thong-bao', status: 'published', date: '2023-10-12', source: 'Trạm Y tế Xã Tây Hồ', media: [] as { id: string; name: string; url: string }[] },
-  { id: '5', title: 'Ra quân tổng vệ sinh môi trường toàn xã', category: 'su-kien', status: 'published', date: '2023-10-15', source: 'Đoàn Thanh niên Xã', media: [] as { id: string; name: string; url: string }[] },
-  { id: '6', title: 'Thông báo tạm ngừng cấp nước để sửa chữa', category: 'thong-bao', status: 'draft', date: '2023-10-18', source: 'Công ty Cấp nước', media: [] as { id: string; name: string; url: string }[] },
-  { id: '7', title: 'Hội nghị tổng kết công tác năm', category: 'su-kien', status: 'draft', date: '2023-10-20', source: 'Văn phòng UBND Xã', media: [] as { id: string; name: string; url: string }[] },
-  { id: '8', title: 'Cảnh báo mưa lũ, sạt lở đất', category: 'khan-cap', status: 'published', date: '2023-10-22', source: 'Ban Chỉ huy PCTT Xã', media: [] as { id: string; name: string; url: string }[] },
-  { id: '9', title: 'Cảnh báo ngập úng cục bộ tại khu phố 4', category: 'khan-cap', status: 'draft', date: '2023-10-25', source: 'Ban Chỉ huy PCTT Xã', media: [] as { id: string; name: string; url: string }[] },
+  {
+    id: '1',
+    title: 'Thông báo về việc làm CCCD gắn chip',
+    category: 'thong-bao',
+    status: 'published',
+    date: '2023-10-01',
+    source: 'Cổng TTĐT Xã Tây Hồ',
+    audience: 'all-citizens',
+    linkType: 'external',
+    linkUrl: 'https://dichvucong.gov.vn',
+    thumbnail: [{ id: 'n1-thumb', name: 'cccd-thumb.jpg', url: feedbackStreetlight }],
+    media: [
+      newsAttachment('n1-1', 'Quy trình làm CCCD.pdf', 'https://example.com/quy-trinh-cccd.pdf'),
+    ],
+    shortDescription:
+      'Người dân trên địa bàn có thể đăng ký lịch làm CCCD gắn chip theo khung giờ tiếp nhận của bộ phận một cửa.',
+    contentHtml: `
+      <h2>Thông báo tiếp nhận hồ sơ</h2>
+      <p>UBND Xã Tây Hồ thông báo triển khai tiếp nhận hồ sơ làm CCCD gắn chip cho công dân đủ điều kiện.</p>
+      <ul>
+        <li>Thời gian: từ thứ 2 đến thứ 6 hằng tuần</li>
+        <li>Địa điểm: Bộ phận một cửa UBND Xã Tây Hồ</li>
+        <li>Hồ sơ: CMND/CCCD cũ, sổ hộ khẩu hoặc giấy tờ xác nhận cư trú</li>
+      </ul>
+      <p>Người dân vui lòng đến đúng lịch hẹn để được hỗ trợ nhanh chóng.</p>
+    `,
+  },
+  {
+    id: '2',
+    title: 'Khởi công xây dựng nhà văn hóa khu phố 3',
+    category: 'su-kien',
+    status: 'draft',
+    date: '2023-10-05',
+    source: 'Văn phòng UBND Xã',
+    audience: 'residents',
+    linkType: 'document',
+    linkUrl: 'https://example.com/ke-hoach-khoi-cong.pdf',
+    thumbnail: [{ id: 'n2-thumb', name: 'nha-van-hoa.jpg', url: feedbackConstruction1 }],
+    media: [
+      newsAttachment('n2-1', 'Biên bản khởi công.docx', 'https://example.com/bien-ban-khoi-cong.docx'),
+      newsAttachment('n2-2', 'Sơ đồ mặt bằng.pdf', 'https://example.com/so-do-mat-bang.pdf'),
+    ],
+    shortDescription:
+      'Dự án nhà văn hóa khu phố 3 được khởi công nhằm mở rộng không gian sinh hoạt cộng đồng và tổ chức các hoạt động văn hóa địa phương.',
+    contentHtml: `
+      <h2>Lễ khởi công dự án</h2>
+      <p>Buổi lễ có sự tham dự của đại diện các ban ngành, đoàn thể và nhân dân khu phố 3.</p>
+      <p>Công trình dự kiến hoàn thành trong quý IV, góp phần nâng cao chất lượng sinh hoạt cộng đồng.</p>
+    `,
+  },
+  {
+    id: '3',
+    title: 'Cảnh báo dịch sốt xuất huyết trên địa bàn',
+    category: 'khan-cap',
+    status: 'published',
+    date: '2023-10-10',
+    source: 'Trung tâm Y tế Xã Tây Hồ',
+    audience: 'all-citizens',
+    linkType: 'external',
+    linkUrl: 'https://moh.gov.vn',
+    thumbnail: [{ id: 'n3-thumb', name: 'sot-xuat-huyet.jpg', url: feedbackConstruction2 }],
+    media: [
+      newsAttachment('n3-1', 'Khuyến cáo phòng bệnh.pdf', 'https://example.com/khuyen-cao-phong-benh.pdf'),
+    ],
+    shortDescription:
+      'Ngành y tế khuyến nghị người dân chủ động dọn dẹp nơi ở, diệt lăng quăng và theo dõi triệu chứng để phòng chống sốt xuất huyết.',
+    contentHtml: `
+      <h2>Khuyến cáo khẩn</h2>
+      <p>Trong thời gian gần đây ghi nhận nguy cơ gia tăng ca mắc sốt xuất huyết tại một số khu vực.</p>
+      <ol>
+        <li>Loại bỏ nước đọng quanh nhà</li>
+        <li>Ngủ màn kể cả ban ngày</li>
+        <li>Đến cơ sở y tế khi có dấu hiệu sốt cao, đau đầu, đau mỏi người</li>
+      </ol>
+    `,
+  },
+  {
+    id: '4',
+    title: 'Lịch tiêm chủng mở rộng tháng 11',
+    category: 'thong-bao',
+    status: 'published',
+    date: '2023-10-12',
+    source: 'Trạm Y tế Xã Tây Hồ',
+    audience: 'residents',
+    linkType: 'none',
+    linkUrl: '',
+    thumbnail: [{ id: 'n4-thumb', name: 'lich-tiem-chung.jpg', url: feedbackDrain }],
+    media: [],
+    shortDescription:
+      'Trạm Y tế thông báo lịch tiêm chủng mở rộng trong tháng 11 dành cho trẻ em và các nhóm đối tượng ưu tiên.',
+    contentHtml: `
+      <h2>Thời gian tiêm chủng</h2>
+      <p>Lịch tiêm diễn ra tại Trạm Y tế Xã Tây Hồ từ 8:00 đến 16:30 các ngày làm việc.</p>
+      <p>Phụ huynh vui lòng mang theo sổ tiêm chủng và giấy khai sinh của trẻ.</p>
+    `,
+  },
+  {
+    id: '5',
+    title: 'Ra quân tổng vệ sinh môi trường toàn xã',
+    category: 'su-kien',
+    status: 'published',
+    date: '2023-10-15',
+    source: 'Đoàn Thanh niên Xã',
+    audience: 'residents',
+    linkType: 'attachment',
+    linkUrl: 'https://example.com/ke-hoach-ve-sinh-moi-truong.pdf',
+    thumbnail: [{ id: 'n5-thumb', name: 've-sinh-moi-truong.jpg', url: feedbackGarbage1 }],
+    media: [
+      newsAttachment('n5-1', 'Kế hoạch ra quân.pdf', 'https://example.com/ke-hoach-ra-quan.pdf'),
+      newsAttachment('n5-2', 'Danh sách khu vực phân công.xlsx', 'https://example.com/danh-sach-phan-cong.xlsx'),
+    ],
+    shortDescription:
+      'Hoạt động tổng vệ sinh được tổ chức đồng loạt tại các khu phố nhằm nâng cao ý thức cộng đồng và cải thiện cảnh quan môi trường.',
+    contentHtml: `
+      <h2>Kêu gọi người dân tham gia</h2>
+      <p>Hoạt động ra quân sẽ bắt đầu từ 6:30 sáng tại nhà văn hóa các khu phố.</p>
+      <p>Đề nghị các hộ dân cùng phối hợp dọn vệ sinh trước cửa nhà và khu vực công cộng lân cận.</p>
+    `,
+  },
+  {
+    id: '6',
+    title: 'Thông báo tạm ngừng cấp nước để sửa chữa',
+    category: 'thong-bao',
+    status: 'draft',
+    date: '2023-10-18',
+    source: 'Công ty Cấp nước',
+    audience: 'all-citizens',
+    linkType: 'external',
+    linkUrl: 'https://example.com/thong-bao-cap-nuoc',
+    thumbnail: [{ id: 'n6-thumb', name: 'cap-nuoc.jpg', url: feedbackGarbage2 }],
+    media: [
+      newsAttachment('n6-1', 'Thông báo cắt nước.pdf', 'https://example.com/thong-bao-cat-nuoc.pdf'),
+    ],
+    shortDescription:
+      'Một số khu vực sẽ tạm ngừng cấp nước trong thời gian sửa chữa đường ống chính, người dân cần chủ động tích trữ nước sinh hoạt.',
+    contentHtml: `
+      <h2>Lịch sửa chữa đường ống</h2>
+      <p>Thời gian tạm ngừng cấp nước dự kiến từ 22:00 ngày 18/10 đến 04:00 ngày 19/10.</p>
+      <p>Đơn vị cấp nước xin lỗi vì sự bất tiện này và sẽ cấp nước trở lại ngay sau khi hoàn thành sửa chữa.</p>
+    `,
+  },
+  {
+    id: '7',
+    title: 'Hội nghị tổng kết công tác năm',
+    category: 'su-kien',
+    status: 'draft',
+    date: '2023-10-20',
+    source: 'Văn phòng UBND Xã',
+    audience: 'staff',
+    linkType: 'document',
+    linkUrl: 'https://example.com/chuong-trinh-tong-ket.pdf',
+    thumbnail: [{ id: 'n7-thumb', name: 'tong-ket-cong-tac.jpg', url: feedbackSecurity }],
+    media: [
+      newsAttachment('n7-1', 'Chương trình hội nghị.pdf', 'https://example.com/chuong-trinh-hoi-nghi.pdf'),
+      newsAttachment('n7-2', 'Mẫu đăng ký tham dự.docx', 'https://example.com/mau-dang-ky.docx'),
+    ],
+    shortDescription:
+      'Hội nghị tổng kết là dịp nhìn lại kết quả thực hiện nhiệm vụ năm qua và định hướng chỉ tiêu cho năm tiếp theo.',
+    contentHtml: `
+      <h2>Nội dung hội nghị</h2>
+      <p>Hội nghị dự kiến có phần báo cáo tổng kết, thảo luận chuyên đề và biểu dương tập thể xuất sắc.</p>
+      <p>Thành phần tham dự gồm cán bộ, công chức và đại diện các đoàn thể liên quan.</p>
+    `,
+  },
+  {
+    id: '8',
+    title: 'Cảnh báo mưa lũ, sạt lở đất',
+    category: 'khan-cap',
+    status: 'published',
+    date: '2023-10-22',
+    source: 'Ban Chỉ huy PCTT Xã',
+    audience: 'all-citizens',
+    linkType: 'external',
+    linkUrl: 'https://example.com/canh-bao-mua-lu',
+    thumbnail: [{ id: 'n8-thumb', name: 'mua-lu.jpg', url: feedbackDrain }],
+    media: [
+      newsAttachment('n8-1', 'Bản tin thời tiết.pdf', 'https://example.com/ban-tin-thoi-tiet.pdf'),
+    ],
+    shortDescription:
+      'Người dân sinh sống tại khu vực trũng thấp cần chú ý theo dõi diễn biến thời tiết, hạn chế di chuyển qua vùng ngập nước.',
+    contentHtml: `
+      <h2>Biện pháp phòng tránh</h2>
+      <ul>
+        <li>Không đi qua khu vực nước chảy xiết</li>
+        <li>Gia cố mái tôn, biển hiệu và vật dụng dễ bay</li>
+        <li>Chuẩn bị đèn pin, pin sạc và nhu yếu phẩm cần thiết</li>
+      </ul>
+    `,
+  },
+  {
+    id: '9',
+    title: 'Cảnh báo ngập úng cục bộ tại khu phố 4',
+    category: 'khan-cap',
+    status: 'draft',
+    date: '2023-10-25',
+    source: 'Ban Chỉ huy PCTT Xã',
+    audience: 'residents',
+    linkType: 'none',
+    linkUrl: '',
+    thumbnail: [{ id: 'n9-thumb', name: 'ngap-ung.jpg', url: feedbackConstruction1 }],
+    media: [
+      newsAttachment('n9-1', 'Sơ đồ điểm ngập.pdf', 'https://example.com/so-do-diem-ngap.pdf'),
+    ],
+    shortDescription:
+      'Một số tuyến đường tại khu phố 4 ghi nhận ngập úng cục bộ sau mưa lớn, cần hạn chế phương tiện đi qua trong giờ cao điểm.',
+    contentHtml: `
+      <h2>Khu vực ảnh hưởng</h2>
+      <p>Khu phố 4 và các nhánh đường thấp trũng có nguy cơ ngập cục bộ khi mưa lớn kéo dài.</p>
+      <p>Lực lượng chức năng đang tổ chức kiểm tra hệ thống thoát nước và khơi thông cống rãnh.</p>
+    `,
+  },
 ];
 
 export const mockCitizens = [

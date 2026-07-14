@@ -6,6 +6,8 @@ import Staff from './pages/Staff';
 import Departments from './pages/Departments';
 import Roles from './pages/Roles';
 import News from './pages/News';
+import NewsCreate from './pages/news/Create';
+import NewsEdit from './pages/news/Edit';
 import Events from './pages/Events';
 import Routing from './pages/Routing';
 import Citizens from './pages/Citizens';
@@ -37,7 +39,10 @@ function Router() {
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
       <Route path="/roles" component={Roles} />
+      <Route path="/news/new" component={NewsCreate} />
+      <Route path="/news/:id/edit" component={NewsEdit} />
       <Route path="/news" component={News} />
+      <Route path="/news/:id" component={News} />
       <Route path="/events" component={Events} />
       <Route path="/citizens" component={Citizens} />
       <Route path="/routing" component={Routing} />

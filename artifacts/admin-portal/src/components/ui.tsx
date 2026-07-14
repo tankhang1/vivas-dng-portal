@@ -131,11 +131,21 @@ export const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttribute
 ));
 Label.displayName = 'Label';
 
-export function Dialog({ open, onOpenChange, children }: { open: boolean, onOpenChange: (open: boolean) => void, children: React.ReactNode }) {
+export function Dialog({
+  open,
+  onOpenChange,
+  children,
+  className,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+  className?: string;
+}) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => onOpenChange(false)}>
-      <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg" onClick={e => e.stopPropagation()}>
+      <div className={cn('fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg', className)} onClick={e => e.stopPropagation()}>
         {children}
       </div>
     </div>
