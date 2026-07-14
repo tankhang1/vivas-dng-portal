@@ -1,6 +1,7 @@
 import type { MediaFile } from '../../components/MediaUpload';
 
 export type CategoryRouteType = 'path' | 'link';
+export type CategoryStatus = 'visible' | 'hidden';
 
 export type CategoryRecord = {
   id: string;
@@ -11,6 +12,7 @@ export type CategoryRecord = {
   description: string;
   order: number;
   isPinned: boolean;
+  status: CategoryStatus;
 };
 
 export function defaultCategory(): CategoryRecord {
@@ -23,6 +25,7 @@ export function defaultCategory(): CategoryRecord {
     description: '',
     order: 0,
     isPinned: false,
+    status: 'visible',
   };
 }
 
@@ -37,6 +40,7 @@ export function normalizeCategory(category: Partial<CategoryRecord>): CategoryRe
     description: category.description ?? '',
     order: category.order ?? 0,
     isPinned: category.isPinned ?? false,
+    status: category.status ?? 'visible',
   };
 }
 

@@ -86,6 +86,7 @@ export default function CategoriesPage() {
                   <TableHead>Đường dẫn</TableHead>
                   <TableHead>Mô tả</TableHead>
                   <TableHead>Thứ tự</TableHead>
+                  <TableHead>Trạng thái</TableHead>
                   <TableHead>Ghim</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
@@ -129,6 +130,11 @@ export default function CategoriesPage() {
                     </TableCell>
                     <TableCell>{item.order}</TableCell>
                     <TableCell>
+                      <Badge variant={item.status === 'visible' ? 'success' : 'secondary'}>
+                        {item.status === 'visible' ? 'Hiện' : 'Ẩn'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       {item.isPinned ? (
                         <Badge variant="success" className="gap-1 bg-green-100 text-green-800">
                           <CheckCircle2 className="h-3 w-3" />
@@ -162,7 +168,7 @@ export default function CategoriesPage() {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       Không tìm thấy danh mục nào.
                     </TableCell>
                   </TableRow>

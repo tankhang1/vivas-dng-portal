@@ -14,7 +14,7 @@ import {
   Textarea,
 } from '../../components/ui';
 import { getCategoryById, saveCategory } from './store';
-import { defaultCategory, slugify, type CategoryRecord, type CategoryRouteType } from './types';
+import { defaultCategory, slugify, type CategoryRecord, type CategoryRouteType, type CategoryStatus } from './types';
 
 type CategoryFormPageProps = {
   mode: 'create' | 'edit';
@@ -190,6 +190,20 @@ export function CategoryFormPage({ mode, categoryId }: CategoryFormPageProps) {
               />
               Ghim danh mục lên đầu
             </label>
+
+            <div className="grid gap-2">
+              <Label htmlFor="category-status">Trạng thái</Label>
+              <Select
+                id="category-status"
+                value={form.status}
+                onChange={(event) =>
+                  updateForm({ status: event.target.value as CategoryStatus })
+                }
+              >
+                <option value="visible">Hiện</option>
+                <option value="hidden">Ẩn</option>
+              </Select>
+            </div>
 
             <div className="flex flex-wrap gap-2 pt-2">
               <Button onClick={handleSave}>Lưu danh mục</Button>

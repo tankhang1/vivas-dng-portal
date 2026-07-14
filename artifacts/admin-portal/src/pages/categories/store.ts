@@ -10,6 +10,7 @@ let categoryState: CategoryRecord[] = [
     description: 'Giới thiệu về địa phương',
     order: 0,
     isPinned: true,
+    status: 'visible',
   }),
   normalizeCategory({
     id: '2',
@@ -20,6 +21,7 @@ let categoryState: CategoryRecord[] = [
     description: '',
     order: 1,
     isPinned: false,
+    status: 'visible',
   }),
   normalizeCategory({
     id: '3',
@@ -30,6 +32,7 @@ let categoryState: CategoryRecord[] = [
     description: '',
     order: 2,
     isPinned: false,
+    status: 'visible',
   }),
   normalizeCategory({
     id: '4',
@@ -40,6 +43,7 @@ let categoryState: CategoryRecord[] = [
     description: '',
     order: 3,
     isPinned: false,
+    status: 'visible',
   }),
   normalizeCategory({
     id: '5',
@@ -50,6 +54,7 @@ let categoryState: CategoryRecord[] = [
     description: '',
     order: 4,
     isPinned: false,
+    status: 'visible',
   }),
   normalizeCategory({
     id: '6',
@@ -60,6 +65,7 @@ let categoryState: CategoryRecord[] = [
     description: '',
     order: 5,
     isPinned: false,
+    status: 'visible',
   }),
 ];
 
