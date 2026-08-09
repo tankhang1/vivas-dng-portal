@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type CategoryRouteType = 'path' | 'link';
 export type CategoryStatus = 'visible' | 'hidden';

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { Layout } from "../../components/Layout";
-import { MediaUpload } from "../../components/MediaUpload";
+import { Layout } from "../../shared/components/Layout";
+import { MediaUpload } from "../../shared/components/MediaUpload";
 import {
   Button,
   Card,
@@ -13,8 +13,8 @@ import {
   Input,
   Label,
   Select,
-} from "../../components/ui";
-import { FormEditor } from "../../components/FormEditor";
+} from "../../shared/components/ui";
+import { FormEditor } from "../../shared/components/FormEditor";
 import { saveEvent, getEventById } from "./store";
 import {
   categoryLabel,

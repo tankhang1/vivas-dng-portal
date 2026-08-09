@@ -1,4 +1,4 @@
-import { Badge, Button, Dialog, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui';
+import { Badge, Button, Dialog, DialogFooter, DialogHeader, DialogTitle } from '../../shared/components/ui';
 import { ArrowRight, CalendarDays, Globe, Link as LinkIcon, Paperclip, X } from 'lucide-react';
 import { audienceLabel, categoryLabel, formatDate, linkTypeLabel, sourceLabel, type NewsArticle } from './types';
 

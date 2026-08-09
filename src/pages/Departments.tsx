@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Layout } from "../components/Layout";
+import { Layout } from "../shared/components/Layout";
 import {
   Badge,
   Button,
@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
   Textarea,
-} from "../components/ui";
+} from "../shared/components/ui";
 import { getStaff } from "./staff/store";
 import {
   statusBadgeVariant,

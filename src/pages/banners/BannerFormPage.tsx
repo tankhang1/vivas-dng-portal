@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../../components/Layout';
-import { MediaUpload } from '../../components/MediaUpload';
+import { Layout } from '../../shared/components/Layout';
+import { MediaUpload } from '../../shared/components/MediaUpload';
 import {
   Button,
   Card,
@@ -11,7 +11,7 @@ import {
   Input,
   Label,
   Select,
-} from '../../components/ui';
+} from '../../shared/components/ui';
 import { getBannerById, saveBanner } from './store';
 import {
   bannerPositionOptions,

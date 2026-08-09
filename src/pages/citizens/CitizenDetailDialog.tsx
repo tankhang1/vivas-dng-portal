@@ -8,7 +8,7 @@ import {
   CardTitle,
   Dialog,
   DialogTitle,
-} from '../../components/ui';
+} from '../../shared/components/ui';
 import { Pencil, Trash2, X } from 'lucide-react';
 import {
   displayCitizenValue,

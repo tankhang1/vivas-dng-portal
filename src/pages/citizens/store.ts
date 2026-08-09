@@ -1,7 +1,9 @@
-import { mockCitizens } from '../../data/mock';
-import { defaultCitizen, normalizeCitizen, type CitizenRecord } from './types';
+import { mockCitizens } from "../../shared/data/mock";
+import { defaultCitizen, normalizeCitizen, type CitizenRecord } from "./types";
 
-let citizenState: CitizenRecord[] = mockCitizens.map((item) => normalizeCitizen(item));
+let citizenState: CitizenRecord[] = mockCitizens.map((item) =>
+  normalizeCitizen(item),
+);
 
 export function getCitizens() {
   return [...citizenState];
@@ -20,7 +22,9 @@ export function saveCitizen(citizen: CitizenRecord) {
 
   const exists = citizenState.some((item) => item.id === nextCitizen.id);
   citizenState = exists
-    ? citizenState.map((item) => (item.id === nextCitizen.id ? nextCitizen : item))
+    ? citizenState.map((item) =>
+        item.id === nextCitizen.id ? nextCitizen : item,
+      )
     : [nextCitizen, ...citizenState];
 }
 

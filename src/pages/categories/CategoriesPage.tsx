@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../../components/Layout';
+import { Layout } from '../../shared/components/Layout';
 import {
   Badge,
   Button,
@@ -15,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui';
+} from '../../shared/components/ui';
 import { deleteCategory, getCategories } from './store';
 import { type CategoryRecord } from './types';
 import { Edit2, Pin, Plus, Search, Trash2, CheckCircle2, ImageOff } from 'lucide-react';

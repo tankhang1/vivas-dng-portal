@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { Layout } from "../../components/Layout";
+import { Layout } from "../../shared/components/Layout";
 import {
   Badge,
   Button,
@@ -16,11 +16,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui";
+} from "../../shared/components/ui";
 import { deleteStaff, getStaff } from "./store";
 import { statusBadgeVariant, statusLabel, type StaffRecord } from "./types";
 import { Edit2, Plus, Search, Trash2 } from "lucide-react";
-import { mockDepartments } from "../../data/mock";
+import { mockDepartments } from "../../shared/data/mock";
 
 const PAGE_SIZE = 5;
 
@@ -84,44 +84,44 @@ export default function StaffPage() {
 
         <Card>
           <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
-              <div className="relative w-full md:max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm kiếm theo tên, email hoặc điện thoại..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) =>
-                    updateFilters(() => setSearchTerm(e.target.value))
-                  }
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Select
-                  value={departmentFilter}
-                  onChange={(e) =>
-                    updateFilters(() => setDepartmentFilter(e.target.value))
-                  }
-                  className="w-52"
-                >
-                  <option value="all">Tất cả phòng ban</option>
-                  {mockDepartments.map((department) => (
-                    <option key={department.id} value={department.name}>
-                      {department.name}
-                    </option>
-                  ))}
-                </Select>
-                <Select
-                  value={statusFilter}
-                  onChange={(e) =>
-                    updateFilters(() => setStatusFilter(e.target.value))
-                  }
-                  className="w-40"
-                  >
-                    <option value="all">Tất cả trạng thái</option>
-                    <option value="active">Hoạt động</option>
-                    <option value="inactive">Tạm khóa</option>
-                  </Select>
-              </div>
+            <div className="relative w-full md:max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm theo tên, email hoặc điện thoại..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) =>
+                  updateFilters(() => setSearchTerm(e.target.value))
+                }
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={departmentFilter}
+                onChange={(e) =>
+                  updateFilters(() => setDepartmentFilter(e.target.value))
+                }
+                className="w-52"
+              >
+                <option value="all">Tất cả phòng ban</option>
+                {mockDepartments.map((department) => (
+                  <option key={department.id} value={department.name}>
+                    {department.name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                value={statusFilter}
+                onChange={(e) =>
+                  updateFilters(() => setStatusFilter(e.target.value))
+                }
+                className="w-40"
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Tạm khóa</option>
+              </Select>
+            </div>
           </CardHeader>
 
           <CardContent>

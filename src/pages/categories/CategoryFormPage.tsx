@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../../components/Layout';
-import { MediaUpload } from '../../components/MediaUpload';
+import { Layout } from '../../shared/components/Layout';
+import { MediaUpload } from '../../shared/components/MediaUpload';
 import {
   Button,
   Card,
@@ -12,7 +12,7 @@ import {
   Label,
   Select,
   Textarea,
-} from '../../components/ui';
+} from '../../shared/components/ui';
 import { getCategoryById, saveCategory } from './store';
 import { defaultCategory, slugify, type CategoryRecord, type CategoryRouteType, type CategoryStatus } from './types';
 

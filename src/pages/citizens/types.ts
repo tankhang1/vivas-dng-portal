@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type CitizenStatus = 'published' | 'draft';
 export type Gender = 'Nam' | 'Nữ' | 'Khác' | '-' | '';

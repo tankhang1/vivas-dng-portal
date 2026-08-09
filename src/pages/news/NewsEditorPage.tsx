@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { Layout } from "../../components/Layout";
+import { Layout } from "../../shared/components/Layout";
 import {
   Button,
   Card,
@@ -11,9 +11,9 @@ import {
   Label,
   Select,
   Textarea,
-} from "../../components/ui";
-import { MediaUpload } from "../../components/MediaUpload";
-import { FormEditor } from "../../components/FormEditor";
+} from "../../shared/components/ui";
+import { MediaUpload } from "../../shared/components/MediaUpload";
+import { FormEditor } from "../../shared/components/FormEditor";
 import { saveNews, getNewsById } from "./store";
 import { CalendarDays, Link as LinkIcon } from "lucide-react";
 import {

@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type NewsCategory = 'thong-bao' | 'su-kien' | 'khan-cap';
 export type NewsStatus = 'draft' | 'published';

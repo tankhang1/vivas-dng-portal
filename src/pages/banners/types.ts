@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type BannerPosition = 'home-top' | 'home-middle' | 'home-bottom' | 'news-top';
 export type BannerStatus = 'active' | 'inactive';

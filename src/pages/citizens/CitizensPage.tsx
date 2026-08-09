@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../../components/Layout';
-import { Button, Card, CardContent, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge } from '../../components/ui';
+import { Layout } from '../../shared/components/Layout';
+import { Button, Card, CardContent, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge } from '../../shared/components/ui';
 import { Edit2, Eye, Plus, Trash2 } from 'lucide-react';
 import { getCitizens, deleteCitizen } from './store';
 import { CitizenDetailDialog } from './CitizenDetailDialog';

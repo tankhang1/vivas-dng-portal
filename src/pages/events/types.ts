@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type EventStatus = 'draft' | 'published';
 export type EventCategory = 'hoi-nghi' | 'tap-huan' | 'le-hoat-dong';

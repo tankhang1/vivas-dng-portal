@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Layout } from '../../components/Layout';
+import { Layout } from '../../shared/components/Layout';
 import {
   Badge,
   Button,
@@ -16,7 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui';
+} from '../../shared/components/ui';
 import { deleteEvent, getEvents } from './store';
 import {
   categoryLabel,

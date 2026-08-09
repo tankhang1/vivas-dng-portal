@@ -1,5 +1,5 @@
-import { mockNews } from '../../data/mock';
-import { normalizeArticle, type NewsArticle } from './types';
+import { mockNews } from "../../shared/data/mock";
+import { normalizeArticle, type NewsArticle } from "./types";
 
 let newsState: NewsArticle[] = mockNews.map((item) =>
   normalizeArticle(item as Partial<NewsArticle>),

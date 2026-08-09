@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Layout } from "../components/Layout";
+import { Layout } from "../shared/components/Layout";
 import {
   Card,
   CardContent,
@@ -15,8 +15,12 @@ import {
   Badge,
   Pagination,
   cn,
-} from "../components/ui";
-import { mockRoles, allPermissions, permissionGroups } from "../data/mock";
+} from "../shared/components/ui";
+import {
+  mockRoles,
+  allPermissions,
+  permissionGroups,
+} from "../shared/data/mock";
 import {
   Shield,
   Plus,
@@ -117,7 +121,10 @@ export default function Roles() {
     setRoles((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
-  const setGroupPermissions = (groupPermissions: readonly string[], enable: boolean) => {
+  const setGroupPermissions = (
+    groupPermissions: readonly string[],
+    enable: boolean,
+  ) => {
     if (!selectedRole) return;
     const next = new Set(selectedRole.permissions);
     groupPermissions.forEach((perm) => {
@@ -252,7 +259,8 @@ export default function Roles() {
                           {selectedRole.name}
                         </CardTitle>
                         <Badge variant="secondary" className="shrink-0">
-                          {selectedPermissions.length}/{allPermissions.length} quyền
+                          {selectedPermissions.length}/{allPermissions.length}{" "}
+                          quyền
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -266,7 +274,9 @@ export default function Roles() {
                     <div className="min-w-[260px] rounded-xl border bg-slate-50 p-4">
                       <div className="mb-2 flex items-center justify-between text-sm">
                         <span className="font-medium">Mức độ cấp quyền</span>
-                        <span className="text-muted-foreground">{completion}%</span>
+                        <span className="text-muted-foreground">
+                          {completion}%
+                        </span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                         <div
@@ -275,7 +285,8 @@ export default function Roles() {
                         />
                       </div>
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Vai trò này đang có {selectedPermissions.length} quyền trong tổng {allPermissions.length} quyền khả dụng.
+                        Vai trò này đang có {selectedPermissions.length} quyền
+                        trong tổng {allPermissions.length} quyền khả dụng.
                       </p>
                     </div>
                   </div>
@@ -285,7 +296,8 @@ export default function Roles() {
                     <div>
                       <p className="text-sm font-medium">Quyền hạn được cấp</p>
                       <p className="text-xs text-muted-foreground">
-                        Chọn nhanh theo từng nhóm hoặc bật tắt từng quyền riêng lẻ.
+                        Chọn nhanh theo từng nhóm hoặc bật tắt từng quyền riêng
+                        lẻ.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -293,7 +305,9 @@ export default function Roles() {
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => replaceSelectedPermissions(allPermissions)}
+                        onClick={() =>
+                          replaceSelectedPermissions(allPermissions)
+                        }
                       >
                         <ShieldCheck className="h-4 w-4" />
                         Chọn tất cả
@@ -313,7 +327,8 @@ export default function Roles() {
                       const grantedCount = group.permissions.filter((perm) =>
                         selectedPermissions.includes(perm),
                       ).length;
-                      const allGranted = grantedCount === group.permissions.length;
+                      const allGranted =
+                        grantedCount === group.permissions.length;
                       const someGranted = grantedCount > 0 && !allGranted;
 
                       return (
@@ -333,14 +348,23 @@ export default function Roles() {
                                 {group.description}
                               </p>
                             </div>
-                            <Badge variant={allGranted ? "default" : someGranted ? "secondary" : "outline"}>
+                            <Badge
+                              variant={
+                                allGranted
+                                  ? "default"
+                                  : someGranted
+                                    ? "secondary"
+                                    : "outline"
+                              }
+                            >
                               {grantedCount}/{group.permissions.length}
                             </Badge>
                           </div>
 
                           <div className="grid gap-2">
                             {group.permissions.map((perm) => {
-                              const granted = selectedPermissions.includes(perm);
+                              const granted =
+                                selectedPermissions.includes(perm);
                               return (
                                 <button
                                   key={perm}
@@ -380,14 +404,18 @@ export default function Roles() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setGroupPermissions(group.permissions, true)}
+                              onClick={() =>
+                                setGroupPermissions(group.permissions, true)
+                              }
                             >
                               Chọn nhóm
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setGroupPermissions(group.permissions, false)}
+                              onClick={() =>
+                                setGroupPermissions(group.permissions, false)
+                              }
                             >
                               Bỏ nhóm
                             </Button>

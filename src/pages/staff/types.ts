@@ -1,4 +1,4 @@
-import type { MediaFile } from '../../components/MediaUpload';
+import type { MediaFile } from '../../shared/components/MediaUpload';
 
 export type StaffStatus = 'active' | 'inactive';
 export type MobileVisibility = 'public' | 'department' | 'internal' | 'hidden';
