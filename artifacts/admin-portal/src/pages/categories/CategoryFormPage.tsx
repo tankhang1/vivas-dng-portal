@@ -149,7 +149,7 @@ export function CategoryFormPage({ mode, categoryId }: CategoryFormPageProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="category-icon">Icon</Label>
+              <Label htmlFor="category-icon">Icon danh mục</Label>
               <MediaUpload
                 value={form.icon}
                 onChange={(icon) => updateForm({ icon })}
@@ -157,6 +157,21 @@ export function CategoryFormPage({ mode, categoryId }: CategoryFormPageProps) {
                 multiple={false}
                 hint="Tải ảnh icon danh mục, khuyến nghị ảnh vuông."
               />
+              {form.icon[0]?.url && (
+                <div className="flex items-center gap-3 rounded-md border border-dashed border-border px-3 py-2">
+                  <img
+                    src={form.icon[0].url}
+                    alt={form.name || 'Icon danh mục'}
+                    className="h-10 w-10 rounded-md object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Xem trước icon</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {form.icon[0].name}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-2">
