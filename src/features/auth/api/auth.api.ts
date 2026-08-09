@@ -1,6 +1,6 @@
-import { API_PATH, apiClient } from '../../../shared/api';
-import type { AuthLoginRequest } from '../types/auth.request';
-import type { AuthLoginResponse } from '../types/auth.response';
+import { API_PATH, apiClient } from '@/shared/api';
+import type { AuthLoginRequest } from '@/features/auth/types/auth.request';
+import type { AuthLoginResponse } from '@/features/auth/types/auth.response';
 
 export async function login(
   request: AuthLoginRequest,

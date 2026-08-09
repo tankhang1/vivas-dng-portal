@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Button, Label } from '../shared/components/ui';
-import { BrandMark } from '../shared/components/BrandMark';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Button, Label } from '@/shared/components/ui';
+import { BrandMark } from '@/shared/components/BrandMark';
 
 export default function Login() {
   const [, setLocation] = useLocation();
