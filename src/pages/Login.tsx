@@ -1,15 +1,46 @@
 import React from 'react';
-import { Link, useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Button, Label } from '@/shared/components/ui';
+import { useLocation } from 'wouter';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { useLoginMutation } from '@/features/auth/hooks/auth.hook';
+import { Form } from '@/shared/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Button,
+} from '@/shared/components/ui';
 import { BrandMark } from '@/shared/components/BrandMark';
+import { FormInputField } from '@/shared/components/FormInputField';
+
+const loginSchema = z.object({
+  username: z.string().min(1, 'Vui lòng nhập tên đăng nhập'),
+  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+const defaultValues: LoginFormValues = {
+  username: 'admin',
+  password: 'Viv@s@2026',
+};
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const loginMutation = useLoginMutation();
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues,
+  });
+  const { control, handleSubmit } = form;
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Mock login logic
-    setLocation('/');
+  const handleLogin = async (values: LoginFormValues) => {
+    await loginMutation.mutateAsync(values);
+    setLocation('/dashboard');
   };
 
   return (
@@ -19,7 +50,7 @@ export default function Login() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
         <Card className="w-full max-w-md relative z-10 shadow-xl border-t-4 border-t-primary">
-          <CardHeader className="space-y-3 pb-6 text-center">
+        <CardHeader className="space-y-3 pb-6 text-center">
           <div className="mx-auto">
             <BrandMark
               compact
@@ -33,21 +64,43 @@ export default function Login() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="username">Tên đăng nhập</Label>
-              <Input id="username" placeholder="Nhập tên đăng nhập..." required className="h-11" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Mật khẩu</Label>
-              </div>
-              <Input id="password" type="password" placeholder="••••••••" required className="h-11" />
-            </div>
-            <Button type="submit" className="w-full h-11 text-base font-semibold">
-              Đăng Nhập
-            </Button>
-          </form>
+          <Form {...form}>
+            <form onSubmit={handleSubmit(handleLogin)} className="space-y-6">
+              <FormInputField
+                control={control}
+                name="username"
+                label="Tên đăng nhập"
+                required
+                inputClassName="h-11"
+                inputProps={{
+                  placeholder: 'Nhập tên đăng nhập...',
+                }}
+              />
+
+              <FormInputField
+                control={control}
+                name="password"
+                label="Mật khẩu"
+                required
+                inputClassName="h-11"
+                inputProps={{
+                  type: 'password',
+                  placeholder: '••••••••',
+                }}
+              />
+
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+              </Button>
+              {loginMutation.isError ? (
+                <p className="text-sm text-red-600">{loginMutation.error.message}</p>
+              ) : null}
+            </form>
+          </Form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>Hệ thống nội bộ dành riêng cho Cán bộ, Công chức</p>
             <p className="mt-1">Vui lòng liên hệ IT nếu quên mật khẩu.</p>

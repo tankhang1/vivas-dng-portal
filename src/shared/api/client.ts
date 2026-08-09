@@ -1,14 +1,14 @@
-import axios, { isAxiosError } from 'axios';
+import axios, { isAxiosError } from "axios";
 
-import { ApiError } from './error';
-import { clearAccessToken, getAccessToken } from './token';
+import { ApiError } from "./error";
+import { clearAccessToken, getAccessToken } from "./token";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const baseURL = "https://zapp-api.vmarketing.vn";
 
 export const apiClient = axios.create({
   baseURL,
   headers: {
-    Accept: 'application/json',
+    Accept: "application/json",
   },
 });
 
@@ -31,10 +31,10 @@ apiClient.interceptors.response.use(
       const details = error.response?.data ?? null;
       const responseData = error.response?.data;
       const message =
-        typeof responseData === 'object' &&
+        typeof responseData === "object" &&
         responseData !== null &&
-        'message' in responseData &&
-        typeof responseData.message === 'string'
+        "message" in responseData &&
+        typeof responseData.message === "string"
           ? responseData.message
           : error.message;
 

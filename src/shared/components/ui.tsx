@@ -122,12 +122,18 @@ export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttrib
 });
 Select.displayName = 'Select';
 
-export const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(({ className, ...props }, ref) => (
+export const Label = React.forwardRef<
+  HTMLLabelElement,
+  React.LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }
+>(({ className, required, children, ...props }, ref) => (
   <label
     ref={ref}
     className={cn('text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70', className)}
     {...props}
-  />
+  >
+    {children}
+    {required ? <span aria-hidden="true" className="ml-0.5 text-red-500">*</span> : null}
+  </label>
 ));
 Label.displayName = 'Label';
 
