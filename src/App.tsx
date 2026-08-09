@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Redirect, Route, Switch, Router as WouterRouter } from "wouter";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -25,8 +24,7 @@ import CitizensCreate from "./pages/citizens/Create";
 import CitizensEdit from "./pages/citizens/Edit";
 import Feedback from "./pages/Feedback";
 import Appointments from "./pages/Appointments";
-
-const queryClient = new QueryClient();
+import { QueryClientProviderRoot } from "./shared/providers";
 
 function NotFound() {
   return (
@@ -83,11 +81,11 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProviderRoot>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
         <Router />
       </WouterRouter>
-    </QueryClientProvider>
+    </QueryClientProviderRoot>
   );
 }
 
