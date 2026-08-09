@@ -12,9 +12,5 @@ env = { "CI" = "true" }
 runButton = "Project"
 
 [agent]
-stack = "PNPM_WORKSPACE"
+stack = "PNPM"
 expertMode = true
-
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000

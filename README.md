@@ -1,6 +1,6 @@
 # Admin Portal
 
-Admin Portal is a Vite + React + TypeScript front-end application in this workspace. It uses mock data for the UI, so it can run locally without any backend service.
+Admin Portal is a standalone Vite + React + TypeScript front-end application. It uses mock data for the UI, so it can run locally without any backend service.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ If you only want to install dependencies for the admin portal package, you can s
 Start the admin portal in development mode:
 
 ```bash
-pnpm --filter @workspace/admin-portal dev
+pnpm dev
 ```
 
 The app runs on:
@@ -37,13 +37,13 @@ The app runs on:
 Create a production build:
 
 ```bash
-pnpm --filter @workspace/admin-portal build
+pnpm build
 ```
 
 The generated files are written to:
 
 ```text
-artifacts/admin-portal/dist/public
+dist/public
 ```
 
 ## Preview the Production Build
@@ -51,16 +51,7 @@ artifacts/admin-portal/dist/public
 Preview the built app locally:
 
 ```bash
-pnpm --filter @workspace/admin-portal serve
-```
-
-## Workspace Checks
-
-From the repo root, you can also run workspace-wide checks:
-
-```bash
-pnpm typecheck
-pnpm build
+pnpm serve
 ```
 
 ## Configuration
@@ -73,7 +64,7 @@ The app reads these environment variables from the Vite config:
 Example:
 
 ```bash
-PORT=3000 BASE_PATH=/admin/ pnpm --filter @workspace/admin-portal dev
+PORT=3000 BASE_PATH=/admin/ pnpm dev
 ```
 
 Use `BASE_PATH` when hosting the portal under a subpath, such as `/admin/`.

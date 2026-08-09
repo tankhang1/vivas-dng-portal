@@ -23,8 +23,6 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, 'src'),
       '@assets': path.resolve(
         import.meta.dirname,
-        '..',
-        '..',
         'attached_assets',
       ),
     },

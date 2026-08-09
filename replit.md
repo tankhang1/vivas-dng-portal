@@ -1,45 +1,42 @@
-# [Project name]
+# Admin Portal
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Standalone admin portal for managing the local mock municipal dashboard experience.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm dev` — run the admin portal locally
+- `pnpm typecheck` — typecheck the app
+- `pnpm build` — create a production build
+- `pnpm serve` — preview the production build
+- Optional env: `PORT` and `BASE_PATH`
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Vite, React 19, TypeScript 5.9, Tailwind CSS 4
+- Mock data only, no backend dependency
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `src/App.tsx` and `src/main.tsx` are the app entry points
+- `src/pages/` contains the feature screens
+- `src/components/` contains shared UI and layout primitives
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The app is intentionally self-contained and uses local mock data.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Login, dashboard, staff, departments, roles, news, events, citizens, routing, feedback, and appointments management screens
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Keep this repo single-app only; do not reintroduce workspace packages unless asked.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- `BASE_PATH` must match the deployed subpath when hosting under a nested route.
 
 ## Pointers
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- See `README.md` for local run, build, and deployment notes
