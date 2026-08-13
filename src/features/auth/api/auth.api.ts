@@ -3,6 +3,7 @@ import type { AuthLoginRequest } from '@/features/auth/types/auth.request';
 import type { AuthLoginResponse } from '@/features/auth/types/auth.response';
 import type { CheckTokenExpiredRequest } from '@/features/auth/types/check-token-expired.request';
 import type { CheckTokenExpiredResponse } from '@/features/auth/types/check-token-expired.response';
+import type { RefreshTokenResponse } from '@/features/auth/types/refresh-token.response';
 
 export async function login(
   request: AuthLoginRequest,
@@ -21,4 +22,10 @@ export async function checkTokenExpired(
   );
 
   return response.data;
+}
+
+export async function refreshToken(): Promise<string> {
+  const response = await apiClient.post<RefreshTokenResponse>(API_PATH.AUTH.REFRESH_TOKEN);
+  setAccessToken(response.data.data);
+  return response.data.data;
 }
