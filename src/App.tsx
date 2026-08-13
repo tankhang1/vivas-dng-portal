@@ -24,7 +24,7 @@ import CitizensCreate from '@/pages/citizens/Create';
 import CitizensEdit from '@/pages/citizens/Edit';
 import Feedback from '@/pages/Feedback';
 import Appointments from '@/pages/Appointments';
-import { QueryClientProviderRoot } from '@/shared/providers';
+import { AuthProvider, QueryClientProviderRoot } from '@/shared/providers';
 
 function NotFound() {
   return (
@@ -83,7 +83,9 @@ function App() {
   return (
     <QueryClientProviderRoot>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <Router />
+        <AuthProvider>
+          <Router />
+        </AuthProvider>
       </WouterRouter>
     </QueryClientProviderRoot>
   );

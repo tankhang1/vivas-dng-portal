@@ -60,6 +60,7 @@ The app reads these environment variables from the Vite config:
 
 - `PORT`: dev and preview port, defaults to `5173`
 - `BASE_PATH`: deployment base path, defaults to `/`
+- `VITE_API_BASE_URL`: backend API base URL, defaults to `https://zapp-api.vmarketing.vn`
 
 Example:
 
@@ -68,6 +69,12 @@ PORT=3000 BASE_PATH=/admin/ pnpm dev
 ```
 
 Use `BASE_PATH` when hosting the portal under a subpath, such as `/admin/`.
+
+To override the API host locally, add `VITE_API_BASE_URL` to your `.env` file:
+
+```bash
+VITE_API_BASE_URL=https://your-api-host.example.com
+```
 
 ## App Notes
 

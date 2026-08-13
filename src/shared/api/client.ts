@@ -1,9 +1,8 @@
-import axios, { isAxiosError } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-import { ApiError } from "./error";
-import { clearAccessToken, getAccessToken } from "./token";
+import { refreshToken } from "@/features/auth/api/auth.api";
 
-const baseURL = "https://zapp-api.vmarketing.vn";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL,
@@ -13,11 +12,11 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = getAccessToken();
+  const token = localStorage.getItem("accessToken");
 
   if (token) {
-    config.headers = config.headers ?? {};
-    config.headers.Authorization = `Bearer ${token}`;
+    (config.headers as Record<string, string>).Authorization =
+      `Bearer ${token}`;
   }
 
   return config;
@@ -25,26 +24,34 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (isAxiosError(error)) {
-      const status = error.response?.status ?? 500;
-      const details = error.response?.data ?? null;
-      const responseData = error.response?.data;
-      const message =
-        typeof responseData === "object" &&
-        responseData !== null &&
-        "message" in responseData &&
-        typeof responseData.message === "string"
-          ? responseData.message
-          : error.message;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+    const status = error.response?.status;
 
-      if (status === 401) {
-        clearAccessToken();
-      }
-
-      return Promise.reject(new ApiError(message, status, details));
+    if (status !== 403 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    originalRequest._retry = true;
+
+    try {
+      const nextToken = await refreshToken();
+
+      if (!nextToken) {
+        localStorage.removeItem("accessToken");
+        return Promise.reject(error);
+      }
+
+      originalRequest.headers = originalRequest.headers ?? {};
+      (originalRequest.headers as Record<string, string>).Authorization =
+        `Bearer ${nextToken}`;
+
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      localStorage.removeItem("accessToken");
+      return Promise.reject(refreshError);
+    }
   },
 );

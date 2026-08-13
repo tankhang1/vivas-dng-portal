@@ -19,6 +19,7 @@ import {
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { BrandMark } from './BrandMark';
+import { useAuth } from '@/shared/providers';
 
 const navItems = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
@@ -58,6 +59,7 @@ function isGroupItem(
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState({
     internal:
       location.startsWith('/staff') ||
@@ -197,10 +199,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="hidden md:inline-flex text-sm text-muted-foreground">
                 {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </span>
-              <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+              <button
+                type="button"
+                onClick={logout}
+                className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline-block">Đăng xuất</span>
-              </Link>
+              </button>
             </div>
           </div>
         </header>

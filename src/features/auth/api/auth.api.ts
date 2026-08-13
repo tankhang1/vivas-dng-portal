@@ -1,14 +1,16 @@
-import { API_PATH, apiClient, setAccessToken } from '@/shared/api';
-import type { AuthLoginRequest } from '@/features/auth/types/auth.request';
-import type { AuthLoginResponse } from '@/features/auth/types/auth.response';
-import type { CheckTokenExpiredRequest } from '@/features/auth/types/check-token-expired.request';
-import type { CheckTokenExpiredResponse } from '@/features/auth/types/check-token-expired.response';
-import type { RefreshTokenResponse } from '@/features/auth/types/refresh-token.response';
+import { API_PATH, apiClient, setAccessToken } from "@/shared/api";
+import type { AuthLoginRequest } from "@/features/auth/types/auth.request";
+import type { AuthLoginResponse } from "@/features/auth/types/auth.response";
+import type { CheckTokenExpiredRequest } from "@/features/auth/types/check-token-expired.request";
+import type { CheckTokenExpiredResponse } from "@/features/auth/types/check-token-expired.response";
 
 export async function login(
   request: AuthLoginRequest,
 ): Promise<AuthLoginResponse> {
-  const response = await apiClient.post<AuthLoginResponse>(API_PATH.AUTH.LOGIN, request);
+  const response = await apiClient.post<AuthLoginResponse>(
+    API_PATH.AUTH.LOGIN,
+    request,
+  );
   setAccessToken(response.data.token);
   return response.data;
 }
@@ -25,7 +27,10 @@ export async function checkTokenExpired(
 }
 
 export async function refreshToken(): Promise<string> {
-  const response = await apiClient.post<RefreshTokenResponse>(API_PATH.AUTH.REFRESH_TOKEN);
+  const response = await apiClient.post<{ data: string }>(
+    API_PATH.AUTH.REFRESH_TOKEN,
+  );
+
   setAccessToken(response.data.data);
   return response.data.data;
 }
