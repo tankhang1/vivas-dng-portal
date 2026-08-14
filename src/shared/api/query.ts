@@ -9,6 +9,23 @@ export const QUERY_KEY = {
   DEPARTMENTS: ['departments'] as const,
   DEPARTMENT: (id: number | string) => ['department', id] as const,
   DIVISIONS: ['divisions'] as const,
+  COMMENTS: ['comments'] as const,
+  COMMENTS_SEARCH: (params: {
+    key?: string;
+    start?: number;
+    end?: number;
+    pageStart?: number;
+    nu?: number;
+  }) => ['comments', 'search', params] as const,
+  COMMENT: (cUuid: string) => ['comments', 'detail', cUuid] as const,
+  CITIZENS: ['citizens'] as const,
+  CITIZENS_SEARCH: (params: {
+    key?: string;
+    start?: number;
+    end?: number;
+    sz?: number;
+    nu?: number;
+  }) => ['citizens', 'search', params] as const,
 } as const;
 
 export function createAppQueryClient() {

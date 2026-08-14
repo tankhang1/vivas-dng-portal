@@ -79,4 +79,9 @@ export const API_PATH = {
     DEPARTMENT: '/common/department',
     DIVISIONS: '/common/divisions',
   },
+  COMMON_PORTAL: {
+    COMMENTS: '/common-portal/comments',
+    COMMENT: (cUuid: string) => `/common-portal/comments/get/${cUuid}`,
+    CITIZEN: '/common-portal/citizen',
+  },
 } as const;
