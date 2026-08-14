@@ -32,6 +32,8 @@ export const QUERY_KEY = {
     sz?: number;
     nu?: number;
   }) => ['news', 'search', params] as const,
+  NEWS_CATEGORIES: (params: { sz?: number; nu?: number }) =>
+    ['category-news', 'list', params] as const,
 } as const;
 
 export function createAppQueryClient() {

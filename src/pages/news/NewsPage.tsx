@@ -1,94 +1,75 @@
-import React, { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
+import { Button, Card, CardContent, Pagination } from "../../shared/components/ui";
 import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Input,
-  Pagination,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../shared/components/ui";
-import { getNews, deleteNews } from "./store";
-import {
-  categoryLabel,
-  formatDate,
-  sourceLabel,
-  statusOptions,
-  type NewsArticle,
-} from "./types";
+  useRemoveNewsProcessMutation,
+  useSearchNewsQuery,
+} from "@/features/news/hooks/news.hook";
+import { useNewsCategoriesQuery } from "@/features/category-news/hooks/category-news.hook";
+import { type NewsArticle } from "./types";
 import { NewsDetailDialog } from "./NewsDetailDialog";
-import {
-  Edit2,
-  Eye,
-  FileEdit,
-  Globe,
-  ImageUp,
-  Paperclip,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { NewsToolbar } from "./components/NewsToolbar";
+import { NewsTable } from "./components/NewsTable";
+import { newsItemToArticle } from "./components/news-item-adapter";
+import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
-const statusBadge = (status: NewsArticle["status"]) => {
-  if (status === "published") {
-    return (
-      <Badge variant="success" className="gap-1 bg-green-100 text-green-800">
-        <Globe className="h-3 w-3" /> Đã xuất bản
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge variant="secondary" className="gap-1">
-      <FileEdit className="h-3 w-3" /> Bản nháp
-    </Badge>
-  );
-};
-
 export default function NewsPage() {
   const [, navigate] = useLocation();
-  const [news, setNews] = useState<NewsArticle[]>(() => getNews());
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const debouncedSearch = useDeferredValue(searchTerm);
+  const [categoryFilter, setCategoryFilter] = useState<number | undefined>(
+    undefined,
+  );
   const [page, setPage] = useState(1);
   const [detailArticle, setDetailArticle] = useState<NewsArticle | null>(null);
 
-  const filtered = useMemo(() => {
-    return news.filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (categoryFilter === "all" || item.category === categoryFilter) &&
-        (statusFilter === "all" || item.status === statusFilter),
-    );
-  }, [news, searchTerm, categoryFilter, statusFilter]);
+  const { data, isLoading, isFetching, isError, refetch } = useSearchNewsQuery({
+    key: debouncedSearch || undefined,
+    category_item: categoryFilter,
+    sz: PAGE_SIZE,
+    nu: page,
+  });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const { data: categoriesData } = useNewsCategoriesQuery({ sz: 100, nu: 0 });
+  const categoryNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    categoriesData?.content.forEach((category) => {
+      map.set(category.id, category.name);
+    });
+    return map;
+  }, [categoriesData]);
+
+  const items = data?.content ?? [];
+  const rows = useMemo(
+    () =>
+      items.map((item) => ({
+        item,
+        article: newsItemToArticle(item),
+      })),
+    [items],
+  );
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+  const totalItems = data?.totalElements ?? 0;
+  const showInitialLoading = isLoading && rows.length === 0;
+  const showRefetchOverlay = isFetching && !showInitialLoading;
+
+  const removeNewsMutation = useRemoveNewsProcessMutation();
 
   const goToCreate = () => navigate("/news/new");
   const goToEdit = (id: string) => navigate(`/news/${id}/edit`);
 
-  const openDetail = (article: NewsArticle) => {
-    setDetailArticle(article);
-  };
-
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bản tin này?")) return;
-    deleteNews(id);
-    setDetailArticle((current) => (current?.id === id ? null : current));
-    setNews(getNews());
+    try {
+      await removeNewsMutation.mutateAsync({ news_item: Number(id) });
+      setDetailArticle((current) => (current?.id === id ? null : current));
+      refetch();
+    } catch {
+      window.alert("Xóa bản tin thất bại. Vui lòng thử lại.");
+    }
   };
 
   return (
@@ -109,152 +90,36 @@ export default function NewsPage() {
         </div>
 
         <Card>
-          <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm tiêu đề bản tin..."
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-                className="w-[150px]"
-                value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="all">Tất cả danh mục</option>
-                {["thong-bao", "su-kien", "khan-cap"].map((value) => (
-                  <option key={value} value={value}>
-                    {categoryLabel(value as NewsArticle["category"])}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                className="w-[150px]"
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="all">Tất cả trạng thái</option>
-                {statusOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </CardHeader>
+          <NewsToolbar
+            searchTerm={searchTerm}
+            onSearchTermChange={(value) => {
+              setSearchTerm(value);
+              setPage(1);
+            }}
+            categories={categoriesData?.content}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={(value) => {
+              setCategoryFilter(value);
+              setPage(1);
+            }}
+          />
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ảnh</TableHead>
-                  <TableHead>Tiêu đề</TableHead>
-                  <TableHead>Danh mục</TableHead>
-                  <TableHead>Nguồn tin</TableHead>
-                  <TableHead>Ngày đăng</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="flex h-12 w-12 overflow-hidden rounded-md border bg-slate-100">
-                        {item.thumbnail?.[0]?.url ? (
-                          <img
-                            src={item.thumbnail[0].url}
-                            alt={item.title}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                            <ImageUp className="h-4 w-4" />
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[400px] font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate">{item.title}</span>
-                        {item.media?.length > 0 && (
-                          <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
-                            <Paperclip className="h-3 w-3" />{" "}
-                            {item.media.length}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {categoryLabel(item.category)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {sourceLabel(item.source)}
-                    </TableCell>
-                    <TableCell>{formatDate(item.date)}</TableCell>
-                    <TableCell>{statusBadge(item.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDetail(item)}
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="h-4 w-4 text-slate-700" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => goToEdit(item.id)}
-                          title="Chỉnh sửa"
-                        >
-                          <Edit2 className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(item.id)}
-                          title="Xóa"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {paginated.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Không tìm thấy bản tin nào.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <NewsTable
+              rows={rows}
+              categoryNameById={categoryNameById}
+              isError={isError}
+              showInitialLoading={showInitialLoading}
+              showRefetchOverlay={showRefetchOverlay}
+              onView={setDetailArticle}
+              onEdit={goToEdit}
+              onDelete={handleDelete}
+            />
 
             <Pagination
               page={page}
               totalPages={totalPages}
               onPageChange={setPage}
-              totalItems={filtered.length}
+              totalItems={totalItems}
               pageSize={PAGE_SIZE}
             />
           </CardContent>

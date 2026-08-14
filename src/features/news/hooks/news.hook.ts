@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 import {
   approvalNewsProcess,
@@ -44,5 +44,6 @@ export function useSearchNewsQuery(request: SearchNewsRequest) {
   return useQuery<GetNewsResponse>({
     queryKey: QUERY_KEY.NEWS_SEARCH(request),
     queryFn: () => searchNews(request),
+    placeholderData: keepPreviousData,
   });
 }
