@@ -1,5 +1,13 @@
 import { QueryClient } from "@tanstack/react-query";
 
+export const QUERY_KEY = {
+  AUTH: {
+    TOKEN_EXPIRED: ['auth', 'token-expired'] as const,
+  },
+  DASHBOARD: ['dashboard'] as const,
+  HOTLINE: ['hotline'] as const,
+} as const;
+
 export function createAppQueryClient() {
   return new QueryClient({
     defaultOptions: {

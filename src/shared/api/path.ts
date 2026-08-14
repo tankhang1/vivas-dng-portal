@@ -11,7 +11,11 @@ export const API_PATH = {
     CREATE_PROCESS: '/admin/hotline/create/process',
     REMOVE_PROCESS: '/admin/hotline/remove/process',
   },
+  DASHBOARD: {
+    EDIT_PROCESS: '/admin/dashboard/edit/process',
+  },
   COMMON: {
     HOTLINE: '/common/hotline',
+    DASHBOARD: '/common/dashboard',
   },
 } as const;
