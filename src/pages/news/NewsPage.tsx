@@ -11,7 +11,7 @@ import { type NewsArticle } from "./types";
 import { NewsDetailDialog } from "./NewsDetailDialog";
 import { NewsToolbar } from "./components/NewsToolbar";
 import { NewsTable } from "./components/NewsTable";
-import { newsItemToArticle } from "./components/news-item-adapter";
+import { newsItemToArticle } from "./dto/news-item-adapter";
 import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 5;
