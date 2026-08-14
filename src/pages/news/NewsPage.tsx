@@ -30,7 +30,7 @@ export default function NewsPage() {
     key: debouncedSearch || undefined,
     category_item: categoryFilter,
     sz: PAGE_SIZE,
-    nu: page,
+    nu: page - 1,
   });
 
   const { data: categoriesData } = useNewsCategoriesQuery({ sz: 100, nu: 0 });

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import {
   getCommentByUuid,
@@ -21,6 +21,7 @@ export function useSearchCommentsQuery(request: SearchCommentsRequest) {
   return useQuery<GetCommentsResponse>({
     queryKey: QUERY_KEY.COMMENTS_SEARCH(request),
     queryFn: () => searchComments(request),
+    placeholderData: keepPreviousData,
   });
 }
 
