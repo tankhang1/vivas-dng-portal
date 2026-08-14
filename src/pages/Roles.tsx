@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "../shared/components/Layout";
 import {
   Card,
@@ -13,14 +14,17 @@ import {
   DialogFooter,
   Label,
   Badge,
-  Pagination,
   cn,
 } from "../shared/components/ui";
+import { allPermissions, permissionGroups } from "../shared/data/mock";
 import {
-  mockRoles,
-  allPermissions,
-  permissionGroups,
-} from "../shared/data/mock";
+  useCreateDivisionProcessMutation,
+  useDivisionsQuery,
+  useEditDivisionProcessMutation,
+  useRemoveDivisionProcessMutation,
+} from "@/features/division/hooks/division.hook";
+import type { GetDivisionsResponse } from "@/features/division/types/get-divisions.response";
+import { QUERY_KEY } from "@/shared/api";
 import {
   Shield,
   Plus,
@@ -34,15 +38,44 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-const PAGE_SIZE = 5;
+type RoleRecord = {
+  id: string;
+  name: string;
+  desc: string;
+  users: number;
+  permissions: string[];
+};
 
 export default function Roles() {
-  const [roles, setRoles] = useState(mockRoles);
+  const queryClient = useQueryClient();
+  const { data: divisionsData, isLoading: isDivisionsLoading } =
+    useDivisionsQuery();
+  const createDivisionMutation = useCreateDivisionProcessMutation();
+  const editDivisionMutation = useEditDivisionProcessMutation();
+  const removeDivisionMutation = useRemoveDivisionProcessMutation();
+  const isSavingRole =
+    createDivisionMutation.isPending || editDivisionMutation.isPending;
+  const [roles, setRoles] = useState<RoleRecord[]>([]);
+  const hasSeededRoles = useRef(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [selectedRoleId, setSelectedRoleId] = useState(mockRoles[0]?.id ?? "");
+  const [selectedRoleId, setSelectedRoleId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<any>(null);
+
+  useEffect(() => {
+    if (!hasSeededRoles.current && divisionsData?.content) {
+      setRoles(
+        divisionsData.content.map((division) => ({
+          id: String(division.id),
+          name: division.name,
+          desc: division.note ?? "",
+          users: 0,
+          permissions: [],
+        })),
+      );
+      hasSeededRoles.current = true;
+    }
+  }, [divisionsData]);
 
   const filtered = useMemo(
     () =>
@@ -51,8 +84,6 @@ export default function Roles() {
       ),
     [roles, searchTerm],
   );
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId) || roles[0];
   const selectedPermissions = selectedRole?.permissions || [];
@@ -63,12 +94,12 @@ export default function Roles() {
   useEffect(() => {
     // Keep a valid selection whenever the visible/filtered list changes.
     if (
-      !paginated.some((r) => r.id === selectedRoleId) &&
-      paginated.length > 0
+      !filtered.some((r) => r.id === selectedRoleId) &&
+      filtered.length > 0
     ) {
-      setSelectedRoleId(paginated[0].id);
+      setSelectedRoleId(filtered[0].id);
     }
-  }, [paginated, selectedRoleId]);
+  }, [filtered, selectedRoleId]);
 
   const handleOpenDialog = (role: any = null) => {
     setCurrentRole(
@@ -77,26 +108,62 @@ export default function Roles() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (currentRole.id) {
-      setRoles(roles.map((r) => (r.id === currentRole.id ? currentRole : r)));
-    } else {
-      const newRole = {
-        ...currentRole,
-        id: Date.now().toString(),
-        permissions: currentRole.permissions || [],
-      };
-      setRoles([...roles, newRole]);
-      setSelectedRoleId(newRole.id);
+  const handleSave = async () => {
+    const name = (currentRole?.name ?? "").trim();
+    if (!name) return;
+    const desc = currentRole?.desc ?? "";
+
+    try {
+      if (currentRole.id) {
+        await editDivisionMutation.mutateAsync({
+          item: Number(currentRole.id),
+          name,
+          note: desc,
+        });
+        setRoles(
+          roles.map((r) =>
+            r.id === currentRole.id ? { ...r, name, desc } : r,
+          ),
+        );
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS });
+      } else {
+        await createDivisionMutation.mutateAsync({ name, note: desc });
+        await queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS });
+        const refreshed = queryClient.getQueryData<GetDivisionsResponse>(
+          QUERY_KEY.DIVISIONS,
+        );
+        const existingIds = new Set(roles.map((r) => r.id));
+        const created = refreshed?.content.find(
+          (division) => !existingIds.has(String(division.id)),
+        );
+        if (created) {
+          const newRole: RoleRecord = {
+            id: String(created.id),
+            name: created.name,
+            desc: created.note ?? "",
+            users: 0,
+            permissions: [],
+          };
+          setRoles([...roles, newRole]);
+          setSelectedRoleId(newRole.id);
+        }
+      }
+      setIsDialogOpen(false);
+    } catch {
+      window.alert("Lưu vai trò thất bại. Vui lòng thử lại.");
     }
-    setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa vai trò này?")) {
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa vai trò này?")) return;
+    try {
+      await removeDivisionMutation.mutateAsync({ item: Number(id) });
       const remaining = roles.filter((r) => r.id !== id);
       setRoles(remaining);
       if (selectedRoleId === id) setSelectedRoleId(remaining[0]?.id ?? "");
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS });
+    } catch {
+      window.alert("Xóa vai trò thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -167,16 +234,13 @@ export default function Roles() {
                   placeholder="Tìm kiếm vai trò..."
                   className="pl-9"
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="flex flex-col">
-                {paginated.map((role) => {
+              <div className="flex max-h-[420px] flex-col overflow-y-auto">
+                {filtered.map((role) => {
                   const isSelected = role.id === selectedRole?.id;
                   return (
                     <div
@@ -229,20 +293,13 @@ export default function Roles() {
                     </div>
                   );
                 })}
-                {paginated.length === 0 && (
+                {filtered.length === 0 && (
                   <div className="p-6 text-center text-sm text-muted-foreground">
-                    Không tìm thấy vai trò nào.
+                    {isDivisionsLoading
+                      ? "Đang tải danh sách vai trò..."
+                      : "Không tìm thấy vai trò nào."}
                   </div>
                 )}
-              </div>
-              <div className="px-4 pb-4">
-                <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  totalItems={filtered.length}
-                  pageSize={PAGE_SIZE}
-                />
               </div>
             </CardContent>
           </Card>
@@ -465,7 +522,9 @@ export default function Roles() {
           <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
             Hủy
           </Button>
-          <Button onClick={handleSave}>Lưu thông tin</Button>
+          <Button onClick={handleSave} disabled={isSavingRole}>
+            {isSavingRole ? "Đang lưu..." : "Lưu thông tin"}
+          </Button>
         </DialogFooter>
       </Dialog>
     </Layout>

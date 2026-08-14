@@ -1,4 +1,4 @@
-const ACCESS_TOKEN_KEY = 'admin-portal.access-token';
+export const ACCESS_TOKEN_KEY = "admin-portal.access-token";
 
 export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY);

@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { refreshToken } from "@/features/auth/api/auth.api";
+import { ACCESS_TOKEN_KEY } from "./token";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,7 +13,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
 
   if (token) {
     (config.headers as Record<string, string>).Authorization =
@@ -40,7 +41,7 @@ apiClient.interceptors.response.use(
       const nextToken = await refreshToken();
 
       if (!nextToken) {
-        localStorage.removeItem("accessToken");
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
         return Promise.reject(error);
       }
 
@@ -50,7 +51,7 @@ apiClient.interceptors.response.use(
 
       return apiClient(originalRequest);
     } catch (refreshError) {
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
       return Promise.reject(refreshError);
     }
   },
