@@ -14,6 +14,15 @@ export const API_PATH = {
   DASHBOARD: {
     EDIT_PROCESS: '/admin/dashboard/edit/process',
   },
+  FEEDBACK: {
+    CREATE_PROCESS: '/admin/feedback/create/process',
+    EDIT_PROCESS: '/admin/feedback/edit/process',
+    APPROVE_PROCESS: '/admin/feedback/approve/process',
+  },
+  CATEGORY_COMMENT: {
+    CREATE_PROCESS: '/admin/category/comment/create/process',
+    EDIT_PROCESS: '/admin/category/comment/edit/process',
+  },
   COMMON: {
     HOTLINE: '/common/hotline',
     DASHBOARD: '/common/dashboard',
