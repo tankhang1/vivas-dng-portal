@@ -1,3 +1,5 @@
+import type { BasePaginationResponse } from "@/shared/types/base-response";
+
 export type CommentItem = {
   id: number;
   category_item: number;
@@ -22,31 +24,4 @@ export type CommentItem = {
   rating: number;
 };
 
-export type PageableSort = {
-  empty: boolean;
-  sorted: boolean;
-  unsorted: boolean;
-};
-
-export type Pageable = {
-  offset: number;
-  pageNumber: number;
-  pageSize: number;
-  paged: boolean;
-  sort: PageableSort;
-  unpaged: boolean;
-};
-
-export type GetCommentsResponse = {
-  content: CommentItem[];
-  empty: boolean;
-  first: boolean;
-  last: boolean;
-  number: number;
-  numberOfElements: number;
-  pageable: Pageable;
-  size: number;
-  sort: PageableSort;
-  totalElements: number;
-  totalPages: number;
-};
+export type GetCommentsResponse = BasePaginationResponse<CommentItem>;

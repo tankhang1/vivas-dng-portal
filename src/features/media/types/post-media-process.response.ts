@@ -1,5 +1,3 @@
-export type PostMediaProcessResponse = {
-  data?: unknown;
-  message?: string;
-  status?: number;
-};
+import type { BaseResponse } from "@/shared/types/base-response";
+
+export type PostMediaProcessResponse = BaseResponse;

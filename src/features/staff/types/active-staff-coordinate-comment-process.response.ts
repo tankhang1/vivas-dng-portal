@@ -1,5 +1,3 @@
-export type ActiveStaffCoordinateCommentProcessResponse = {
-  data?: unknown;
-  message?: string;
-  status?: number;
-};
+import type { BaseResponse } from "@/shared/types/base-response";
+
+export type ActiveStaffCoordinateCommentProcessResponse = BaseResponse;
