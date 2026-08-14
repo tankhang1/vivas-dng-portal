@@ -26,6 +26,12 @@ export const QUERY_KEY = {
     sz?: number;
     nu?: number;
   }) => ['citizens', 'search', params] as const,
+  NEWS_SEARCH: (params: {
+    key?: string;
+    category_item?: number;
+    sz?: number;
+    nu?: number;
+  }) => ['news', 'search', params] as const,
 } as const;
 
 export function createAppQueryClient() {

@@ -78,6 +78,7 @@ export const API_PATH = {
     DEPARTMENTS: '/common/departments',
     DEPARTMENT: '/common/department',
     DIVISIONS: '/common/divisions',
+    NEWS_PUBLIC_SEARCH: '/common/news/public/search',
   },
   COMMON_PORTAL: {
     COMMENTS: '/common-portal/comments',
