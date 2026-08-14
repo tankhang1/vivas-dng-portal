@@ -6,6 +6,9 @@ export const QUERY_KEY = {
   },
   DASHBOARD: ['dashboard'] as const,
   HOTLINE: ['hotline'] as const,
+  DEPARTMENTS: ['departments'] as const,
+  DEPARTMENT: (id: number | string) => ['department', id] as const,
+  DIVISIONS: ['divisions'] as const,
 } as const;
 
 export function createAppQueryClient() {

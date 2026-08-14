@@ -2,6 +2,7 @@ import { API_PATH, apiClient } from "@/shared/api";
 import type { CreateCategoryCommentProcessRequest } from "@/features/category-comment/types/create-category-comment-process.request";
 import type { CreateCategoryCommentProcessResponse } from "@/features/category-comment/types/create-category-comment-process.response";
 import type { EditCategoryCommentProcessRequest } from "@/features/category-comment/types/edit-category-comment-process.request";
+import type { RemoveCategoryCommentProcessRequest } from "@/features/category-comment/types/remove-category-comment-process.request";
 
 export async function createCategoryCommentProcess(
   request: CreateCategoryCommentProcessRequest,
@@ -19,6 +20,17 @@ export async function editCategoryCommentProcess(
 ): Promise<CreateCategoryCommentProcessResponse> {
   const response = await apiClient.post<CreateCategoryCommentProcessResponse>(
     API_PATH.CATEGORY_COMMENT.EDIT_PROCESS,
+    request,
+  );
+
+  return response.data;
+}
+
+export async function removeCategoryCommentProcess(
+  request: RemoveCategoryCommentProcessRequest,
+): Promise<CreateCategoryCommentProcessResponse> {
+  const response = await apiClient.post<CreateCategoryCommentProcessResponse>(
+    API_PATH.CATEGORY_COMMENT.REMOVE_PROCESS,
     request,
   );
 

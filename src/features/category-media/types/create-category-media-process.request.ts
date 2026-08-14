@@ -1,0 +1,6 @@
+export type CreateCategoryMediaProcessRequest = {
+  name: string;
+  path: string;
+  note: string;
+  order_number: number;
+};
