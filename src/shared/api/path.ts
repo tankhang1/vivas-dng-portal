@@ -7,6 +7,17 @@ export const API_PATH = {
   ADMIN: {
     SIGNUP: '/admin/signup',
   },
+  STAFF: {
+    CREATE_PROCESS: '/admin/staff/create/process',
+    EDIT_PROCESS: '/admin/staff/edit/process',
+    DEACTIVE_PROCESS: '/admin/staff/deactive/process',
+    ACTIVE_PROCESS: '/admin/staff/active/process',
+    COORDINATE_COMMENT_CREATE_PROCESS: '/admin/staff/coordinate-comment/create/process',
+    COORDINATE_COMMENT_EDIT_PROCESS: '/admin/staff/coordinate-comment/edit/process',
+    COORDINATE_COMMENT_DEACTIVE_PROCESS: '/admin/staff/coordinate-comment/deactive/process',
+    COORDINATE_COMMENT_ACTIVE_PROCESS: '/admin/staff/coordinate-comment/active/process',
+    COORDINATE_COMMENT_REMOVE_PROCESS: '/admin/staff/coordinate-comment/remove/process',
+  },
   HOTLINE: {
     CREATE_PROCESS: '/admin/hotline/create/process',
     REMOVE_PROCESS: '/admin/hotline/remove/process',
