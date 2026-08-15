@@ -103,10 +103,10 @@ export function NewsDetailDialog({
                   </p>
                 )}
 
-                {/* <div
+                <div
                   className="prose max-w-none prose-slate prose-headings:font-semibold prose-p:leading-7 prose-li:leading-7"
                   dangerouslySetInnerHTML={{ __html: article.contentHtml }}
-                /> */}
+                />
               </article>
             </div>
 
