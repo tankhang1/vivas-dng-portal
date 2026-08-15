@@ -30,7 +30,6 @@ import {
   Search,
   Eye,
   Trash2,
-  CalendarClock,
   CheckCircle2,
   Clock,
   Ban,
@@ -53,7 +52,7 @@ const statusMeta: Record<
   cancelled: { label: "Đã hủy", variant: "destructive", icon: Ban },
 };
 
-export default function Appointments() {
+export default function QueueTickets() {
   const [items, setItems] = useState(mockAppointments);
   const [searchTerm, setSearchTerm] = useState("");
   const [serviceFilter, setServiceFilter] = useState("all");
@@ -97,9 +96,9 @@ export default function Appointments() {
     <Layout>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Đặt lịch hẹn</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Bốc Số</h1>
           <p className="text-muted-foreground mt-1">
-            Quản lý lịch hẹn làm việc do công dân đặt qua ứng dụng.
+            Quản lý lượt bốc số làm việc do công dân đặt qua ứng dụng.
           </p>
         </div>
 
@@ -126,7 +125,7 @@ export default function Appointments() {
                   setPage(1);
                 }}
               >
-                <option value="all">Tất cả dịch vụ</option>
+                <option value="all">Tất cả lĩnh vực</option>
                 {appointmentServices.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -153,10 +152,9 @@ export default function Appointments() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Dịch vụ</TableHead>
+                  <TableHead>Lĩnh Vực</TableHead>
                   <TableHead>Người đặt</TableHead>
-                  <TableHead>Ngày hẹn</TableHead>
-                  <TableHead>Giờ hẹn</TableHead>
+                  <TableHead>Ngày bốc số</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
@@ -181,12 +179,8 @@ export default function Appointments() {
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>{item.date}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-                          {item.time}
-                        </div>
+                      <TableCell className="whitespace-nowrap">
+                        {item.date} {item.time}
                       </TableCell>
                       <TableCell>
                         <Badge variant={meta.variant} className="gap-1">
@@ -218,7 +212,7 @@ export default function Appointments() {
                 {paginated.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="h-24 text-center text-muted-foreground"
                     >
                       Không tìm thấy lịch hẹn nào.
@@ -255,12 +249,10 @@ export default function Appointments() {
                   <p className="font-medium">{current.phone}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Ngày hẹn</p>
-                  <p className="font-medium">{current.date}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Giờ hẹn</p>
-                  <p className="font-medium">{current.time}</p>
+                  <p className="text-muted-foreground">Ngày bốc số</p>
+                  <p className="font-medium">
+                    {current.date} {current.time}
+                  </p>
                 </div>
               </div>
 

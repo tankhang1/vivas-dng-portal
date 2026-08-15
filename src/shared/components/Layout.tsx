@@ -43,7 +43,7 @@ const navItems = [
   },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
-  { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
+  { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
 ];
 

@@ -19,7 +19,7 @@ import CitizensCreate from '@/pages/citizens/Create';
 import CitizenDetail from '@/pages/citizens/Detail';
 import CitizensEdit from '@/pages/citizens/Edit';
 import Feedback from '@/pages/Feedback';
-import Appointments from '@/pages/Appointments';
+import QueueTickets from '@/pages/QueueTickets';
 import { AuthProvider, QueryClientProviderRoot } from '@/shared/providers';
 
 function NotFound() {
@@ -65,7 +65,7 @@ function Router() {
       <Route path="/citizens" component={Citizens} />
       <Route path="/routing" component={Routing} />
       <Route path="/feedback" component={Feedback} />
-      <Route path="/appointments" component={Appointments} />
+      <Route path="/appointments" component={QueueTickets} />
       <Route component={NotFound} />
     </Switch>
   );
