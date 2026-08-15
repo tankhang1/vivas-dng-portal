@@ -14,6 +14,8 @@ import {
   CalendarClock,
   ChevronDown,
   Tag,
+  Settings2,
+  ListChecks,
 } from 'lucide-react';
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -44,7 +46,15 @@ const navItems = [
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
   { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
-  { name: 'Điều phối', href: '/routing', icon: Waypoints },
+  {
+    name: 'Điều phối',
+    menuKey: 'routing',
+    icon: Waypoints,
+    children: [
+      { name: 'Thiết lập điều phối', href: '/routing/setup', icon: Settings2 },
+      { name: 'Danh sách điều phối', href: '/routing/list', icon: ListChecks },
+    ],
+  },
 ];
 
 function isGroupItem(
@@ -57,7 +67,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { logout } = useAuth();
-  const [menuOpen, setMenuOpen] = React.useState({
+  const [menuOpen, setMenuOpen] = React.useState<Record<string, boolean>>({
     internal:
       location.startsWith('/staff') ||
       location.startsWith('/departments') ||
@@ -65,6 +75,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     cms:
       location.startsWith('/news') ||
       location.startsWith('/categories'),
+    routing: location.startsWith('/routing'),
   });
 
   return (
@@ -84,12 +95,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 const isChildActive = item.children.some(
                   (child) => location === child.href || location.startsWith(child.href),
                 );
-                const groupOpen =
-                  item.menuKey === 'cms' ? menuOpen.cms : menuOpen.internal;
+                const groupOpen = menuOpen[item.menuKey];
                 const setGroupOpen = (open: boolean) =>
                   setMenuOpen((current) => ({
                     ...current,
-                    [item.menuKey === 'cms' ? 'cms' : 'internal']: open,
+                    [item.menuKey]: open,
                   }));
 
                 return (
@@ -216,14 +226,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   const isChildActive = item.children.some(
                     (child) => location === child.href || location.startsWith(child.href),
                   );
-                  const groupOpen =
-                    item.menuKey === 'cms' ? menuOpen.cms : menuOpen.internal;
+                  const groupOpen = menuOpen[item.menuKey];
                   const toggleGroup = () =>
                     setMenuOpen((current) => ({
                       ...current,
-                      [item.menuKey === 'cms' ? 'cms' : 'internal']: !(
-                        item.menuKey === 'cms' ? current.cms : current.internal
-                      ),
+                      [item.menuKey]: !current[item.menuKey],
                     }));
                   return (
                     <div key={item.name} className="grid gap-1">

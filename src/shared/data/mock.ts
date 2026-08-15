@@ -404,14 +404,54 @@ export const mockRoutingRules = [
 ];
 
 export const mockRoutedItems = [
-  { id: '1', date: '2023-10-24 09:12', sender: 'Lê Hoàng', field: 'Môi trường', routedDepartment: 'Địa chính', routedStaff: 'Lê Văn C' },
-  { id: '2', date: '2023-10-23 14:30', sender: 'Nguyễn A', field: 'Trật tự', routedDepartment: 'Công an', routedStaff: 'Phạm Thị D' },
-  { id: '3', date: '2023-10-20 08:05', sender: 'Trần B', field: 'Hành chính', routedDepartment: 'Văn phòng UBND', routedStaff: 'Nguyễn Văn A' },
-  { id: '4', date: '2023-10-19 16:40', sender: 'Phạm Thị Lan', field: 'An ninh', routedDepartment: 'Công an', routedStaff: 'Phạm Thị D' },
-  { id: '5', date: '2023-10-18 10:22', sender: 'Đỗ Văn Minh', field: 'Tài chính', routedDepartment: 'Tài chính - Kế toán', routedStaff: 'Đặng Văn G' },
-  { id: '6', date: '2023-10-17 13:05', sender: 'Vũ Thị Nga', field: 'Văn hóa', routedDepartment: 'Văn hóa - Xã hội', routedStaff: 'Hoàng Thị E' },
-  { id: '7', date: '2023-10-16 09:50', sender: 'Bùi Văn Sơn', field: 'Môi trường', routedDepartment: 'Địa chính', routedStaff: 'Lê Văn C' },
-  { id: '8', date: '2023-10-15 11:15', sender: 'Ngô Thị Tuyết', field: 'Trật tự', routedDepartment: 'Công an', routedStaff: 'Phạm Thị D' },
+  {
+    id: '1', date: '2023-10-24 09:12', sender: 'Lê Hoàng', phone: '0912340001', field: 'Môi trường',
+    title: 'Rác thải tồn đọng tại khu vực chợ', address: 'Gần chợ Tây Hồ, Khu phố 1',
+    content: 'Rác thải sinh hoạt tồn đọng nhiều ngày chưa được thu gom, gây mùi hôi khó chịu cho các hộ dân xung quanh.',
+    routedDepartment: 'Địa chính', routedStaff: 'Lê Văn C',
+  },
+  {
+    id: '2', date: '2023-10-23 14:30', sender: 'Nguyễn A', phone: '0912340002', field: 'Trật tự',
+    title: 'Lấn chiếm vỉa hè buôn bán', address: 'Đường số 5, Khu phố 2',
+    content: 'Một số hộ kinh doanh lấn chiếm vỉa hè để bày bán hàng hóa, gây cản trở người đi bộ.',
+    routedDepartment: 'Công an', routedStaff: 'Phạm Thị D',
+  },
+  {
+    id: '3', date: '2023-10-20 08:05', sender: 'Trần B', phone: '0912340003', field: 'Hành chính',
+    title: 'Yêu cầu hướng dẫn thủ tục đăng ký tạm trú', address: 'Khu phố 3',
+    content: 'Đề nghị cán bộ hướng dẫn hồ sơ và quy trình đăng ký tạm trú cho người thuê nhà.',
+    routedDepartment: 'Văn phòng UBND', routedStaff: 'Nguyễn Văn A',
+  },
+  {
+    id: '4', date: '2023-10-19 16:40', sender: 'Phạm Thị Lan', phone: '0912340004', field: 'An ninh',
+    title: 'Nhóm thanh niên tụ tập gây mất an ninh', address: 'Công viên trung tâm',
+    content: 'Phản ánh tình trạng tụ tập, gây ồn ào vào ban đêm tại khu vực công viên trung tâm.',
+    routedDepartment: 'Công an', routedStaff: 'Phạm Thị D',
+  },
+  {
+    id: '5', date: '2023-10-18 10:22', sender: 'Đỗ Văn Minh', phone: '0912340005', field: 'Tài chính',
+    title: 'Yêu cầu hỗ trợ cấp lại giấy chứng nhận', address: 'Khu phố 2',
+    content: 'Đề nghị hướng dẫn thủ tục cấp lại giấy chứng nhận quyền sử dụng đất bị mất.',
+    routedDepartment: 'Tài chính - Kế toán', routedStaff: 'Đặng Văn G',
+  },
+  {
+    id: '6', date: '2023-10-17 13:05', sender: 'Vũ Thị Nga', phone: '0912340006', field: 'Văn hóa',
+    title: 'Đề nghị hỗ trợ tổ chức hoạt động văn hóa khu phố', address: 'Nhà văn hóa Khu phố 4',
+    content: 'Đề nghị UBND hỗ trợ kinh phí và địa điểm tổ chức hoạt động văn hóa cộng đồng cuối năm.',
+    routedDepartment: 'Văn hóa - Xã hội', routedStaff: 'Hoàng Thị E',
+  },
+  {
+    id: '7', date: '2023-10-16 09:50', sender: 'Bùi Văn Sơn', phone: '0912340007', field: 'Môi trường',
+    title: 'Cống thoát nước bị nghẽn', address: 'Khu phố 1',
+    content: 'Cống thoát nước bị nghẽn khiến nước tràn ra đường mỗi khi mưa lớn, đề nghị kiểm tra xử lý.',
+    routedDepartment: 'Địa chính', routedStaff: 'Lê Văn C',
+  },
+  {
+    id: '8', date: '2023-10-15 11:15', sender: 'Ngô Thị Tuyết', phone: '0912340008', field: 'Trật tự',
+    title: 'Xây dựng lấn chiếm lòng đường', address: 'Đường số 5, Khu phố 1',
+    content: 'Một hộ dân tập kết vật liệu xây dựng lấn chiếm lòng đường gây cản trở giao thông.',
+    routedDepartment: 'Công an', routedStaff: 'Phạm Thị D',
+  },
 ];
 
 export const feedbackCategories = [

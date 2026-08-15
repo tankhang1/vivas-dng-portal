@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Layout } from "../shared/components/Layout";
+import { Layout } from "../../shared/components/Layout";
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Badge,
   Button,
   Input,
   Dialog,
@@ -21,38 +20,26 @@ import {
   Label,
   Select,
   Pagination,
-} from "../shared/components/ui";
+} from "../../shared/components/ui";
+import { mockDepartments, mockStaff } from "../../shared/data/mock";
 import {
-  mockRoutingRules,
-  mockRoutedItems,
-  mockDepartments,
-  mockStaff,
-} from "../shared/data/mock";
-import {
-  Waypoints,
-  Plus,
-  Edit2,
-  Trash2,
-  ArrowRight,
-  CheckCircle2,
-  Search,
-} from "lucide-react";
+  deleteRoutingRule,
+  getRoutingRules,
+  saveRoutingRule,
+  type RoutingRule,
+} from "./store";
+import { Waypoints, Plus, Edit2, Trash2, Search } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
-export default function Routing() {
-  const [rules, setRules] = useState(mockRoutingRules);
-  const [items] = useState(mockRoutedItems);
+export default function RoutingSetupPage() {
+  const [rules, setRules] = useState<RoutingRule[]>(() => getRoutingRules());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentRule, setCurrentRule] = useState<any>(null);
+  const [currentRule, setCurrentRule] = useState<RoutingRule | null>(null);
 
   const [ruleSearch, setRuleSearch] = useState("");
   const [ruleDeptFilter, setRuleDeptFilter] = useState("all");
   const [rulePage, setRulePage] = useState(1);
-
-  const [itemSearch, setItemSearch] = useState("");
-  const [itemFieldFilter, setItemFieldFilter] = useState("all");
-  const [itemPage, setItemPage] = useState(1);
 
   const filteredRules = useMemo(() => {
     return rules.filter(
@@ -70,27 +57,7 @@ export default function Routing() {
     rulePage * PAGE_SIZE,
   );
 
-  const itemFields = useMemo(
-    () => Array.from(new Set(items.map((i) => i.field))),
-    [items],
-  );
-  const filteredItems = useMemo(() => {
-    return items.filter(
-      (i) =>
-        i.sender.toLowerCase().includes(itemSearch.toLowerCase()) &&
-        (itemFieldFilter === "all" || i.field === itemFieldFilter),
-    );
-  }, [items, itemSearch, itemFieldFilter]);
-  const itemTotalPages = Math.max(
-    1,
-    Math.ceil(filteredItems.length / PAGE_SIZE),
-  );
-  const paginatedItems = filteredItems.slice(
-    (itemPage - 1) * PAGE_SIZE,
-    itemPage * PAGE_SIZE,
-  );
-
-  const handleOpenDialog = (rule: any = null) => {
+  const handleOpenDialog = (rule: RoutingRule | null = null) => {
     setCurrentRule(
       rule || {
         id: "",
@@ -103,18 +70,16 @@ export default function Routing() {
   };
 
   const handleSave = () => {
-    if (currentRule.id) {
-      setRules(rules.map((r) => (r.id === currentRule.id ? currentRule : r)));
-    } else {
-      setRules([...rules, { ...currentRule, id: Date.now().toString() }]);
-    }
+    if (!currentRule) return;
+    saveRoutingRule(currentRule);
+    setRules(getRoutingRules());
     setIsDialogOpen(false);
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Xóa quy tắc điều phối này?")) {
-      setRules(rules.filter((r) => r.id !== id));
-    }
+    if (!confirm("Xóa quy tắc điều phối này?")) return;
+    deleteRoutingRule(id);
+    setRules(getRoutingRules());
   };
 
   return (
@@ -123,7 +88,7 @@ export default function Routing() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Điều phối tiếp nhận thông tin
+              Thiết lập điều phối
             </h1>
             <p className="text-muted-foreground mt-1">
               Thông tin tiếp nhận được tự động điều phối cho cán bộ phụ trách
@@ -228,101 +193,6 @@ export default function Routing() {
             />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <CardTitle>Thông tin tiếp nhận gần đây</CardTitle>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm theo người gửi..."
-                  className="pl-9"
-                  value={itemSearch}
-                  onChange={(e) => {
-                    setItemSearch(e.target.value);
-                    setItemPage(1);
-                  }}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={itemFieldFilter}
-                  onChange={(e) => {
-                    setItemFieldFilter(e.target.value);
-                    setItemPage(1);
-                  }}
-                  className="w-44"
-                >
-                  <option value="all">Tất cả lĩnh vực</option>
-                  {itemFields.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Thời gian</TableHead>
-                  <TableHead>Người gửi</TableHead>
-                  <TableHead>Lĩnh vực</TableHead>
-                  <TableHead>Điều phối tới</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {item.date}
-                    </TableCell>
-                    <TableCell className="font-medium">{item.sender}</TableCell>
-                    <TableCell>{item.field}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <span>{item.routedDepartment}</span>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {item.routedStaff}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="success"
-                        className="gap-1 bg-green-100 text-green-800"
-                      >
-                        <CheckCircle2 className="h-3 w-3" /> Đã điều phối
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {paginatedItems.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      Không tìm thấy kết quả nào.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <Pagination
-              page={itemPage}
-              totalPages={itemTotalPages}
-              onPageChange={setItemPage}
-              totalItems={filteredItems.length}
-              pageSize={PAGE_SIZE}
-            />
-          </CardContent>
-        </Card>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -337,7 +207,9 @@ export default function Routing() {
             <Input
               value={currentRule?.field || ""}
               onChange={(e) =>
-                setCurrentRule({ ...currentRule, field: e.target.value })
+                setCurrentRule(
+                  currentRule && { ...currentRule, field: e.target.value },
+                )
               }
               placeholder="Ví dụ: Môi trường, Trật tự, An ninh..."
             />
@@ -347,7 +219,12 @@ export default function Routing() {
             <Select
               value={currentRule?.department || ""}
               onChange={(e) =>
-                setCurrentRule({ ...currentRule, department: e.target.value })
+                setCurrentRule(
+                  currentRule && {
+                    ...currentRule,
+                    department: e.target.value,
+                  },
+                )
               }
             >
               {mockDepartments.map((d) => (
@@ -362,7 +239,9 @@ export default function Routing() {
             <Select
               value={currentRule?.staff || ""}
               onChange={(e) =>
-                setCurrentRule({ ...currentRule, staff: e.target.value })
+                setCurrentRule(
+                  currentRule && { ...currentRule, staff: e.target.value },
+                )
               }
             >
               {mockStaff.map((s) => (

@@ -13,7 +13,8 @@ import NewsEdit from '@/pages/news/Edit';
 import CategoriesPage from '@/pages/categories';
 import CategoriesCreate from '@/pages/categories/Create';
 import CategoriesEdit from '@/pages/categories/Edit';
-import Routing from '@/pages/Routing';
+import RoutingSetupPage from '@/pages/routing/RoutingSetupPage';
+import RoutingListPage from '@/pages/routing/RoutingListPage';
 import Citizens from '@/pages/citizens';
 import CitizensCreate from '@/pages/citizens/Create';
 import CitizenDetail from '@/pages/citizens/Detail';
@@ -63,7 +64,11 @@ function Router() {
       <Route path="/citizens/:id/edit" component={CitizensEdit} />
       <Route path="/citizens/:id" component={CitizenDetail} />
       <Route path="/citizens" component={Citizens} />
-      <Route path="/routing" component={Routing} />
+      <Route path="/routing/list" component={RoutingListPage} />
+      <Route path="/routing/setup" component={RoutingSetupPage} />
+      <Route path="/routing">
+        <Redirect to="/routing/setup" />
+      </Route>
       <Route path="/feedback" component={Feedback} />
       <Route path="/appointments" component={QueueTickets} />
       <Route component={NotFound} />

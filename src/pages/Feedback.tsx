@@ -21,6 +21,7 @@ import {
   Label,
   Textarea,
   Pagination,
+  Select,
 } from "../shared/components/ui";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { useSearchCommentsQuery } from "@/features/comment/hooks/comment.hook";
@@ -75,6 +76,7 @@ export default function Feedback() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved">("all");
   const [page, setPage] = useState(1);
   const [current, setCurrent] = useState<CommentItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -88,6 +90,14 @@ export default function Feedback() {
   });
 
   const items = data?.content ?? [];
+  const filteredItems = useMemo(() => {
+    if (statusFilter === "all") return items;
+    return items.filter((item) =>
+      statusFilter === "approved"
+        ? item.staff_approve_item > 0
+        : item.staff_approve_item <= 0,
+    );
+  }, [items, statusFilter]);
   const totalPages = Math.max(1, data?.totalPages ?? 1);
   const totalItems = data?.totalElements ?? 0;
   const showInitialLoading = isLoading && items.length === 0;
@@ -205,7 +215,19 @@ export default function Feedback() {
                 }}
               />
             </div>
-            {/* Tạm ẩn bộ lọc danh mục/trạng thái, API tìm kiếm hiện chưa hỗ trợ tham số này */}
+            <Select
+              className="w-full md:w-48"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as "all" | "pending" | "approved");
+                setPage(1);
+              }}
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">Chưa duyệt</option>
+              <option value="approved">Đã duyệt</option>
+            </Select>
+            {/* Tạm ẩn bộ lọc danh mục, API tìm kiếm hiện chưa hỗ trợ tham số này */}
           </CardHeader>
           <CardContent>
             <div className="relative">
@@ -249,7 +271,7 @@ export default function Feedback() {
                     )}
                     {!showInitialLoading &&
                       !isError &&
-                      items.map((item) => {
+                      filteredItems.map((item) => {
                         const meta = feedbackStatus(item);
                         return (
                           <TableRow
@@ -298,7 +320,7 @@ export default function Feedback() {
                           </TableRow>
                         );
                       })}
-                    {!showInitialLoading && !isError && items.length === 0 && (
+                    {!showInitialLoading && !isError && filteredItems.length === 0 && (
                       <TableRow>
                         <TableCell
                           colSpan={6}
