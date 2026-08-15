@@ -3,6 +3,7 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Staff from '@/pages/staff';
 import StaffCreate from '@/pages/staff/Create';
+import StaffDetail from '@/pages/staff/Detail';
 import StaffEdit from '@/pages/staff/Edit';
 import Departments from '@/pages/Departments';
 import Roles from '@/pages/Roles';
@@ -52,6 +53,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/staff/new" component={StaffCreate} />
       <Route path="/staff/:id/edit" component={StaffEdit} />
+      <Route path="/staff/:id" component={StaffDetail} />
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
       <Route path="/roles" component={Roles} />

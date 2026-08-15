@@ -19,7 +19,7 @@ import {
 } from "../../shared/components/ui";
 import { deleteStaff, getStaff } from "./store";
 import { statusBadgeVariant, statusLabel, type StaffRecord } from "./types";
-import { Edit2, Plus, Search, Trash2 } from "lucide-react";
+import { Edit2, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { mockDepartments } from "../../shared/data/mock";
 
 const PAGE_SIZE = 5;
@@ -160,6 +160,14 @@ export default function StaffPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Xem chi tiết"
+                          onClick={() => navigate(`/staff/${staff.id}`)}
+                        >
+                          <Eye className="h-4 w-4 text-emerald-600" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
