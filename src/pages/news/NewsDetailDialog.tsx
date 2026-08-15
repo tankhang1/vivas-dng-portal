@@ -1,6 +1,27 @@
-import { Badge, Button, Dialog, DialogFooter, DialogHeader, DialogTitle } from '../../shared/components/ui';
-import { ArrowRight, CalendarDays, Globe, Link as LinkIcon, Paperclip, X } from 'lucide-react';
-import { audienceLabel, categoryLabel, formatDate, linkTypeLabel, sourceLabel, type NewsArticle } from './types';
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../shared/components/ui";
+import {
+  ArrowRight,
+  CalendarDays,
+  Globe,
+  Link as LinkIcon,
+  Paperclip,
+  X,
+} from "lucide-react";
+import {
+  audienceLabel,
+  categoryLabel,
+  formatDate,
+  linkTypeLabel,
+  sourceLabel,
+  type NewsArticle,
+} from "./types";
 
 type NewsDetailDialogProps = {
   open: boolean;
@@ -40,7 +61,9 @@ export function NewsDetailDialog({
                     </Badge>
                     <Badge variant="outline" className="gap-1">
                       <Globe className="h-3 w-3" />
-                      {article.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
+                      {article.status === "published"
+                        ? "Đã xuất bản"
+                        : "Bản nháp"}
                     </Badge>
                     <Badge variant="outline" className="gap-1">
                       <LinkIcon className="h-3 w-3" />
@@ -80,10 +103,10 @@ export function NewsDetailDialog({
                   </p>
                 )}
 
-                <div
+                {/* <div
                   className="prose max-w-none prose-slate prose-headings:font-semibold prose-p:leading-7 prose-li:leading-7"
                   dangerouslySetInnerHTML={{ __html: article.contentHtml }}
-                />
+                /> */}
               </article>
             </div>
 
@@ -96,20 +119,28 @@ export function NewsDetailDialog({
                   <dl className="mt-4 space-y-3 text-sm">
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted-foreground">Nguồn tin</dt>
-                      <dd className="text-right font-medium">{sourceLabel(article.source)}</dd>
+                      <dd className="text-right font-medium">
+                        {sourceLabel(article.source)}
+                      </dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted-foreground">Danh mục</dt>
-                      <dd className="text-right font-medium">{categoryLabel(article.category)}</dd>
+                      <dd className="text-right font-medium">
+                        {categoryLabel(article.category)}
+                      </dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted-foreground">Đối tượng</dt>
-                      <dd className="text-right font-medium">{audienceLabel(article.audience)}</dd>
+                      <dd className="text-right font-medium">
+                        {audienceLabel(article.audience)}
+                      </dd>
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <dt className="text-muted-foreground">Trạng thái</dt>
                       <dd className="text-right font-medium">
-                        {article.status === 'published' ? 'Xuất bản' : 'Lưu nháp'}
+                        {article.status === "published"
+                          ? "Xuất bản"
+                          : "Lưu nháp"}
                       </dd>
                     </div>
                   </dl>
@@ -120,7 +151,9 @@ export function NewsDetailDialog({
                     Liên kết
                   </p>
                   <div className="mt-3 space-y-2 text-sm">
-                    <p className="font-medium">{linkTypeLabel(article.linkType)}</p>
+                    <p className="font-medium">
+                      {linkTypeLabel(article.linkType)}
+                    </p>
                     {article.linkUrl ? (
                       <a
                         href={article.linkUrl}
@@ -131,7 +164,9 @@ export function NewsDetailDialog({
                         {article.linkUrl}
                       </a>
                     ) : (
-                      <p className="text-muted-foreground">Chưa gắn liên kết.</p>
+                      <p className="text-muted-foreground">
+                        Chưa gắn liên kết.
+                      </p>
                     )}
                   </div>
                 </section>
@@ -151,7 +186,9 @@ export function NewsDetailDialog({
                           className="flex items-center gap-3 rounded-xl border bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100"
                         >
                           <Paperclip className="h-4 w-4 text-muted-foreground" />
-                          <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            {file.name}
+                          </span>
                         </a>
                       ))}
                     </div>
