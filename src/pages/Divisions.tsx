@@ -14,9 +14,16 @@ import {
   DialogFooter,
   Label,
   Badge,
+  Select,
   cn,
 } from "../shared/components/ui";
-import { allPermissions, permissionGroups } from "../shared/data/mock";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../shared/components/ui/accordion";
+import { feedbackCategories, mockStaff } from "../shared/data/mock";
 import {
   useCreateDivisionProcessMutation,
   useDivisionsQuery,
@@ -31,20 +38,38 @@ import {
   Edit2,
   Trash2,
   Search,
-  CheckSquare,
-  Square,
   Users,
-  Layers3,
-  ShieldCheck,
+  UserPlus,
+  X,
+  MessageSquareWarning,
+  Eye,
 } from "lucide-react";
+
+type ApprovalLevel = 0 | 1 | 2;
+
+const APPROVAL_META: Record<ApprovalLevel, { label: string; badge: string }> = {
+  0: { label: "Xem", badge: "bg-slate-100 text-slate-700" },
+  1: { label: "Duyệt", badge: "bg-emerald-100 text-emerald-700" },
+  2: { label: "Từ chối", badge: "bg-red-100 text-red-700" },
+};
+
+type CategoryAssignment = {
+  id: string;
+  categoryValue: string;
+  staffId: string;
+  staffName: string;
+  approval: ApprovalLevel;
+};
 
 type DivisionRecord = {
   id: string;
   name: string;
   desc: string;
   users: number;
-  permissions: string[];
+  categoryAssignments: CategoryAssignment[];
 };
+
+type StaffCard = (typeof mockStaff)[number];
 
 export default function Divisions() {
   const queryClient = useQueryClient();
@@ -61,6 +86,7 @@ export default function Divisions() {
   const [selectedDivisionId, setSelectedDivisionId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentDivision, setCurrentDivision] = useState<any>(null);
+  const [currentStaff, setCurrentStaff] = useState<StaffCard | null>(null);
 
   useEffect(() => {
     if (!hasSeededDivisions.current && divisionsData?.content) {
@@ -70,7 +96,7 @@ export default function Divisions() {
           name: division.name,
           desc: division.note ?? "",
           users: 0,
-          permissions: [],
+          categoryAssignments: [],
         })),
       );
       hasSeededDivisions.current = true;
@@ -87,10 +113,7 @@ export default function Divisions() {
 
   const selectedDivision =
     divisions.find((d) => d.id === selectedDivisionId) || divisions[0];
-  const selectedPermissions = selectedDivision?.permissions || [];
-  const completion = allPermissions.length
-    ? Math.round((selectedPermissions.length / allPermissions.length) * 100)
-    : 0;
+  const totalAssignments = selectedDivision?.categoryAssignments.length ?? 0;
 
   useEffect(() => {
     // Keep a valid selection whenever the visible/filtered list changes.
@@ -104,7 +127,14 @@ export default function Divisions() {
 
   const handleOpenDialog = (item: any = null) => {
     setCurrentDivision(
-      item || { id: "", name: "", desc: "", users: 0, permissions: [] },
+      item || {
+        id: "",
+        name: "",
+        desc: "",
+        users: 0,
+        permissions: [],
+        categoryAssignments: [],
+      },
     );
     setIsDialogOpen(true);
   };
@@ -143,7 +173,7 @@ export default function Divisions() {
             name: created.name,
             desc: created.note ?? "",
             users: 0,
-            permissions: [],
+            categoryAssignments: [],
           };
           setDivisions([...divisions, newDivision]);
           setSelectedDivisionId(newDivision.id);
@@ -169,45 +199,54 @@ export default function Divisions() {
     }
   };
 
-  const togglePermission = (perm: string) => {
-    if (!selectedDivision) return;
-    const has = selectedDivision.permissions.includes(perm);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [assignCategoryValue, setAssignCategoryValue] = useState("");
+  const [assignStaffId, setAssignStaffId] = useState("");
+  const [assignApproval, setAssignApproval] = useState<ApprovalLevel>(0);
+
+  const openAssignDialog = (categoryValue: string) => {
+    setAssignCategoryValue(categoryValue);
+    setAssignStaffId("");
+    setAssignApproval(0);
+    setIsAssignDialogOpen(true);
+  };
+
+  const handleAssignStaff = () => {
+    if (!selectedDivision || !assignStaffId) return;
+    const staff = mockStaff.find((s) => s.id === assignStaffId);
+    if (!staff) return;
+
+    const assignment: CategoryAssignment = {
+      id: `${assignCategoryValue}-${staff.id}-${Date.now()}`,
+      categoryValue: assignCategoryValue,
+      staffId: staff.id,
+      staffName: staff.name,
+      approval: assignApproval,
+    };
     const updated = {
       ...selectedDivision,
-      permissions: has
-        ? selectedDivision.permissions.filter((p: string) => p !== perm)
-        : [...selectedDivision.permissions, perm],
+      categoryAssignments: [
+        ...selectedDivision.categoryAssignments,
+        assignment,
+      ],
     };
     setDivisions((prev) =>
       prev.map((d) => (d.id === updated.id ? updated : d)),
     );
+    setIsAssignDialogOpen(false);
   };
 
-  const replaceSelectedPermissions = (permissions: string[]) => {
+  const handleRemoveAssignment = (assignmentId: string) => {
     if (!selectedDivision) return;
     const updated = {
       ...selectedDivision,
-      permissions,
+      categoryAssignments: selectedDivision.categoryAssignments.filter(
+        (a) => a.id !== assignmentId,
+      ),
     };
     setDivisions((prev) =>
       prev.map((d) => (d.id === updated.id ? updated : d)),
     );
-  };
-
-  const setGroupPermissions = (
-    groupPermissions: readonly string[],
-    enable: boolean,
-  ) => {
-    if (!selectedDivision) return;
-    const next = new Set(selectedDivision.permissions);
-    groupPermissions.forEach((perm) => {
-      if (enable) {
-        next.add(perm);
-      } else {
-        next.delete(perm);
-      }
-    });
-    replaceSelectedPermissions(Array.from(next));
   };
 
   return (
@@ -219,8 +258,8 @@ export default function Divisions() {
               Lĩnh vực chuyên trách
             </h1>
             <p className="text-muted-foreground mt-1">
-              Chọn một lĩnh vực chuyên trách để xem và chỉnh sửa quyền hạn
-              tương ứng.
+              Chọn một lĩnh vực chuyên trách để xem và chỉnh sửa quyền hạn tương
+              ứng.
             </p>
           </div>
           <Button onClick={() => handleOpenDialog()} className="gap-2">
@@ -233,180 +272,165 @@ export default function Divisions() {
             {selectedDivision ? (
               <>
                 <CardHeader className="space-y-4">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                          <Shield className="h-5 w-5 text-primary" />
-                          {selectedDivision.name}
-                        </CardTitle>
-                        <Badge variant="secondary" className="shrink-0">
-                          {selectedPermissions.length}/{allPermissions.length}{" "}
-                          quyền
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedDivision.desc || "Chưa có mô tả"}
-                      </p>
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" />{" "}
-                        {selectedDivision.users} người dùng đang giữ lĩnh vực
-                        này
-                      </div>
+                  <div className="space-y-2">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Shield className="h-5 w-5 text-primary" />
+                      {selectedDivision.name}
+                      <Badge variant="outline">{totalAssignments} cán bộ</Badge>
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedDivision.desc || "Chưa có mô tả"}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Users className="h-3.5 w-3.5" /> {selectedDivision.users}{" "}
+                      người dùng đang giữ lĩnh vực này
                     </div>
-                    <div className="min-w-[260px] rounded-xl border bg-slate-50 p-4">
-                      <div className="mb-2 flex items-center justify-between text-sm">
-                        <span className="font-medium">Mức độ cấp quyền</span>
-                        <span className="text-muted-foreground">
-                          {completion}%
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${completion}%` }}
-                        />
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Lĩnh vực này đang có {selectedPermissions.length} quyền
-                        trong tổng {allPermissions.length} quyền khả dụng.
+                  </div>
+                </CardHeader>
+
+                <CardHeader className="border-t pt-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <MessageSquareWarning className="h-4 w-4 text-primary" />
+                        Danh sách nhóm phản ánh
+                      </CardTitle>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Mỗi nhóm phản ánh có thể mở ra để xem staff được gán,
+                        kèm số điện thoại, chức vụ và action xử lý nhanh.
                       </p>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <div>
-                      <p className="text-sm font-medium">Quyền hạn được cấp</p>
-                      <p className="text-xs text-muted-foreground">
-                        Chọn nhanh theo từng nhóm hoặc bật tắt từng quyền riêng
-                        lẻ.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() =>
-                          replaceSelectedPermissions(allPermissions)
-                        }
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        Chọn tất cả
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => replaceSelectedPermissions([])}
-                      >
-                        Bỏ chọn tất cả
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 xl:grid-cols-2">
-                    {permissionGroups.map((group) => {
-                      const grantedCount = group.permissions.filter((perm) =>
-                        selectedPermissions.includes(perm),
-                      ).length;
-                      const allGranted =
-                        grantedCount === group.permissions.length;
-                      const someGranted = grantedCount > 0 && !allGranted;
-
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full space-y-4"
+                  >
+                    {feedbackCategories.map((category) => {
+                      const assignments =
+                        selectedDivision.categoryAssignments.filter(
+                          (a) => a.categoryValue === category.value,
+                        );
                       return (
-                        <div
-                          key={group.label}
-                          className="rounded-xl border bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm"
+                        <AccordionItem
+                          key={category.value}
+                          value={category.value}
+                          className="rounded-xl border border-border bg-white px-4 first:mt-0"
                         >
-                          <div className="mb-4 flex items-start justify-between gap-3">
-                            <div className="space-y-1">
+                          <AccordionTrigger className="py-4 hover:no-underline">
+                            <div className="flex w-full items-center justify-between gap-3 pr-2">
                               <div className="flex items-center gap-2">
-                                <Layers3 className="h-4 w-4 text-primary" />
                                 <h3 className="font-semibold text-foreground">
-                                  {group.label}
+                                  {category.label}
                                 </h3>
+                                <Badge variant="outline">
+                                  {assignments.length} cán bộ
+                                </Badge>
                               </div>
-                              <p className="text-xs leading-relaxed text-muted-foreground">
-                                {group.description}
-                              </p>
                             </div>
-                            <Badge
-                              variant={
-                                allGranted
-                                  ? "default"
-                                  : someGranted
-                                    ? "secondary"
-                                    : "outline"
-                              }
-                            >
-                              {grantedCount}/{group.permissions.length}
-                            </Badge>
-                          </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="pb-4">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                              <p className="text-xs text-muted-foreground">
+                                Nhấn để xem danh sách staff đang phụ trách nhóm
+                                này.
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => openAssignDialog(category.value)}
+                              >
+                                <UserPlus className="h-4 w-4" />
+                                Thêm cán bộ
+                              </Button>
+                            </div>
 
-                          <div className="grid gap-2">
-                            {group.permissions.map((perm) => {
-                              const granted =
-                                selectedPermissions.includes(perm);
-                              return (
-                                <button
-                                  key={perm}
-                                  type="button"
-                                  onClick={() => togglePermission(perm)}
-                                  className={cn(
-                                    "flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm text-left transition-all",
-                                    granted
-                                      ? "border-primary/30 bg-primary/5 text-foreground shadow-sm"
-                                      : "border-input bg-white text-muted-foreground hover:border-primary/20 hover:bg-primary/[0.03]",
-                                  )}
-                                >
-                                  <span className="flex min-w-0 items-center gap-2">
-                                    {granted ? (
-                                      <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
-                                    ) : (
-                                      <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                    )}
-                                    <span className="truncate">{perm}</span>
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      "rounded-full px-2 py-0.5 text-[11px] font-medium",
-                                      granted
-                                        ? "bg-primary/10 text-primary"
-                                        : "bg-slate-100 text-muted-foreground",
-                                    )}
-                                  >
-                                    {granted ? "Đã cấp" : "Chưa cấp"}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
+                            {assignments.length > 0 ? (
+                              <div className="grid gap-3">
+                                {assignments.map((assignment) => {
+                                  const staff = mockStaff.find(
+                                    (item) => item.id === assignment.staffId,
+                                  );
 
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setGroupPermissions(group.permissions, true)
-                              }
-                            >
-                              Chọn nhóm
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setGroupPermissions(group.permissions, false)
-                              }
-                            >
-                              Bỏ nhóm
-                            </Button>
-                          </div>
-                        </div>
+                                  return (
+                                    <div
+                                      key={assignment.id}
+                                      className="flex flex-col gap-3 rounded-xl border bg-slate-50 p-4 md:flex-row md:items-center md:justify-between"
+                                    >
+                                      <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <p className="font-semibold text-foreground">
+                                            {staff?.name ??
+                                              assignment.staffName}
+                                          </p>
+                                          <Badge variant="outline">
+                                            {
+                                              APPROVAL_META[assignment.approval]
+                                                .label
+                                            }
+                                          </Badge>
+                                        </div>
+                                        <div className="mt-2 grid gap-1 text-sm text-muted-foreground sm:grid-cols-2">
+                                          <p>
+                                            <span className="font-medium text-foreground">
+                                              SĐT:
+                                            </span>{" "}
+                                            {staff?.phone || "-"}
+                                          </p>
+                                          <p>
+                                            <span className="font-medium text-foreground">
+                                              Chức vụ:
+                                            </span>{" "}
+                                            {staff?.role || "-"}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-2 self-start md:self-center">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="gap-2"
+                                          onClick={() =>
+                                            staff && setCurrentStaff(staff)
+                                          }
+                                          disabled={!staff}
+                                          title="Xem"
+                                        >
+                                          <Eye className="h-4 w-4" />
+                                          Xem
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-9 w-9 text-red-600 hover:text-red-700"
+                                          onClick={() =>
+                                            handleRemoveAssignment(
+                                              assignment.id,
+                                            )
+                                          }
+                                          title="Xóa"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="rounded-xl border border-dashed border-border bg-slate-50 px-4 py-6 text-sm text-muted-foreground">
+                                Chưa có cán bộ nào được gán cho nhóm này.
+                              </p>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
                       );
                     })}
-                  </div>
+                  </Accordion>
                 </CardContent>
               </>
             ) : (
@@ -540,6 +564,106 @@ export default function Divisions() {
             {isSavingDivision ? "Đang lưu..." : "Lưu thông tin"}
           </Button>
         </DialogFooter>
+      </Dialog>
+
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogHeader>
+          <DialogTitle>Thêm cán bộ vào nhóm phản ánh</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label>Nhóm phản ánh</Label>
+            <Input
+              disabled
+              value={
+                feedbackCategories.find((c) => c.value === assignCategoryValue)
+                  ?.label ?? ""
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Cán bộ</Label>
+            <Select
+              value={assignStaffId}
+              onChange={(e) => setAssignStaffId(e.target.value)}
+            >
+              <option value="">Chọn cán bộ...</option>
+              {mockStaff.map((staff) => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.name} — {staff.department}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label>Quyền xử lý</Label>
+            <Select
+              value={String(assignApproval)}
+              onChange={(e) =>
+                setAssignApproval(Number(e.target.value) as ApprovalLevel)
+              }
+            >
+              <option value="0">Xem</option>
+              <option value="1">Duyệt</option>
+              <option value="2">Từ chối</option>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setIsAssignDialogOpen(false)}
+          >
+            Hủy
+          </Button>
+          <Button onClick={handleAssignStaff} disabled={!assignStaffId}>
+            Thêm cán bộ
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={!!currentStaff}
+        onOpenChange={(open) => !open && setCurrentStaff(null)}
+        className="max-w-lg"
+      >
+        {currentStaff && (
+          <div className="space-y-5">
+            <DialogHeader>
+              <DialogTitle>{currentStaff.name}</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Thông tin nhanh của cán bộ đang được gán trong nhóm phản ánh.
+              </p>
+            </DialogHeader>
+
+            <div className="grid gap-3 rounded-xl border bg-slate-50 p-4 text-sm">
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-muted-foreground">Số điện thoại</span>
+                <span className="font-medium text-foreground">
+                  {currentStaff.phone || "-"}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-muted-foreground">Chức vụ</span>
+                <span className="font-medium text-foreground">
+                  {currentStaff.role || "-"}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-muted-foreground">Phòng ban</span>
+                <span className="font-medium text-foreground">
+                  {currentStaff.department || "-"}
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCurrentStaff(null)}>
+                Đóng
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </Dialog>
     </Layout>
   );

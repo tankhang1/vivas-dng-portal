@@ -13,14 +13,14 @@ const newsAttachment = (
 ): { id: string; name: string; url: string } => ({ id, name, url });
 
 export const mockStaff = [
-  { id: '1', name: 'Nguyễn Văn A', username: 'nva', department: 'Văn phòng UBND', role: 'Super Admin', status: 'active' },
-  { id: '2', name: 'Trần Thị B', username: 'ttb', department: 'Tư pháp', role: 'Admin', status: 'active' },
-  { id: '3', name: 'Lê Văn C', username: 'lvc', department: 'Địa chính', role: 'Cán bộ xử lý', status: 'active' },
-  { id: '4', name: 'Phạm Thị D', username: 'ptd', department: 'Công an', role: 'Cán bộ xử lý', status: 'inactive' },
-  { id: '5', name: 'Vũ Văn F', username: 'vvf', department: 'Quân sự', role: 'Cán bộ xử lý', status: 'active' },
-  { id: '6', name: 'Hoàng Thị E', username: 'hte', department: 'Văn phòng UBND', role: 'Biên tập viên', status: 'active' },
-  { id: '7', name: 'Đặng Văn G', username: 'dvg', department: 'Tư pháp', role: 'Cán bộ xử lý', status: 'active' },
-  { id: '8', name: 'Bùi Thị H', username: 'bth', department: 'Địa chính', role: 'Lãnh đạo', status: 'inactive' },
+  { id: '1', name: 'Nguyễn Văn A', username: 'nva', department: 'Văn phòng UBND', role: 'Super Admin', phone: '0901234567', status: 'active' },
+  { id: '2', name: 'Trần Thị B', username: 'ttb', department: 'Tư pháp', role: 'Admin', phone: '0902345678', status: 'active' },
+  { id: '3', name: 'Lê Văn C', username: 'lvc', department: 'Địa chính', role: 'Cán bộ xử lý', phone: '0903456789', status: 'active' },
+  { id: '4', name: 'Phạm Thị D', username: 'ptd', department: 'Công an', role: 'Cán bộ xử lý', phone: '0904567890', status: 'inactive' },
+  { id: '5', name: 'Vũ Văn F', username: 'vvf', department: 'Quân sự', role: 'Cán bộ xử lý', phone: '0905678901', status: 'active' },
+  { id: '6', name: 'Hoàng Thị E', username: 'hte', department: 'Văn phòng UBND', role: 'Biên tập viên', phone: '0906789012', status: 'active' },
+  { id: '7', name: 'Đặng Văn G', username: 'dvg', department: 'Tư pháp', role: 'Cán bộ xử lý', phone: '0907890123', status: 'active' },
+  { id: '8', name: 'Bùi Thị H', username: 'bth', department: 'Địa chính', role: 'Lãnh đạo', phone: '0908901234', status: 'inactive' },
 ];
 
 export const mockDepartments = [
