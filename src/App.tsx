@@ -13,12 +13,6 @@ import NewsEdit from '@/pages/news/Edit';
 import CategoriesPage from '@/pages/categories';
 import CategoriesCreate from '@/pages/categories/Create';
 import CategoriesEdit from '@/pages/categories/Edit';
-import BannersPage from '@/pages/banners';
-import BannersCreate from '@/pages/banners/Create';
-import BannersEdit from '@/pages/banners/Edit';
-import Events from '@/pages/events';
-import EventsCreate from '@/pages/events/Create';
-import EventsEdit from '@/pages/events/Edit';
 import Routing from '@/pages/Routing';
 import Citizens from '@/pages/citizens';
 import CitizensCreate from '@/pages/citizens/Create';
@@ -64,12 +58,6 @@ function Router() {
       <Route path="/categories/new" component={CategoriesCreate} />
       <Route path="/categories/:id/edit" component={CategoriesEdit} />
       <Route path="/categories" component={CategoriesPage} />
-      <Route path="/banners/new" component={BannersCreate} />
-      <Route path="/banners/:id/edit" component={BannersEdit} />
-      <Route path="/banners" component={BannersPage} />
-      <Route path="/events/new" component={EventsCreate} />
-      <Route path="/events/:id/edit" component={EventsEdit} />
-      <Route path="/events" component={Events} />
       <Route path="/citizens" component={Citizens} />
       <Route path="/citizens/new" component={CitizensCreate} />
       <Route path="/citizens/:id/edit" component={CitizensEdit} />

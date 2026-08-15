@@ -4,73 +4,53 @@ let categoryState: CategoryRecord[] = [
   normalizeCategory({
     id: '1',
     name: 'Giới thiệu',
-    slug: 'gioi-thieu',
-    routeType: 'path',
-    icon: [],
-    description: 'Giới thiệu về địa phương',
-    order: 0,
-    isPinned: true,
-    status: 'visible',
+    note: 'Giới thiệu về địa phương',
+    type: 'news',
   }),
   normalizeCategory({
     id: '2',
     name: 'Chính trị',
-    slug: 'chinh-tri',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 1,
-    isPinned: false,
-    status: 'visible',
+    note: '',
+    type: 'news',
   }),
   normalizeCategory({
     id: '3',
     name: 'Kinh tế',
-    slug: 'kinh-te',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 2,
-    isPinned: false,
-    status: 'visible',
+    note: '',
+    type: 'news',
   }),
   normalizeCategory({
     id: '4',
     name: 'Văn hóa - Xã hội',
-    slug: 'van-hoa-xa-hoi',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 3,
-    isPinned: false,
-    status: 'visible',
+    note: '',
+    type: 'news',
   }),
   normalizeCategory({
     id: '5',
-    name: 'An ninh - Quốc phòng',
-    slug: 'an-ninh-quoc-phong',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 4,
-    isPinned: false,
-    status: 'visible',
+    name: 'Môi trường',
+    note: 'Phản ánh liên quan đến môi trường',
+    type: 'feedback',
   }),
   normalizeCategory({
     id: '6',
-    name: 'Chuyển đổi số',
-    slug: 'chuyen-doi-so',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 5,
-    isPinned: false,
-    status: 'visible',
+    name: 'Trật tự đô thị',
+    note: '',
+    type: 'feedback',
+  }),
+  normalizeCategory({
+    id: '7',
+    name: 'An ninh',
+    note: '',
+    type: 'feedback',
   }),
 ];
 
 export function getCategories() {
   return [...categoryState];
+}
+
+export function getCategoriesByType(type: CategoryRecord['type']) {
+  return categoryState.filter((item) => item.type === type);
 }
 
 export function getCategoryById(id: string) {
@@ -88,12 +68,7 @@ export function saveCategory(category: CategoryRecord) {
     ? categoryState.map((item) => (item.id === nextCategory.id ? nextCategory : item))
     : [nextCategory, ...categoryState];
 
-  categoryState = categoryState.sort(
-    (left, right) =>
-      Number(right.isPinned) - Number(left.isPinned) ||
-      left.order - right.order ||
-      left.name.localeCompare(right.name),
-  );
+  categoryState = categoryState.sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export function deleteCategory(id: string) {

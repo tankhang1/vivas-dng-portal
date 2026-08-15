@@ -1,31 +1,27 @@
-import type { MediaFile } from '../../shared/components/MediaUpload';
-
-export type CategoryRouteType = 'path' | 'link';
-export type CategoryStatus = 'visible' | 'hidden';
+export type CategoryType = 'feedback' | 'news';
 
 export type CategoryRecord = {
   id: string;
   name: string;
-  slug: string;
-  routeType: CategoryRouteType;
-  icon: MediaFile[];
-  description: string;
-  order: number;
-  isPinned: boolean;
-  status: CategoryStatus;
+  note: string;
+  type: CategoryType;
 };
 
-export function defaultCategory(): CategoryRecord {
+export const categoryTypeOptions: { value: CategoryType; label: string }[] = [
+  { value: 'feedback', label: 'Phản ánh' },
+  { value: 'news', label: 'Tin tức' },
+];
+
+export function categoryTypeLabel(type: CategoryType) {
+  return categoryTypeOptions.find((item) => item.value === type)?.label ?? type;
+}
+
+export function defaultCategory(type: CategoryType = 'news'): CategoryRecord {
   return {
     id: '',
     name: '',
-    slug: '',
-    routeType: 'path',
-    icon: [],
-    description: '',
-    order: 0,
-    isPinned: false,
-    status: 'visible',
+    note: '',
+    type,
   };
 }
 
@@ -34,21 +30,7 @@ export function normalizeCategory(category: Partial<CategoryRecord>): CategoryRe
     ...defaultCategory(),
     ...category,
     name: category.name ?? '',
-    slug: category.slug ?? '',
-    routeType: category.routeType ?? 'path',
-    icon: category.icon ?? [],
-    description: category.description ?? '',
-    order: category.order ?? 0,
-    isPinned: category.isPinned ?? false,
-    status: category.status ?? 'visible',
+    note: category.note ?? '',
+    type: category.type ?? 'news',
   };
-}
-
-export function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }

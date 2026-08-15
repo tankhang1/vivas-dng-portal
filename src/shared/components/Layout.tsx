@@ -14,7 +14,6 @@ import {
   CalendarClock,
   ChevronDown,
   Tag,
-  Image,
 } from 'lucide-react';
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -40,10 +39,8 @@ const navItems = [
     children: [
       { name: 'Bài viết', href: '/news', icon: FileText },
       { name: 'Danh mục', href: '/categories', icon: Tag },
-      { name: 'Banner', href: '/banners', icon: Image },
     ],
   },
-  { name: 'Sự kiện', href: '/events', icon: CalendarClock },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
   { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
@@ -67,8 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       location.startsWith('/divisions'),
     cms:
       location.startsWith('/news') ||
-      location.startsWith('/categories') ||
-      location.startsWith('/banners'),
+      location.startsWith('/categories'),
   });
 
   return (

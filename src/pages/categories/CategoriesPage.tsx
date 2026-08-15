@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Layout } from '../../shared/components/Layout';
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -16,25 +15,27 @@ import {
   TableHeader,
   TableRow,
 } from '../../shared/components/ui';
+import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { deleteCategory, getCategories } from './store';
-import { type CategoryRecord } from './types';
-import { Edit2, Pin, Plus, Search, Trash2, CheckCircle2, ImageOff } from 'lucide-react';
+import { categoryTypeOptions, type CategoryRecord, type CategoryType } from './types';
+import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
 
 const PAGE_SIZE = 8;
 
 export default function CategoriesPage() {
   const [, navigate] = useLocation();
   const [categories, setCategories] = useState<CategoryRecord[]>(() => getCategories());
+  const [activeType, setActiveType] = useState<CategoryType>('feedback');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     return categories.filter(
       (item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.slug.toLowerCase().includes(searchTerm.toLowerCase()),
+        item.type === activeType &&
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [categories, searchTerm]);
+  }, [categories, activeType, searchTerm]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -52,14 +53,33 @@ export default function CategoriesPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Danh mục</h1>
             <p className="mt-1 text-muted-foreground">
-              Quản lý danh mục nội dung, ghim danh mục và sắp xếp thứ tự hiển thị.
+              Quản lý danh mục dùng cho phản ánh và tin tức.
             </p>
           </div>
-          <Button onClick={() => navigate('/categories/new')} className="gap-2 self-start">
+          <Button
+            onClick={() => navigate(`/categories/new?type=${activeType}`)}
+            className="gap-2 self-start"
+          >
             <Plus className="h-4 w-4" />
             Thêm danh mục
           </Button>
         </div>
+
+        <Tabs
+          value={activeType}
+          onValueChange={(value) => {
+            setActiveType(value as CategoryType);
+            setPage(1);
+          }}
+        >
+          <TabsList>
+            {categoryTypeOptions.map((item) => (
+              <TabsTrigger key={item.value} value={item.value}>
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         <Card>
           <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
@@ -67,7 +87,7 @@ export default function CategoriesPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Tìm theo tên hoặc đường dẫn..."
+                placeholder="Tìm theo tên danh mục..."
                 value={searchTerm}
                 onChange={(event) => {
                   setSearchTerm(event.target.value);
@@ -82,67 +102,16 @@ export default function CategoriesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tên danh mục</TableHead>
-                  <TableHead>Icon</TableHead>
-                  <TableHead>Đường dẫn</TableHead>
-                  <TableHead>Mô tả</TableHead>
-                  <TableHead>Thứ tự</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Ghim</TableHead>
+                  <TableHead>Ghi chú</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginated.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {item.isPinned ? (
-                          <Pin className="h-4 w-4 text-red-500" />
-                        ) : (
-                          <span className="h-4 w-4" />
-                        )}
-                        {item.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border bg-slate-100">
-                        {item.icon[0]?.url ? (
-                          <img
-                            src={item.icon[0].url}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <ImageOff className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-red-500">
-                      <div className="flex flex-col">
-                        <span className="text-xs uppercase text-muted-foreground">
-                          {item.routeType === 'link' ? 'Link' : 'Path'}
-                        </span>
-                        <span>{item.slug}</span>
-                      </div>
-                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {item.description || '-'}
-                    </TableCell>
-                    <TableCell>{item.order}</TableCell>
-                    <TableCell>
-                      <Badge variant={item.status === 'visible' ? 'success' : 'secondary'}>
-                        {item.status === 'visible' ? 'Hiện' : 'Ẩn'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {item.isPinned ? (
-                        <Badge variant="success" className="gap-1 bg-green-100 text-green-800">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Đã ghim
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">-</Badge>
-                      )}
+                      {item.note || '-'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center gap-1">
@@ -168,7 +137,7 @@ export default function CategoriesPage() {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                       Không tìm thấy danh mục nào.
                     </TableCell>
                   </TableRow>
