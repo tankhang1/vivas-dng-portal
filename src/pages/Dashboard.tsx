@@ -7,21 +7,18 @@ import {
   CardTitle,
   Badge,
 } from "../shared/components/ui";
+import { Spinner } from "../shared/components/ui/spinner";
+import { useDashboardQuery } from "@/features/dashboard/hooks/dashboard.hook";
 import {
   mockStaff,
   mockDepartments,
-  mockRoles,
   mockNews,
-  mockCitizens,
   mockRoutedItems,
   mockRoutingRules,
   mockFeedback,
   mockAppointments,
 } from "../shared/data/mock";
 import {
-  Users,
-  Building,
-  FileText,
   BookUser,
   Waypoints,
   ArrowRight,
@@ -33,16 +30,15 @@ import {
   ShieldAlert,
   MessageSquareWarning,
   CalendarClock,
+  MapPinned,
+  Smile,
+  Briefcase,
 } from "lucide-react";
 import { Link } from "wouter";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -52,7 +48,9 @@ import {
 const STATUS_COLORS = { published: "#16a34a", draft: "#94a3b8" };
 
 export default function Dashboard() {
-  const activeStaff = mockStaff.filter((s) => s.status === "active").length;
+  const { data: dashboardData, isLoading: isDashboardLoading } =
+    useDashboardQuery();
+
   const inactiveStaff = mockStaff.filter((s) => s.status === "inactive");
   const publishedNews = mockNews.filter((n) => n.status === "published").length;
   const draftNews = mockNews.filter((n) => n.status === "draft").length;
@@ -60,10 +58,6 @@ export default function Dashboard() {
     (n) => n.category === "khan-cap" && n.status === "draft",
   );
   const unmanagedDepartments = mockDepartments.filter((d) => !d.manager);
-  const totalInteractions = mockCitizens.reduce(
-    (sum, c) => sum + c.interactions,
-    0,
-  );
   const uncoveredFields = mockRoutingRules.filter((r) => !r.staff);
   const pendingFeedback = mockFeedback.filter((f) => f.status === "pending");
   const pendingAppointments = mockAppointments.filter(
@@ -121,72 +115,6 @@ export default function Dashboard() {
     tone: "danger" | "warning";
   }[];
 
-  const stats = [
-    {
-      label: "Cán bộ đang hoạt động",
-      value: `${activeStaff}/${mockStaff.length}`,
-      icon: Users,
-      href: "/staff",
-      color: "text-blue-600 bg-blue-50",
-    },
-    {
-      label: "Phản ánh chờ xử lý",
-      value: `${pendingFeedback.length}/${mockFeedback.length}`,
-      icon: MessageSquareWarning,
-      href: "/feedback",
-      color: "text-red-600 bg-red-50",
-    },
-    {
-      label: "Lịch hẹn chờ xác nhận",
-      value: `${pendingAppointments.length}/${mockAppointments.length}`,
-      icon: CalendarClock,
-      href: "/appointments",
-      color: "text-purple-600 bg-purple-50",
-    },
-    {
-      label: "Bản tin đã xuất bản",
-      value: `${publishedNews}/${mockNews.length}`,
-      icon: FileText,
-      href: "/news",
-      color: "text-emerald-600 bg-emerald-50",
-    },
-    {
-      label: "Công dân trong danh bạ",
-      value: mockCitizens.length,
-      icon: BookUser,
-      href: "/citizens",
-      color: "text-amber-600 bg-amber-50",
-    },
-    {
-      label: "Thông tin đã điều phối",
-      value: mockRoutedItems.length,
-      icon: Waypoints,
-      href: "/routing",
-      color: "text-rose-600 bg-rose-50",
-    },
-  ];
-
-  const secondaryStats = [
-    {
-      label: "Phòng ban",
-      value: mockDepartments.length,
-      href: "/departments",
-      icon: Building,
-    },
-    {
-      label: "Vai trò hệ thống",
-      value: mockRoles.length,
-      href: "/roles",
-      icon: ShieldAlert,
-    },
-    {
-      label: "Lượt tương tác công dân",
-      value: totalInteractions,
-      href: "/citizens",
-      icon: BookUser,
-    },
-  ];
-
   const staffByDept = useMemo(
     () =>
       mockDepartments.map((d) => ({
@@ -195,6 +123,51 @@ export default function Dashboard() {
       })),
     [],
   );
+
+  const staffByField = useMemo(() => {
+    const counts = new Map<string, number>();
+    mockRoutingRules.forEach((rule) => {
+      if (!rule.staff) return;
+      counts.set(rule.field, (counts.get(rule.field) ?? 0) + 1);
+    });
+    return Array.from(counts.entries()).map(([name, soLuong]) => ({
+      name,
+      soLuong,
+    }));
+  }, []);
+
+  const overviewBlocks = [
+    {
+      label: "Tổng diện tích",
+      value: dashboardData
+        ? `${dashboardData.total_acreage.toLocaleString("vi-VN")} ha`
+        : "—",
+      icon: MapPinned,
+      color: "text-blue-600 bg-blue-50",
+    },
+    {
+      label: "Chỉ số hài lòng",
+      value: dashboardData ? `${dashboardData.satisfaction_index}%` : "—",
+      icon: Smile,
+      color: "text-emerald-600 bg-emerald-50",
+    },
+    {
+      label: "Dịch vụ công",
+      value: dashboardData
+        ? dashboardData.total_public_service.toLocaleString("vi-VN")
+        : "—",
+      icon: Briefcase,
+      color: "text-purple-600 bg-purple-50",
+    },
+    {
+      label: "Tổng công dân",
+      value: dashboardData
+        ? dashboardData.total_citizen.toLocaleString("vi-VN")
+        : "—",
+      icon: BookUser,
+      color: "text-amber-600 bg-amber-50",
+    },
+  ];
 
   const newsByStatus = useMemo(
     () => [
@@ -227,82 +200,39 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {alerts.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Cần xử lý
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {alerts.map((alert) => (
-                <Link key={alert.title} href={alert.href}>
-                  <div
-                    className={`flex items-start gap-3 rounded-lg border p-4 transition-shadow hover:shadow-sm cursor-pointer ${toneStyles[alert.tone]}`}
-                  >
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneIconStyles[alert.tone]}`}
-                    >
-                      <alert.icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm">{alert.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {alert.description}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stats.map((stat) => (
-            <Link key={stat.label} href={stat.href}>
-              <Card className="cursor-pointer transition-shadow hover:shadow-md">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${stat.color}`}
-                  >
-                    <stat.icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold leading-tight">
-                      {stat.value}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {stat.label}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {overviewBlocks.map((block) => (
+            <Card key={block.label}>
+              <CardContent className="flex items-center gap-4 pt-6">
+                <div
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${block.color}`}
+                >
+                  <block.icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold leading-tight">
+                    {isDashboardLoading ? (
+                      <Spinner className="h-5 w-5" />
+                    ) : (
+                      block.value
+                    )}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{block.label}</p>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          {secondaryStats.map((s) => (
-            <Link key={s.label} href={s.href}>
-              <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm hover:bg-slate-50 cursor-pointer">
-                <s.icon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-semibold">{s.value}</span>
-                <span className="text-muted-foreground">{s.label}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-1">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                Nhân sự theo phòng ban
-              </CardTitle>
+              <CardTitle className="text-base">Nhân sự theo lĩnh vực</CardTitle>
             </CardHeader>
             <CardContent className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={staffByDept}
+                  data={staffByField}
                   margin={{ top: 8, right: 8, left: -16, bottom: 8 }}
                 >
                   <CartesianGrid
@@ -323,47 +253,11 @@ export default function Dashboard() {
                   <Bar
                     dataKey="soLuong"
                     name="Số cán bộ"
-                    fill="#1d4ed8"
+                    fill="#7c3aed"
                     radius={[4, 4, 0, 0]}
                     isAnimationActive={false}
                   />
                 </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Tin tức theo trạng thái
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={newsByStatus}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="45%"
-                    innerRadius={45}
-                    outerRadius={70}
-                    paddingAngle={3}
-                    isAnimationActive={false}
-                  >
-                    {newsByStatus.map((entry) => (
-                      <Cell
-                        key={entry.key}
-                        fill={
-                          STATUS_COLORS[entry.key as keyof typeof STATUS_COLORS]
-                        }
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={32} />
-                </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
