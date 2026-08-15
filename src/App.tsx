@@ -6,7 +6,7 @@ import StaffCreate from '@/pages/staff/Create';
 import StaffDetail from '@/pages/staff/Detail';
 import StaffEdit from '@/pages/staff/Edit';
 import Departments from '@/pages/Departments';
-import Roles from '@/pages/Roles';
+import Divisions from '@/pages/Divisions';
 import NewsPage from '@/pages/news/NewsPage';
 import NewsCreate from '@/pages/news/Create';
 import NewsEdit from '@/pages/news/Edit';
@@ -56,7 +56,7 @@ function Router() {
       <Route path="/staff/:id" component={StaffDetail} />
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
-      <Route path="/roles" component={Roles} />
+      <Route path="/divisions" component={Divisions} />
       <Route path="/news/new" component={NewsCreate} />
       <Route path="/news/:id/edit" component={NewsEdit} />
       <Route path="/news" component={NewsPage} />

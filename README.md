@@ -84,7 +84,7 @@ VITE_API_BASE_URL=https://your-api-host.example.com
   - `/dashboard`
   - `/staff`
   - `/departments`
-  - `/roles`
+  - `/divisions`
   - `/news`
   - `/events`
   - `/citizens`

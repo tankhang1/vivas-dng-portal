@@ -30,7 +30,7 @@ const navItems = [
     children: [
       { name: 'Cán bộ', href: '/staff', icon: Users },
       { name: 'Phòng ban', href: '/departments', icon: Building },
-      { name: 'Vai trò', href: '/roles', icon: ShieldCheck },
+      { name: 'Lĩnh vực', href: '/divisions', icon: ShieldCheck },
     ],
   },
   {
@@ -64,7 +64,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     internal:
       location.startsWith('/staff') ||
       location.startsWith('/departments') ||
-      location.startsWith('/roles'),
+      location.startsWith('/divisions'),
     cms:
       location.startsWith('/news') ||
       location.startsWith('/categories') ||
