@@ -29,6 +29,7 @@ const navItems = [
     icon: Users,
     children: [
       { name: 'Cán bộ', href: '/staff', icon: Users },
+      { name: 'Phòng ban', href: '/departments', icon: Building },
       { name: 'Lĩnh vực', href: '/divisions', icon: ShieldCheck },
     ],
   },

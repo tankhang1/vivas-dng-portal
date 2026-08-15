@@ -15,19 +15,11 @@ import {
 import { MediaUpload } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
 import { saveNews, getNewsById } from "./store";
-import { CalendarDays, Link as LinkIcon } from "lucide-react";
 import {
-  audienceLabel,
-  audienceOptions,
   categoryOptions,
   defaultArticle,
-  formatDate,
-  linkTypeLabel,
-  linkTypeOptions,
   normalizeArticle,
   statusOptions,
-  type Audience,
-  type LinkType,
   type NewsArticle,
   type NewsCategory,
   type NewsStatus,
@@ -118,13 +110,49 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
             </div>
           </div>
 
-          <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <Card className="self-start">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg">Nội dung thông báo</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5 pt-6">
-                <div className="grid gap-2">
+          <Card className="w-full">
+            <CardContent className="space-y-5 pt-6">
+              <div className="grid gap-2">
+                <Label htmlFor="cover-url">Ảnh bìa (URL)</Label>
+                <Input
+                  id="cover-url"
+                  value={form.thumbnail[0]?.url ?? ""}
+                  onChange={(e) =>
+                    updateForm({
+                      thumbnail: e.target.value
+                        ? [
+                            {
+                              id: "cover",
+                              name: "cover-image",
+                              url: e.target.value,
+                            },
+                          ]
+                        : [],
+                    })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              {form.thumbnail[0]?.url ? (
+                <div className="overflow-hidden rounded-lg border bg-slate-100">
+                  <img
+                    src={form.thumbnail[0].url}
+                    alt={form.title || "Ảnh bìa"}
+                    className="h-48 w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <MediaUpload
+                  value={form.thumbnail}
+                  onChange={(thumbnail) => updateForm({ thumbnail })}
+                  accept="image/*"
+                  multiple={false}
+                  hint="Chọn 1 ảnh bìa cho bản tin."
+                />
+              )}
+
+              <div className="grid gap-4 md:grid-cols-10">
+                <div className="grid gap-2 md:col-span-7">
                   <Label htmlFor="news-title">
                     Tiêu đề <span className="text-red-500">*</span>
                   </Label>
@@ -135,209 +163,83 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                     placeholder="Tiêu đề thông báo..."
                   />
                 </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="news-summary">Mô tả ngắn</Label>
-                  <Textarea
-                    id="news-summary"
-                    value={form.shortDescription}
+                <div className="grid gap-2 md:col-span-3">
+                  <Label htmlFor="news-category">Danh mục</Label>
+                  <Select
+                    id="news-category"
+                    value={form.category}
                     onChange={(e) =>
-                      updateForm({ shortDescription: e.target.value })
+                      updateForm({ category: e.target.value as NewsCategory })
                     }
-                    placeholder="Mô tả ngắn hiển thị ở danh sách..."
-                    className="min-h-[96px]"
-                  />
+                  >
+                    {categoryOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="link-type">Loại liên kết</Label>
-                    <Select
-                      id="link-type"
-                      value={form.linkType}
-                      onChange={(e) =>
-                        updateForm({ linkType: e.target.value as LinkType })
-                      }
-                    >
-                      {linkTypeOptions.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="link-url">URL liên kết</Label>
-                    <Input
-                      id="link-url"
-                      value={form.linkUrl}
-                      onChange={(e) => updateForm({ linkUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
+              </div>
 
+              <div className="grid gap-2">
+                <Label htmlFor="news-summary">Mô tả ngắn</Label>
+                <Textarea
+                  id="news-summary"
+                  value={form.shortDescription}
+                  onChange={(e) =>
+                    updateForm({ shortDescription: e.target.value })
+                  }
+                  placeholder="Mô tả ngắn hiển thị ở danh sách..."
+                  className="min-h-[96px]"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="link-url">URL liên kết</Label>
+                <Input
+                  id="link-url"
+                  value={form.linkUrl}
+                  onChange={(e) => updateForm({ linkUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>
+                  Nội dung <span className="text-red-500">*</span>
+                </Label>
+                <FormEditor
+                  value={form.contentHtml}
+                  onChange={(contentHtml) => updateForm({ contentHtml })}
+                  placeholder="Nhập nội dung thông báo..."
+                  className="min-h-[260px]"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
+                  lưu dưới dạng HTML.
+                </p>
+              </div>
+
+              {mode === "edit" && (
                 <div className="grid gap-2">
-                  <Label>
-                    Nội dung <span className="text-red-500">*</span>
-                  </Label>
-                  <FormEditor
-                    value={form.contentHtml}
-                    onChange={(contentHtml) => updateForm({ contentHtml })}
-                    placeholder="Nhập nội dung thông báo..."
-                    className="min-h-[260px]"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
-                    lưu dưới dạng HTML.
-                  </p>
+                  <Label htmlFor="news-status">Trạng thái</Label>
+                  <Select
+                    id="news-status"
+                    value={form.status}
+                    onChange={(e) =>
+                      updateForm({ status: e.target.value as NewsStatus })
+                    }
+                  >
+                    {statusOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex w-full flex-col gap-6">
-              <Card className="w-full">
-                <CardHeader className="border-b border-border">
-                  <CardTitle className="text-lg">Đối tượng nhận</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="audience">Gửi đến</Label>
-                    <Select
-                      id="audience"
-                      value={form.audience}
-                      onChange={(e) =>
-                        updateForm({ audience: e.target.value as Audience })
-                      }
-                    >
-                      {audienceOptions.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="w-full">
-                <CardHeader className="border-b border-border">
-                  <CardTitle className="text-lg">Ảnh bìa</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="cover-url">URL ảnh</Label>
-                    <Input
-                      id="cover-url"
-                      value={form.thumbnail[0]?.url ?? ""}
-                      onChange={(e) =>
-                        updateForm({
-                          thumbnail: e.target.value
-                            ? [
-                                {
-                                  id: "cover",
-                                  name: "cover-image",
-                                  url: e.target.value,
-                                },
-                              ]
-                            : [],
-                        })
-                      }
-                      placeholder="https://..."
-                    />
-                  </div>
-                  {form.thumbnail[0]?.url ? (
-                    <div className="overflow-hidden rounded-lg border bg-slate-100">
-                      <img
-                        src={form.thumbnail[0].url}
-                        alt={form.title || "Ảnh bìa"}
-                        className="h-48 w-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <MediaUpload
-                      value={form.thumbnail}
-                      onChange={(thumbnail) => updateForm({ thumbnail })}
-                      accept="image/*"
-                      multiple={false}
-                      hint="Chọn 1 ảnh bìa cho bản tin."
-                    />
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="w-full">
-                <CardHeader className="border-b border-border">
-                  <CardTitle className="text-lg">Thông tin xuất bản</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="news-category">Danh mục</Label>
-                    <Select
-                      id="news-category"
-                      value={form.category}
-                      onChange={(e) =>
-                        updateForm({ category: e.target.value as NewsCategory })
-                      }
-                    >
-                      {categoryOptions.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="news-source">Nguồn tin</Label>
-                    <Input
-                      id="news-source"
-                      value={form.source}
-                      onChange={(e) => updateForm({ source: e.target.value })}
-                      placeholder="Cổng TTĐT Xã Tây Hồ"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="news-date">Ngày đăng</Label>
-                      <Input
-                        id="news-date"
-                        type="date"
-                        value={form.date}
-                        onChange={(e) => updateForm({ date: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="news-status">Trạng thái</Label>
-                      <Select
-                        id="news-status"
-                        value={form.status}
-                        onChange={(e) =>
-                          updateForm({ status: e.target.value as NewsStatus })
-                        }
-                      >
-                        {statusOptions.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-dashed border-border bg-slate-50 p-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4" />
-                      <span>{formatDate(form.date)}</span>
-                    </div>
-                    <div className="mt-2 text-foreground">
-                      {linkTypeLabel(form.linkType)}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </Layout>

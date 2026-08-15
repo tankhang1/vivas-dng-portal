@@ -31,12 +31,28 @@ import {
 import {
   ChevronDown,
   ChevronRight,
+  ChevronsUpDown,
+  Check,
   Edit2,
   Eye,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/shared/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
+import { cn } from "@/shared/lib/utils";
 
 type DepartmentStatus = "active" | "inactive";
 
@@ -174,6 +190,7 @@ export default function Departments() {
   const [currentDepartment, setCurrentDepartment] =
     useState<DepartmentFormState>(buildFormState(null));
   const [currentStaff, setCurrentStaff] = useState<StaffDetailState>(null);
+  const [isManagerPickerOpen, setIsManagerPickerOpen] = useState(false);
 
   const departmentsById = useMemo(
     () =>
@@ -659,8 +676,7 @@ export default function Departments() {
                 : "Thêm phòng ban mới"}
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
-              Thiết lập phòng ban cha, tên, mã và thứ tự hiển thị trong cây tổ
-              chức.
+              Thiết lập phòng ban cha, tên và mã trong cây tổ chức.
             </p>
           </DialogHeader>
 
@@ -710,7 +726,7 @@ export default function Departments() {
               />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="department-code">Mã (tùy chọn)</Label>
               <Input
                 id="department-code"
@@ -723,43 +739,63 @@ export default function Departments() {
                 }
                 placeholder="IT"
               />
-              <p className="text-xs text-transparent select-none" aria-hidden="true">
-                .
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="department-order">Thứ tự hiển thị</Label>
-              <Input
-                id="department-order"
-                type="number"
-                value={currentDepartment.order}
-                onChange={(event) =>
-                  setCurrentDepartment((current) => ({
-                    ...current,
-                    order: Number(event.target.value),
-                  }))
-                }
-                placeholder="0"
-              />
-              <p className="text-xs text-muted-foreground">
-                Số nhỏ hơn hiển thị trước trong danh sách chọn phòng ban.
-              </p>
             </div>
 
             <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="department-manager">Trưởng bộ phận</Label>
-              <Input
-                id="department-manager"
-                value={currentDepartment.manager}
-                onChange={(event) =>
-                  setCurrentDepartment((current) => ({
-                    ...current,
-                    manager: event.target.value,
-                  }))
-                }
-                placeholder="Nguyễn Văn A"
-              />
+              <Popover
+                open={isManagerPickerOpen}
+                onOpenChange={setIsManagerPickerOpen}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    id="department-manager"
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isManagerPickerOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className="truncate">
+                      {currentDepartment.manager || "Chọn trưởng bộ phận..."}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] bg-white p-0">
+                  <Command>
+                    <CommandInput placeholder="Tìm nhân sự..." />
+                    <CommandList>
+                      <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                      <CommandGroup>
+                        {staffList.map((staff) => (
+                          <CommandItem
+                            key={staff.id}
+                            value={staff.name}
+                            onSelect={() => {
+                              setCurrentDepartment((current) => ({
+                                ...current,
+                                manager: staff.name,
+                              }));
+                              setIsManagerPickerOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                currentDepartment.manager === staff.name
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {staff.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="grid gap-2 md:col-span-2">
@@ -777,22 +813,6 @@ export default function Departments() {
               />
             </div>
 
-            <div className="grid gap-2 md:col-span-2">
-              <Label htmlFor="department-status">Trạng thái</Label>
-              <Select
-                id="department-status"
-                value={currentDepartment.status}
-                onChange={(event) =>
-                  setCurrentDepartment((current) => ({
-                    ...current,
-                    status: event.target.value as DepartmentStatus,
-                  }))
-                }
-              >
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Tạm khóa</option>
-              </Select>
-            </div>
           </div>
 
           <DialogFooter>
