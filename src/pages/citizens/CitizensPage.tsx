@@ -4,7 +4,6 @@ import { Layout } from '../../shared/components/Layout';
 import { Button, Card, CardContent, Pagination, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Badge } from '../../shared/components/ui';
 import { Edit2, Eye, Plus, Trash2 } from 'lucide-react';
 import { getCitizens, deleteCitizen } from './store';
-import { CitizenDetailDialog } from './CitizenDetailDialog';
 import { displayCitizenValue, statusBadgeVariant, statusLabel, type CitizenRecord } from './types';
 
 const PAGE_SIZE = 6;
@@ -13,7 +12,6 @@ export default function CitizensPage() {
   const [, navigate] = useLocation();
   const [citizens, setCitizens] = useState<CitizenRecord[]>(getCitizens());
   const [page, setPage] = useState(1);
-  const [detailCitizen, setDetailCitizen] = useState<CitizenRecord | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(citizens.length / PAGE_SIZE));
   const paginated = useMemo(
@@ -25,7 +23,6 @@ export default function CitizensPage() {
     if (!confirm('Bạn có chắc chắn muốn xóa hồ sơ công dân này?')) return;
     deleteCitizen(id);
     setCitizens(getCitizens());
-    setDetailCitizen((current) => (current?.id === id ? null : current));
   };
 
   return (
@@ -50,7 +47,7 @@ export default function CitizensPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead>Họ và tên</TableHead>
-                  <TableHead>CCCD/CMND</TableHead>
+                  <TableHead>Căn Cước</TableHead>
                   <TableHead>Điện thoại</TableHead>
                   <TableHead>Giới tính</TableHead>
                   <TableHead>Hộ dân</TableHead>
@@ -64,7 +61,7 @@ export default function CitizensPage() {
                   <TableRow
                     key={citizen.id}
                     className="cursor-pointer"
-                    onClick={() => setDetailCitizen(citizen)}
+                    onClick={() => navigate(`/citizens/${citizen.id}`)}
                   >
                     <TableCell className="font-semibold text-slate-900">{citizen.name}</TableCell>
                     <TableCell className="text-slate-600">{displayCitizenValue(citizen.cccd)}</TableCell>
@@ -85,7 +82,7 @@ export default function CitizensPage() {
                           title="Xem chi tiết"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDetailCitizen(citizen);
+                            navigate(`/citizens/${citizen.id}`);
                           }}
                         >
                           <Eye className="h-4 w-4 text-slate-700" />
@@ -138,14 +135,6 @@ export default function CitizensPage() {
           />
         )}
       </div>
-
-      <CitizenDetailDialog
-        citizen={detailCitizen}
-        onOpenChange={(open) => {
-          if (!open) setDetailCitizen(null);
-        }}
-        onDelete={handleDelete}
-      />
     </Layout>
   );
 }

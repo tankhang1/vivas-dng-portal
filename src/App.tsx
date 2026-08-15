@@ -16,6 +16,7 @@ import CategoriesEdit from '@/pages/categories/Edit';
 import Routing from '@/pages/Routing';
 import Citizens from '@/pages/citizens';
 import CitizensCreate from '@/pages/citizens/Create';
+import CitizenDetail from '@/pages/citizens/Detail';
 import CitizensEdit from '@/pages/citizens/Edit';
 import Feedback from '@/pages/Feedback';
 import Appointments from '@/pages/Appointments';
@@ -58,9 +59,10 @@ function Router() {
       <Route path="/categories/new" component={CategoriesCreate} />
       <Route path="/categories/:id/edit" component={CategoriesEdit} />
       <Route path="/categories" component={CategoriesPage} />
-      <Route path="/citizens" component={Citizens} />
       <Route path="/citizens/new" component={CitizensCreate} />
       <Route path="/citizens/:id/edit" component={CitizensEdit} />
+      <Route path="/citizens/:id" component={CitizenDetail} />
+      <Route path="/citizens" component={Citizens} />
       <Route path="/routing" component={Routing} />
       <Route path="/feedback" component={Feedback} />
       <Route path="/appointments" component={Appointments} />

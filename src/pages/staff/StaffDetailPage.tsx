@@ -8,9 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
   Table,
   TableBody,
   TableCell,
@@ -23,13 +20,13 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../shared/components/ui/avatar";
-import { mockFeedback, feedbackCategories } from "../../shared/data/mock";
+import { mockFeedback } from "../../shared/data/mock";
 import { getStaffById } from "./store";
 import { statusBadgeVariant, statusLabel } from "./types";
 import {
   ArrowLeft,
   CalendarDays,
-  Eye,
+  FileText,
   Mail,
   MapPin,
   Phone,
@@ -37,33 +34,13 @@ import {
   User2,
 } from "lucide-react";
 
-const feedbackStatusMeta = {
-  pending: { label: "Chưa xử lý", variant: "secondary" as const },
-  processing: { label: "Đang xử lý", variant: "warning" as const },
-  resolved: { label: "Đã xử lý", variant: "success" as const },
-};
-
-function getFeedbackStatus(status: keyof typeof feedbackStatusMeta) {
-  return feedbackStatusMeta[status] ?? feedbackStatusMeta.pending;
-}
-
-function getCategoryLabel(value: string) {
-  return (
-    feedbackCategories.find((item) => item.value === value)?.label ?? value
-  );
-}
-
 type StaffDetailPageProps = {
   staffId?: string;
 };
 
-type FeedbackRecord = (typeof mockFeedback)[number];
-
 export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/staff/:id");
-  const [selectedFeedback, setSelectedFeedback] =
-    useState<FeedbackRecord | null>(null);
 
   const staff = useMemo(() => {
     const id = staffId ?? params?.id;
@@ -71,20 +48,12 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
     return getStaffById(id);
   }, [params?.id, staffId]);
 
-  const relatedFeedbacks = useMemo(() => {
+  const repliedFeedbacks = useMemo(() => {
     if (!staff) return [];
     return mockFeedback
-      .filter((item) => item.assignedStaff === staff.name)
+      .filter((item) => item.assignedStaff === staff.name && item.reply)
       .sort((left, right) => right.date.localeCompare(left.date));
   }, [staff]);
-
-  const openFeedbackDetail = (feedback: FeedbackRecord) => {
-    setSelectedFeedback(feedback);
-  };
-
-  const closeFeedbackDetail = () => {
-    setSelectedFeedback(null);
-  };
 
   if (!staff) {
     return (
@@ -226,143 +195,90 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
             <CardHeader className="border-b border-border">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle className="text-lg">
-                  Danh sách phản ảnh của người dùng
+                  Danh sách phản hồi người dùng
                 </CardTitle>
                 <Badge variant="outline">
-                  {relatedFeedbacks.length} phản ánh
+                  {repliedFeedbacks.length} phản hồi
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              {relatedFeedbacks.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tiêu đề</TableHead>
-                      <TableHead>Người gửi</TableHead>
-                      <TableHead>Danh mục</TableHead>
-                      <TableHead>Ngày</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {relatedFeedbacks.map((item) => {
-                  const meta = getFeedbackStatus(
-                        item.status as keyof typeof feedbackStatusMeta,
-                      );
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell className="max-w-[320px] font-medium">
-                            <div className="truncate">{item.title}</div>
-                            <div className="truncate text-xs text-muted-foreground">
-                              {item.location || item.address || "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell>{item.name || "-"}</TableCell>
-                          <TableCell>{getCategoryLabel(item.category)}</TableCell>
-                          <TableCell>{item.date}</TableCell>
-                          <TableCell>
-                            <Badge variant={meta.variant}>{meta.label}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Xem chi tiết"
-                              onClick={() => openFeedbackDetail(item)}
-                            >
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+              {repliedFeedbacks.length > 0 ? (
+                <div
+                  className="overflow-x-auto overflow-y-auto"
+                  style={{ maxHeight: "480px" }}
+                >
+                  <Table>
+                    <TableHeader className="sticky top-0 z-10 bg-white">
+                      <TableRow>
+                        <TableHead className="min-w-[220px]">
+                          Nội dung phản hồi
+                        </TableHead>
+                        <TableHead className="min-w-[160px]">File</TableHead>
+                        <TableHead className="min-w-[220px]">
+                          Thông tin yêu cầu
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Người yêu cầu
+                        </TableHead>
+                        <TableHead className="min-w-[160px]">
+                          Thời gian phản hồi
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {repliedFeedbacks.map((item) => {
+                        const reply = item.reply!;
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="max-w-[260px]">
+                              <div className="truncate">{reply.content}</div>
+                            </TableCell>
+                            <TableCell>
+                              {reply.fileUrl ? (
+                                <a
+                                  href={reply.fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                                >
+                                  <FileText className="h-4 w-4 shrink-0" />
+                                  <span className="max-w-[140px] truncate">
+                                    {reply.fileName || "Tệp đính kèm"}
+                                  </span>
+                                </a>
+                              ) : (
+                                "-"
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-[240px] font-medium">
+                              <div className="truncate">{item.title}</div>
+                              <div className="truncate text-xs text-muted-foreground">
+                                {item.content}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {item.privacy === "anonymous"
+                                ? "Ẩn danh"
+                                : item.name || "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {reply.date}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
-                  Chưa có phản ánh nào được gán cho cán bộ này.
+                  Cán bộ này chưa phản hồi phản ánh nào.
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-
-        <Dialog open={!!selectedFeedback} onOpenChange={(open) => !open && closeFeedbackDetail()}>
-          {selectedFeedback && (
-            <>
-              {(() => {
-                const feedbackStatus = selectedFeedback.status as keyof typeof feedbackStatusMeta;
-                const feedbackMeta = getFeedbackStatus(feedbackStatus);
-
-                return (
-                  <>
-              <DialogHeader>
-                <DialogTitle>{selectedFeedback.title}</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-2 max-h-[65vh] overflow-y-auto">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">
-                    {getCategoryLabel(selectedFeedback.category)}
-                  </Badge>
-                  <Badge
-                    variant={
-                      selectedFeedback.privacy === "anonymous"
-                        ? "secondary"
-                        : "outline"
-                    }
-                  >
-                    {selectedFeedback.privacy === "anonymous"
-                      ? "Ẩn danh"
-                      : "Công khai"}
-                  </Badge>
-                  <Badge variant={feedbackMeta.variant}>
-                    {feedbackMeta.label}
-                  </Badge>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Người gửi</p>
-                    <p className="font-medium">
-                      {selectedFeedback.privacy === "anonymous"
-                        ? "Ẩn danh"
-                        : selectedFeedback.name || "Không rõ"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Số điện thoại</p>
-                    <p className="font-medium">
-                      {selectedFeedback.privacy === "anonymous"
-                        ? "—"
-                        : selectedFeedback.phone || "Không có"}
-                    </p>
-                  </div>
-                </div>
-
-                {selectedFeedback.address && (
-                  <div className="flex items-start gap-1.5 text-sm">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span>{selectedFeedback.address}</span>
-                  </div>
-                )}
-
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">
-                    Nội dung phản ánh
-                  </p>
-                  <p className="text-sm leading-relaxed">
-                    {selectedFeedback.content}
-                  </p>
-                </div>
-              </div>
-                  </>
-                );
-              })()}
-            </>
-          )}
-        </Dialog>
       </div>
     </Layout>
   );
