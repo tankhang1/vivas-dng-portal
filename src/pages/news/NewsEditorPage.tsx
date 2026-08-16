@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -12,59 +12,124 @@ import {
   Select,
   Textarea,
 } from "../../shared/components/ui";
-import { MediaUpload } from "../../shared/components/MediaUpload";
+import { MediaUpload, type MediaFile } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
-import { saveNews, getNewsById } from "./store";
+import { statusOptions, type NewsStatus } from "./types";
 import {
-  categoryOptions,
-  defaultArticle,
-  normalizeArticle,
-  statusOptions,
-  type NewsArticle,
-  type NewsCategory,
-  type NewsStatus,
-} from "./types";
+  usePostNewsProcessMutation,
+  useEditNewsProcessMutation,
+  useNewsQuery,
+} from "@/features/news/hooks/news.hook";
+import { useNewsCategoriesQuery } from "@/features/category-news/hooks/category-news.hook";
+import { useUploadImageMutation } from "@/features/upload/hooks/upload.hook";
 
 type NewsEditorPageProps = {
   mode: "create" | "edit";
   articleId?: string;
 };
 
+type NewsFormState = {
+  title: string;
+  categoryItem: number | null;
+  shortDescription: string;
+  path: string;
+  contentHtml: string;
+  thumbnail: MediaFile[];
+  status: NewsStatus;
+};
+
+const defaultFormState = (): NewsFormState => ({
+  title: "",
+  categoryItem: null,
+  shortDescription: "",
+  path: "",
+  contentHtml: "",
+  thumbnail: [],
+  status: "draft",
+});
+
+// No "get current user" endpoint exists yet, so the author identity required
+// by PostNewsProcessRequest has no real source and stays a placeholder.
+const CURRENT_STAFF = { id: 1, name: "Quản trị viên" };
+
 export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   const [, navigate] = useLocation();
-  const article = useMemo(() => {
-    if (mode === "edit" && articleId) {
-      return getNewsById(articleId);
-    }
-    return null;
-  }, [articleId, mode]);
-
-  const [form, setForm] = useState<NewsArticle>(
-    mode === "edit" && article ? normalizeArticle(article) : defaultArticle(),
+  const { data: article, isLoading: isArticleLoading } = useNewsQuery(
+    mode === "edit" ? articleId : undefined,
   );
+  const { data: categoriesData } = useNewsCategoriesQuery({ sz: 100, nu: 0 });
+  const postNewsMutation = usePostNewsProcessMutation();
+  const editNewsMutation = useEditNewsProcessMutation();
+  const uploadImageMutation = useUploadImageMutation();
+
+  const [form, setForm] = useState<NewsFormState>(defaultFormState());
 
   useEffect(() => {
     if (mode === "edit" && article) {
-      setForm(normalizeArticle(article));
+      setForm({
+        title: article.title,
+        categoryItem: article.category_item,
+        shortDescription: article.short_describe ?? "",
+        path: article.path ?? "",
+        contentHtml: article.content ?? "",
+        thumbnail: article.thumbnail
+          ? [{ id: "cover", name: "cover-image", url: article.thumbnail }]
+          : [],
+        status: article.status === 1 ? "published" : "draft",
+      });
     }
-  }, [article, mode]);
+  }, [mode, article]);
 
-  const updateForm = (patch: Partial<NewsArticle>) => {
-    setForm((prev) => ({
-      ...prev,
-      ...patch,
-    }));
+  const updateForm = (patch: Partial<NewsFormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
   };
 
-  const handleSave = (status: NewsStatus = form.status) => {
-    const payload: NewsArticle = {
-      ...form,
-      status,
-      id: form.id || Date.now().toString(),
-    };
+  const handleUploadThumbnail = async (file: File) => {
+    const url = await uploadImageMutation.mutateAsync({ file, c: "news-thumbnail" });
+    if (!url) {
+      throw new Error("Upload image response missing url");
+    }
+    return url;
+  };
 
-    saveNews(payload);
-    navigate("/news");
+  const isSaving = postNewsMutation.isPending || editNewsMutation.isPending;
+
+  const handleSave = async (status: NewsStatus) => {
+    if (!form.title.trim() || !form.contentHtml.trim() || !form.categoryItem) {
+      window.alert("Vui lòng nhập tiêu đề, danh mục và nội dung.");
+      return;
+    }
+
+    const thumbnail = form.thumbnail[0]?.url ?? "";
+
+    try {
+      if (mode === "edit" && article) {
+        await editNewsMutation.mutateAsync({
+          news_item: article.id,
+          category_item: form.categoryItem,
+          thumbnail,
+          title: form.title,
+          path: form.path,
+          short_describe: form.shortDescription,
+          content: form.contentHtml,
+        });
+      } else {
+        await postNewsMutation.mutateAsync({
+          category_item: form.categoryItem,
+          thumbnail,
+          title: form.title,
+          path: form.path,
+          short_describe: form.shortDescription,
+          content: form.contentHtml,
+          staff_item: CURRENT_STAFF.id,
+          staff_name: CURRENT_STAFF.name,
+        });
+      }
+      updateForm({ status });
+      navigate("/news");
+    } catch {
+      window.alert("Lưu bản tin thất bại. Vui lòng thử lại.");
+    }
   };
 
   const title = mode === "create" ? "Tạo mới bản tin" : "Chỉnh sửa bản tin";
@@ -73,9 +138,11 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
       ? "Soạn nội dung, chọn đối tượng nhận và xuất bản bản tin mới."
       : "Cập nhật nội dung và thông tin hiển thị của bản tin.";
 
+  const isNotFound = mode === "edit" && !isArticleLoading && !article;
+
   return (
     <Layout>
-      {mode === "edit" && !article ? (
+      {isNotFound ? (
         <div className="flex min-h-[50vh] items-center justify-center">
           <Card className="w-full max-w-lg">
             <CardHeader>
@@ -103,10 +170,16 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               <Button variant="outline" onClick={() => navigate("/news")}>
                 Hủy
               </Button>
-              <Button variant="outline" onClick={() => handleSave("draft")}>
+              <Button
+                variant="outline"
+                onClick={() => handleSave("draft")}
+                disabled={isSaving}
+              >
                 Lưu nháp
               </Button>
-              <Button onClick={() => handleSave("published")}>Xuất bản</Button>
+              <Button onClick={() => handleSave("published")} disabled={isSaving}>
+                {isSaving ? "Đang lưu..." : "Xuất bản"}
+              </Button>
             </div>
           </div>
 
@@ -145,6 +218,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 <MediaUpload
                   value={form.thumbnail}
                   onChange={(thumbnail) => updateForm({ thumbnail })}
+                  onUpload={handleUploadThumbnail}
                   accept="image/*"
                   multiple={false}
                   hint="Chọn 1 ảnh bìa cho bản tin."
@@ -167,14 +241,15 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                   <Label htmlFor="news-category">Danh mục</Label>
                   <Select
                     id="news-category"
-                    value={form.category}
+                    value={form.categoryItem ?? ""}
                     onChange={(e) =>
-                      updateForm({ category: e.target.value as NewsCategory })
+                      updateForm({ categoryItem: Number(e.target.value) })
                     }
                   >
-                    {categoryOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
+                    <option value="">Chọn...</option>
+                    {categoriesData?.content.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </Select>
@@ -198,8 +273,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 <Label htmlFor="link-url">URL liên kết</Label>
                 <Input
                   id="link-url"
-                  value={form.linkUrl}
-                  onChange={(e) => updateForm({ linkUrl: e.target.value })}
+                  value={form.path}
+                  onChange={(e) => updateForm({ path: e.target.value })}
                   placeholder="https://..."
                 />
               </div>
