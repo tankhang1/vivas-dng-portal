@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Layout } from "../shared/components/Layout";
 import {
   Card,
@@ -6,9 +6,19 @@ import {
   CardHeader,
   CardTitle,
   Badge,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "../shared/components/ui";
 import { Spinner } from "../shared/components/ui/spinner";
-import { useDashboardQuery } from "@/features/dashboard/hooks/dashboard.hook";
+import {
+  useDashboardQuery,
+  useEditDashboardProcessMutation,
+} from "@/features/dashboard/hooks/dashboard.hook";
 import {
   mockStaff,
   mockDepartments,
@@ -50,6 +60,39 @@ const STATUS_COLORS = { published: "#16a34a", draft: "#94a3b8" };
 export default function Dashboard() {
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardQuery();
+  const editDashboardMutation = useEditDashboardProcessMutation();
+
+  const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
+  const [statsForm, setStatsForm] = useState({
+    total_acreage: "",
+    satisfaction_index: "",
+    total_public_service: "",
+    total_citizen: "",
+  });
+
+  const openStatsDialog = () => {
+    setStatsForm({
+      total_acreage: String(dashboardData?.total_acreage ?? ""),
+      satisfaction_index: String(dashboardData?.satisfaction_index ?? ""),
+      total_public_service: String(dashboardData?.total_public_service ?? ""),
+      total_citizen: String(dashboardData?.total_citizen ?? ""),
+    });
+    setIsStatsDialogOpen(true);
+  };
+
+  const handleSaveStats = async () => {
+    try {
+      await editDashboardMutation.mutateAsync({
+        total_acreage: Number(statsForm.total_acreage) || 0,
+        satisfaction_index: Number(statsForm.satisfaction_index) || 0,
+        total_public_service: Number(statsForm.total_public_service) || 0,
+        total_citizen: Number(statsForm.total_citizen) || 0,
+      });
+      setIsStatsDialogOpen(false);
+    } catch {
+      window.alert("Cập nhật số liệu thất bại. Vui lòng thử lại.");
+    }
+  };
 
   const inactiveStaff = mockStaff.filter((s) => s.status === "inactive");
   const publishedNews = mockNews.filter((n) => n.status === "published").length;
@@ -192,12 +235,22 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tổng quan</h1>
-          <p className="text-muted-foreground mt-1">
-            Tình hình hoạt động và các nội dung cần xử lý của Ủy ban Nhân dân Xã
-            Tây Hồ.
-          </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Tổng quan</h1>
+            <p className="text-muted-foreground mt-1">
+              Tình hình hoạt động và các nội dung cần xử lý của Ủy ban Nhân dân
+              Xã Tây Hồ.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="gap-2 shrink-0"
+            onClick={openStatsDialog}
+            disabled={isDashboardLoading}
+          >
+            <FileEdit className="h-4 w-4" /> Chỉnh sửa số liệu
+          </Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -343,6 +396,74 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={isStatsDialogOpen} onOpenChange={setIsStatsDialogOpen}>
+        <DialogHeader>
+          <DialogTitle>Chỉnh sửa số liệu tổng quan</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label>Tổng diện tích (ha)</Label>
+            <Input
+              type="number"
+              value={statsForm.total_acreage}
+              onChange={(e) =>
+                setStatsForm({ ...statsForm, total_acreage: e.target.value })
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Chỉ số hài lòng (%)</Label>
+            <Input
+              type="number"
+              value={statsForm.satisfaction_index}
+              onChange={(e) =>
+                setStatsForm({
+                  ...statsForm,
+                  satisfaction_index: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Dịch vụ công</Label>
+            <Input
+              type="number"
+              value={statsForm.total_public_service}
+              onChange={(e) =>
+                setStatsForm({
+                  ...statsForm,
+                  total_public_service: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Tổng công dân</Label>
+            <Input
+              type="number"
+              value={statsForm.total_citizen}
+              onChange={(e) =>
+                setStatsForm({ ...statsForm, total_citizen: e.target.value })
+              }
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setIsStatsDialogOpen(false)}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleSaveStats}
+            disabled={editDashboardMutation.isPending}
+          >
+            {editDashboardMutation.isPending ? "Đang lưu..." : "Lưu thông tin"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }
