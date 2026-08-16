@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Layout } from "../shared/components/Layout";
 import {
   Badge,
@@ -53,6 +53,17 @@ import {
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
 import { cn } from "@/shared/lib/utils";
+import {
+  useCreateDepartmentProcessMutation,
+  useDepartmentsQuery,
+  useEditDepartmentProcessMutation,
+  useRemoveDepartmentProcessMutation,
+} from "@/features/department/hooks/department.hook";
+import type { DepartmentItem } from "@/features/department/types/get-departments.response";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { getDepartmentSubs } from "@/features/department/api/department.api";
+import type { GetDepartmentsResponse } from "@/features/department/types/get-departments.response";
+import { QUERY_KEY } from "@/shared/api";
 
 type DepartmentStatus = "active" | "inactive";
 
@@ -80,83 +91,6 @@ type DepartmentFormState = {
 
 type StaffDetailState = StaffRecord | null;
 
-const initialDepartments: DepartmentRecord[] = [
-  {
-    id: "dept-1",
-    name: "Văn phòng UBND",
-    code: "VPUBND",
-    parentId: null,
-    description:
-      "Đầu mối tham mưu, tổng hợp và điều phối công việc chung của xã.",
-    order: 1,
-    manager: "Nguyễn Văn A",
-    status: "active",
-  },
-  {
-    id: "dept-2",
-    name: "Tư pháp",
-    code: "TP",
-    parentId: "dept-1",
-    description: "Hộ tịch, chứng thực, tiếp nhận và xử lý thủ tục pháp lý.",
-    order: 2,
-    manager: "Trần Thị B",
-    status: "active",
-  },
-  {
-    id: "dept-3",
-    name: "Tài chính - Kế toán",
-    code: "TCKT",
-    parentId: "dept-1",
-    description:
-      "Theo dõi ngân sách, thanh toán, quyết toán và báo cáo tài chính.",
-    order: 3,
-    manager: "Đặng Văn G",
-    status: "active",
-  },
-  {
-    id: "dept-4",
-    name: "Địa chính",
-    code: "DC",
-    parentId: null,
-    description: "Quản lý đất đai, xây dựng, hạ tầng và hồ sơ địa giới.",
-    order: 4,
-    manager: "Lê Văn C",
-    status: "active",
-  },
-  {
-    id: "dept-5",
-    name: "Văn hóa - Xã hội",
-    code: "VHXH",
-    parentId: "dept-4",
-    description: "Văn hóa, giáo dục, y tế, an sinh và hoạt động cộng đồng.",
-    order: 5,
-    manager: "Hoàng Thị E",
-    status: "active",
-  },
-  {
-    id: "dept-6",
-    name: "Công an",
-    code: "CA",
-    parentId: null,
-    description:
-      "An ninh trật tự, tiếp dân và xử lý sự vụ hành chính liên quan.",
-    order: 6,
-    manager: "Phạm Văn E",
-    status: "active",
-  },
-  {
-    id: "dept-7",
-    name: "Quân sự",
-    code: "QS",
-    parentId: "dept-6",
-    description:
-      "Quốc phòng, dân quân tự vệ và phối hợp đảm bảo an ninh địa bàn.",
-    order: 7,
-    manager: "Vũ Văn F",
-    status: "inactive",
-  },
-];
-
 const PAGE_TITLE = "Phòng ban";
 
 const buildFormState = (
@@ -175,22 +109,96 @@ const buildFormState = (
 const isSameText = (value: string, query: string) =>
   value.toLowerCase().includes(query.toLowerCase());
 
+function departmentItemToRecord(
+  item: DepartmentItem,
+  parentId: string | null,
+  order: number,
+): DepartmentRecord {
+  return {
+    id: String(item.id),
+    name: item.name,
+    code: "",
+    parentId,
+    description: item.note ?? "",
+    order,
+    manager: item.staff_name ?? "",
+    status: "active",
+  };
+}
+
+/**
+ * The department API only exposes two levels: root departments and, for a
+ * given id, its direct subs. There is no "get whole tree" endpoint, so this
+ * fetches the root list then fetches subs for every root in parallel and
+ * flattens the result into the same shape the UI already works with.
+ */
+function useDepartmentTree() {
+  const { data: rootData, isLoading: isRootLoading } = useDepartmentsQuery();
+  const roots = rootData?.content ?? [];
+
+  const subQueries = useQueries({
+    queries: roots.map((root) => ({
+      queryKey: QUERY_KEY.DEPARTMENTS_SUB(root.id),
+      queryFn: () => getDepartmentSubs(root.id),
+      enabled: root.total_department_sub > 0,
+    })),
+  });
+
+  const isLoading =
+    isRootLoading || subQueries.some((query) => query.isLoading);
+
+  const records = useMemo(() => {
+    const list: DepartmentRecord[] = roots.map((root, index) =>
+      departmentItemToRecord(root, null, index + 1),
+    );
+
+    roots.forEach((root, index) => {
+      const subs = subQueries[index]?.data?.content ?? [];
+      subs.forEach((sub, subIndex) => {
+        list.push(departmentItemToRecord(sub, String(root.id), subIndex + 1));
+      });
+    });
+
+    return list;
+  }, [roots, subQueries]);
+
+  return { records, isLoading };
+}
+
 export default function Departments() {
-  const [departments, setDepartments] = useState<DepartmentRecord[]>(
-    () => initialDepartments,
-  );
+  const queryClient = useQueryClient();
+  const { records: departmentsFromApi, isLoading: isDepartmentsLoading } =
+    useDepartmentTree();
+  const createDepartmentMutation = useCreateDepartmentProcessMutation();
+  const editDepartmentMutation = useEditDepartmentProcessMutation();
+  const removeDepartmentMutation = useRemoveDepartmentProcessMutation();
+
   const [staffList, setStaffList] = useState<StaffRecord[]>(() => getStaff());
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState(
-    initialDepartments.find((item) => item.parentId === null)?.id ??
-      initialDepartments[0]?.id ??
-      "",
-  );
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentDepartment, setCurrentDepartment] =
     useState<DepartmentFormState>(buildFormState(null));
   const [currentStaff, setCurrentStaff] = useState<StaffDetailState>(null);
   const [isManagerPickerOpen, setIsManagerPickerOpen] = useState(false);
+
+  const [departments, setDepartments] = useState<DepartmentRecord[]>([]);
+  const hasSeededDepartments = useRef(false);
+
+  useEffect(() => {
+    if (!hasSeededDepartments.current && !isDepartmentsLoading) {
+      setDepartments(departmentsFromApi);
+      hasSeededDepartments.current = true;
+      setSelectedDepartmentId(
+        departmentsFromApi.find((item) => item.parentId === null)?.id ??
+          departmentsFromApi[0]?.id ??
+          "",
+      );
+    }
+  }, [departmentsFromApi, isDepartmentsLoading]);
+
+  const isSaving =
+    createDepartmentMutation.isPending || editDepartmentMutation.isPending;
 
   const departmentsById = useMemo(
     () =>
@@ -303,34 +311,70 @@ export default function Departments() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
-    const nextDepartment: DepartmentRecord = {
-      ...currentDepartment,
-      id: currentDepartment.id || Date.now().toString(),
-      order: Number.isNaN(Number(currentDepartment.order))
-        ? 0
-        : Number(currentDepartment.order),
-    };
+  const handleSave = async () => {
+    const name = (currentDepartment.name ?? "").trim();
+    if (!name) return;
+    const desc = currentDepartment.description ?? "";
 
-    setDepartments((current) => {
-      const exists = current.some((item) => item.id === nextDepartment.id);
-      const next = exists
-        ? current.map((item) =>
-            item.id === nextDepartment.id ? nextDepartment : item,
-          )
-        : [...current, nextDepartment];
+    try {
+      if (currentDepartment.id) {
+        await editDepartmentMutation.mutateAsync({
+          item: Number(currentDepartment.id),
+          name,
+          note: desc,
+        });
+        const nextDepartment: DepartmentRecord = {
+          ...currentDepartment,
+          id: currentDepartment.id,
+          order: Number.isNaN(Number(currentDepartment.order))
+            ? 0
+            : Number(currentDepartment.order),
+          name,
+          description: desc,
+        };
+        setDepartments((current) =>
+          current.map((d) => (d.id === nextDepartment.id ? nextDepartment : d)),
+        );
+      } else {
+        await createDepartmentMutation.mutateAsync({ name, note: desc });
 
-      return next.sort(
-        (left, right) =>
-          left.order - right.order || left.name.localeCompare(right.name),
-      );
-    });
+        // The create response doesn't reliably carry the new id, so find it
+        // by diffing the freshly-invalidated root list against what we had.
+        const refreshed = queryClient.getQueryData<GetDepartmentsResponse>(
+          QUERY_KEY.DEPARTMENTS,
+        );
+        const existingIds = new Set(
+          departments.filter((d) => d.parentId === null).map((d) => d.id),
+        );
+        const created = refreshed?.content.find(
+          (department) => !existingIds.has(String(department.id)),
+        );
 
-    if (!selectedDepartmentId) {
-      setSelectedDepartmentId(nextDepartment.id);
+        const nextDepartment: DepartmentRecord = {
+          ...currentDepartment,
+          id: created ? String(created.id) : `local-${Date.now()}`,
+          parentId: null,
+          order: Number.isNaN(Number(currentDepartment.order))
+            ? 0
+            : Number(currentDepartment.order),
+          name,
+          description: desc,
+        };
+        setDepartments((current) => {
+          const next = [...current, nextDepartment];
+          return next.sort(
+            (left, right) =>
+              left.order - right.order || left.name.localeCompare(right.name),
+          );
+        });
+        if (!selectedDepartmentId) {
+          setSelectedDepartmentId(nextDepartment.id);
+        }
+      }
+      setIsDialogOpen(false);
+    } catch {
+      window.alert("Lưu phòng ban thất bại. Vui lòng thử lại.");
     }
-
-    setIsDialogOpen(false);
   };
 
   const collectDescendantIds = (departmentId: string): string[] => {
@@ -349,21 +393,27 @@ export default function Departments() {
     return Array.from(ids);
   };
 
-  const handleDeleteDepartment = (department: DepartmentRecord) => {
+  const handleDeleteDepartment = async (department: DepartmentRecord) => {
     if (!window.confirm(`Xóa phòng ban "${department.name}"?`)) return;
 
-    const idsToRemove = new Set(collectDescendantIds(department.id));
-    const nextDepartments = departments.filter(
-      (item) => !idsToRemove.has(item.id),
-    );
-    setDepartments(nextDepartments);
+    try {
+      await removeDepartmentMutation.mutateAsync({ item: Number(department.id) });
 
-    if (idsToRemove.has(selectedDepartmentId)) {
-      const fallback =
-        nextDepartments.find((item) => item.parentId === null) ??
-        nextDepartments[0] ??
-        null;
-      setSelectedDepartmentId(fallback?.id ?? "");
+      const idsToRemove = new Set(collectDescendantIds(department.id));
+      const nextDepartments = departments.filter(
+        (item) => !idsToRemove.has(item.id),
+      );
+      setDepartments(nextDepartments);
+
+      if (idsToRemove.has(selectedDepartmentId)) {
+        const fallback =
+          nextDepartments.find((item) => item.parentId === null) ??
+          nextDepartments[0] ??
+          null;
+        setSelectedDepartmentId(fallback?.id ?? "");
+      }
+    } catch {
+      window.alert("Xóa phòng ban thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -819,7 +869,9 @@ export default function Departments() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Hủy
             </Button>
-            <Button onClick={handleSave}>Lưu</Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Đang lưu..." : "Lưu"}
+            </Button>
           </DialogFooter>
         </div>
       </Dialog>
