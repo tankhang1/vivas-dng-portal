@@ -14,8 +14,10 @@ import {
   CalendarClock,
   ChevronDown,
   Tag,
+  Settings,
   Settings2,
   ListChecks,
+  Info,
 } from 'lucide-react';
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -51,8 +53,16 @@ const navItems = [
     menuKey: 'routing',
     icon: Waypoints,
     children: [
-      { name: 'Thiết lập điều phối', href: '/routing/setup', icon: Settings2 },
+      { name: 'Thiết lập tiếp nhận phản ánh', href: '/routing/setup', icon: Settings2 },
       { name: 'Danh sách điều phối', href: '/routing/list', icon: ListChecks },
+    ],
+  },
+  {
+    name: 'Cài đặt',
+    menuKey: 'settings',
+    icon: Settings,
+    children: [
+      { name: 'Thông tin chung', href: '/settings/general', icon: Info },
     ],
   },
 ];
@@ -76,6 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       location.startsWith('/news') ||
       location.startsWith('/categories'),
     routing: location.startsWith('/routing'),
+    settings: location.startsWith('/settings'),
   });
 
   return (

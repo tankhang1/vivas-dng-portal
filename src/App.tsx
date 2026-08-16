@@ -1,27 +1,28 @@
 import { Redirect, Route, Switch, Router as WouterRouter } from "wouter";
-import Login from '@/pages/Login';
-import Dashboard from '@/pages/Dashboard';
-import Staff from '@/pages/staff';
-import StaffCreate from '@/pages/staff/Create';
-import StaffDetail from '@/pages/staff/Detail';
-import StaffEdit from '@/pages/staff/Edit';
-import Departments from '@/pages/Departments';
-import Divisions from '@/pages/Divisions';
-import NewsPage from '@/pages/news/NewsPage';
-import NewsCreate from '@/pages/news/Create';
-import NewsEdit from '@/pages/news/Edit';
-import CategoriesPage from '@/pages/categories';
-import CategoriesCreate from '@/pages/categories/Create';
-import CategoriesEdit from '@/pages/categories/Edit';
-import RoutingSetupPage from '@/pages/routing/RoutingSetupPage';
-import RoutingListPage from '@/pages/routing/RoutingListPage';
-import Citizens from '@/pages/citizens';
-import CitizensCreate from '@/pages/citizens/Create';
-import CitizenDetail from '@/pages/citizens/Detail';
-import CitizensEdit from '@/pages/citizens/Edit';
-import Feedback from '@/pages/Feedback';
-import QueueTickets from '@/pages/QueueTickets';
-import { AuthProvider, QueryClientProviderRoot } from '@/shared/providers';
+import Login from "@/pages/Login";
+import Dashboard from "@/pages/dashboard/Dashboard";
+import Staff from "@/pages/staff";
+import StaffCreate from "@/pages/staff/Create";
+import StaffDetail from "@/pages/staff/Detail";
+import StaffEdit from "@/pages/staff/Edit";
+import Departments from "@/pages/Departments";
+import Divisions from "@/pages/Divisions";
+import NewsPage from "@/pages/news/NewsPage";
+import NewsCreate from "@/pages/news/Create";
+import NewsEdit from "@/pages/news/Edit";
+import CategoriesPage from "@/pages/categories";
+import CategoriesCreate from "@/pages/categories/Create";
+import CategoriesEdit from "@/pages/categories/Edit";
+import RoutingSetupPage from "@/pages/routing/RoutingSetupPage";
+import RoutingListPage from "@/pages/routing/RoutingListPage";
+import Citizens from "@/pages/citizens";
+import CitizensCreate from "@/pages/citizens/Create";
+import CitizenDetail from "@/pages/citizens/Detail";
+import CitizensEdit from "@/pages/citizens/Edit";
+import Feedback from "@/pages/Feedback";
+import QueueTickets from "@/pages/QueueTickets";
+import GeneralSettingsPage from "@/pages/settings/GeneralSettingsPage";
+import { AuthProvider, QueryClientProviderRoot } from "@/shared/providers";
 
 function NotFound() {
   return (
@@ -71,6 +72,10 @@ function Router() {
       </Route>
       <Route path="/feedback" component={Feedback} />
       <Route path="/appointments" component={QueueTickets} />
+      <Route path="/settings/general" component={GeneralSettingsPage} />
+      <Route path="/settings">
+        <Redirect to="/settings/general" />
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

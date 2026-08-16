@@ -88,7 +88,7 @@ export default function RoutingSetupPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Thiết lập điều phối
+              Thiết lập tiếp nhận phản ánh
             </h1>
             <p className="text-muted-foreground mt-1">
               Thông tin tiếp nhận được tự động điều phối cho cán bộ phụ trách
