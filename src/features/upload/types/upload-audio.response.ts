@@ -1,3 +1,1 @@
-import type { BaseResponse } from "@/shared/types/base-response";
-
-export type UploadAudioResponse = BaseResponse;
+export type UploadAudioResponse = string;

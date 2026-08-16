@@ -12,14 +12,22 @@ import {
   Label,
   Select,
 } from "../../shared/components/ui";
-import { getStaffById, saveStaff } from "./store";
 import {
   defaultStaff,
   statusOptions,
   type StaffRecord,
   type StaffStatus,
 } from "./types";
-import { mockDepartments, mockRoutingRules } from "../../shared/data/mock";
+import { mockRoutingRules } from "../../shared/data/mock";
+import { useDepartmentsQuery } from "@/features/department/hooks/department.hook";
+import {
+  useActiveStaffProcessMutation,
+  useCreateStaffProcessMutation,
+  useDeactiveStaffProcessMutation,
+  useEditStaffProcessMutation,
+  useStaffFromCache,
+} from "@/features/staff/hooks/staff.hook";
+import { useUploadImageMutation } from "@/features/upload/hooks/upload.hook";
 
 type StaffFormPageProps = {
   mode: "create" | "edit";
@@ -28,36 +36,110 @@ type StaffFormPageProps = {
 
 export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   const [, navigate] = useLocation();
-  const staff = useMemo(() => {
-    if (mode === "edit" && staffId) {
-      return getStaffById(staffId);
+  const staff = useStaffFromCache(mode === "edit" ? staffId : undefined);
+  const { data: departmentsData } = useDepartmentsQuery();
+  const createStaffMutation = useCreateStaffProcessMutation();
+  const editStaffMutation = useEditStaffProcessMutation();
+  const activeStaffMutation = useActiveStaffProcessMutation();
+  const deactiveStaffMutation = useDeactiveStaffProcessMutation();
+  const uploadImageMutation = useUploadImageMutation();
+
+  const handleUploadAvatar = async (file: File) => {
+    const url = await uploadImageMutation.mutateAsync({ file, c: "staff-avatar" });
+    if (!url) {
+      throw new Error("Upload image response missing url");
     }
-    return null;
-  }, [mode, staffId]);
+    return url;
+  };
 
   const [form, setForm] = useState<StaffRecord>(defaultStaff());
+  const [password, setPassword] = useState("");
+
+  const fieldOptions = useMemo(
+    () => Array.from(new Set(mockRoutingRules.map((rule) => rule.field))),
+    [],
+  );
 
   useEffect(() => {
     if (mode === "edit" && staff) {
-      setForm(staff);
-    } else {
       setForm({
         ...defaultStaff(),
-        department: mockDepartments[0]?.name ?? "",
+        id: String(staff.id),
+        name: staff.name,
+        email: staff.email ?? "",
+        phone: staff.phone ?? "",
+        department: String(staff.department_item),
+        position: staff.potition ?? "",
+        status: staff.status === 1 ? "active" : "inactive",
+        avatar: staff.avatar
+          ? [{ id: "current-avatar", name: "avatar", url: staff.avatar }]
+          : [],
+      });
+    } else if (mode === "create") {
+      setForm({
+        ...defaultStaff(),
+        department: departmentsData?.content[0]
+          ? String(departmentsData.content[0].id)
+          : "",
       });
     }
-  }, [mode, staff]);
+  }, [mode, staff, departmentsData]);
 
   const updateForm = (patch: Partial<StaffRecord>) => {
     setForm((current) => ({ ...current, ...patch }));
   };
 
-  const handleSave = () => {
-    saveStaff({
-      ...form,
-      id: mode === "edit" ? form.id : Date.now().toString(),
-    });
-    navigate("/staff");
+  const isSaving =
+    createStaffMutation.isPending ||
+    editStaffMutation.isPending ||
+    activeStaffMutation.isPending ||
+    deactiveStaffMutation.isPending ||
+    uploadImageMutation.isPending;
+
+  const handleSave = async () => {
+    const department = departmentsData?.content.find(
+      (item) => String(item.id) === form.department,
+    );
+    const avatar = form.avatar[0]?.url ?? "";
+
+    try {
+      if (mode === "edit" && staff) {
+        await editStaffMutation.mutateAsync({
+          id: staff.id,
+          name: form.name,
+          avatar,
+          email: form.email,
+          phone: form.phone,
+          potition: form.position,
+          department_item: department?.id ?? staff.department_item,
+          department_name: department?.name ?? staff.department_name,
+        });
+
+        const nextStatusValue = form.status === "active" ? 1 : 0;
+        if (nextStatusValue !== staff.status) {
+          const request = { id: staff.id, phone: form.phone };
+          if (nextStatusValue === 1) {
+            await activeStaffMutation.mutateAsync(request);
+          } else {
+            await deactiveStaffMutation.mutateAsync(request);
+          }
+        }
+      } else {
+        await createStaffMutation.mutateAsync({
+          name: form.name,
+          avatar,
+          email: form.email,
+          phone: form.phone,
+          potition: form.position,
+          department_item: department?.id ?? 0,
+          department_name: department?.name ?? "",
+          password,
+        });
+      }
+      navigate("/staff");
+    } catch {
+      window.alert("Lưu thông tin cán bộ thất bại. Vui lòng thử lại.");
+    }
   };
 
   if (mode === "edit" && !staff) {
@@ -96,7 +178,9 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
             <Button variant="outline" onClick={() => navigate("/staff")}>
               Hủy
             </Button>
-            <Button onClick={handleSave}>Lưu thông tin</Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Đang lưu..." : "Lưu thông tin"}
+            </Button>
           </div>
         </div>
 
@@ -108,9 +192,10 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                 <MediaUpload
                   value={form.avatar}
                   onChange={(avatar) => updateForm({ avatar })}
+                  onUpload={handleUploadAvatar}
                   accept="image/*"
                   multiple={false}
-                  hint="Nhấn để chọn hoặc kéo thả ảnh vào đây. Khuyến nghị: vuông hoặc gần vuông; có thể dán URL hoặc tải file."
+                  hint="Nhấn để chọn hoặc kéo thả ảnh vào đây. Khuyến nghị: vuông hoặc gần vuông."
                 />
                 <div className="flex flex-wrap items-center gap-4 text-sm">
                   <button
@@ -168,8 +253,8 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     onChange={(e) => updateForm({ department: e.target.value })}
                   >
                     <option value="">Chọn...</option>
-                    {mockDepartments.map((department) => (
-                      <option key={department.id} value={department.name}>
+                    {departmentsData?.content.map((department) => (
+                      <option key={department.id} value={String(department.id)}>
                         {department.name}
                       </option>
                     ))}
@@ -184,9 +269,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     onChange={(e) => updateForm({ field: e.target.value })}
                   >
                     <option value="">Chọn...</option>
-                    {Array.from(
-                      new Set(mockRoutingRules.map((rule) => rule.field)),
-                    ).map((field) => (
+                    {fieldOptions.map((field) => (
                       <option key={field} value={field}>
                         {field}
                       </option>
@@ -222,6 +305,21 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     ))}
                   </Select>
                 </div>
+
+                {mode === "create" && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="staff-password">
+                      Mật khẩu <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="staff-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

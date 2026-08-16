@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -17,50 +17,69 @@ import {
   TableHeader,
   TableRow,
 } from "../../shared/components/ui";
-import { deleteStaff, getStaff } from "./store";
-import { statusBadgeVariant, statusLabel, type StaffRecord } from "./types";
+import { Spinner } from "../../shared/components/ui/spinner";
+import {
+  useDeactiveStaffProcessMutation,
+  useSearchStaffQuery,
+} from "@/features/staff/hooks/staff.hook";
+import { useDepartmentsQuery } from "@/features/department/hooks/department.hook";
 import { Edit2, Eye, Plus, Search, Trash2 } from "lucide-react";
-import { mockDepartments } from "../../shared/data/mock";
 
 const PAGE_SIZE = 5;
 
+function staffStatusLabel(status: number) {
+  return status === 1 ? "Hoạt động" : "Tạm khóa";
+}
+
+function staffStatusVariant(status: number) {
+  return status === 1 ? "success" : "warning";
+}
+
 export default function StaffPage() {
   const [, navigate] = useLocation();
-  const [staffList, setStaffList] = useState<StaffRecord[]>(() => getStaff());
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDeferredValue(searchTerm);
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
 
-  const filteredStaff = useMemo(() => {
-    return staffList.filter((staff) => {
-      const search = searchTerm.toLowerCase();
-      return (
-        (staff.name.toLowerCase().includes(search) ||
-          staff.username.toLowerCase().includes(search) ||
-          staff.email.toLowerCase().includes(search) ||
-          staff.phone.toLowerCase().includes(search)) &&
-        (departmentFilter === "all" || staff.department === departmentFilter) &&
-        (statusFilter === "all" || staff.status === statusFilter)
-      );
-    });
-  }, [staffList, searchTerm, departmentFilter, statusFilter]);
+  const { data, isLoading, isFetching, refetch } = useSearchStaffQuery({
+    key: debouncedSearch || undefined,
+    sz: PAGE_SIZE,
+    nu: page - 1,
+  });
+  const { data: departmentsData, isLoading: isDepartmentsLoading } =
+    useDepartmentsQuery();
+  const deactiveStaffMutation = useDeactiveStaffProcessMutation();
 
-  const totalPages = Math.max(1, Math.ceil(filteredStaff.length / PAGE_SIZE));
-  const paginated = filteredStaff.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  const staffList = data?.content ?? [];
+  const showInitialLoading = isLoading && staffList.length === 0;
+  const showRefetchOverlay = isFetching && !showInitialLoading;
+  const filteredStaff = useMemo(() => {
+    return staffList.filter(
+      (staff) =>
+        (departmentFilter === "all" ||
+          String(staff.department_item) === departmentFilter) &&
+        (statusFilter === "all" || String(staff.status) === statusFilter),
+    );
+  }, [staffList, departmentFilter, statusFilter]);
+
+  const totalPages = Math.max(1, data?.page.totalPages ?? 1);
+  const totalItems = data?.page.totalElements ?? 0;
 
   const updateFilters = (fn: () => void) => {
     fn();
     setPage(1);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: number, phone: string | null) => {
     if (!confirm("Bạn có chắc chắn muốn xóa cán bộ này?")) return;
-    deleteStaff(id);
-    setStaffList(getStaff());
+    try {
+      await deactiveStaffMutation.mutateAsync({ id, phone: phone ?? "" });
+      refetch();
+    } catch {
+      window.alert("Xóa cán bộ thất bại. Vui lòng thử lại.");
+    }
   };
 
   return (
@@ -88,12 +107,15 @@ export default function StaffPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Tìm kiếm theo tên, email hoặc điện thoại..."
-                className="pl-9"
+                className="pl-9 pr-9"
                 value={searchTerm}
                 onChange={(e) =>
                   updateFilters(() => setSearchTerm(e.target.value))
                 }
               />
+              {showRefetchOverlay && (
+                <Spinner className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select
@@ -102,10 +124,11 @@ export default function StaffPage() {
                   updateFilters(() => setDepartmentFilter(e.target.value))
                 }
                 className="w-52"
+                disabled={isDepartmentsLoading}
               >
                 <option value="all">Tất cả phòng ban</option>
-                {mockDepartments.map((department) => (
-                  <option key={department.id} value={department.name}>
+                {departmentsData?.content.map((department) => (
+                  <option key={department.id} value={String(department.id)}>
                     {department.name}
                   </option>
                 ))}
@@ -118,13 +141,15 @@ export default function StaffPage() {
                 className="w-40"
               >
                 <option value="all">Tất cả trạng thái</option>
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Tạm khóa</option>
+                <option value="1">Hoạt động</option>
+                <option value="0">Tạm khóa</option>
               </Select>
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent
+            className={showRefetchOverlay ? "opacity-60 transition-opacity" : "transition-opacity"}
+          >
             <Table>
               <TableHeader>
                 <TableRow>
@@ -138,7 +163,17 @@ export default function StaffPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginated.map((staff) => (
+                {showInitialLoading && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <Spinner className="h-4 w-4" />
+                        Đang tải danh sách cán bộ...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!showInitialLoading && filteredStaff.map((staff) => (
                   <TableRow key={staff.id}>
                     <TableCell className="font-medium">{staff.name}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -148,14 +183,14 @@ export default function StaffPage() {
                       {staff.phone || "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {staff.department || "-"}
+                      {staff.department_name || "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {staff.position || "-"}
+                      {staff.potition || "-"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusBadgeVariant(staff.status)}>
-                        {statusLabel(staff.status)}
+                      <Badge variant={staffStatusVariant(staff.status)}>
+                        {staffStatusLabel(staff.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -180,7 +215,7 @@ export default function StaffPage() {
                           variant="ghost"
                           size="icon"
                           title="Xóa"
-                          onClick={() => handleDelete(staff.id)}
+                          onClick={() => handleDelete(staff.id, staff.phone)}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
@@ -188,7 +223,7 @@ export default function StaffPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paginated.length === 0 && (
+                {!showInitialLoading && filteredStaff.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={7}
@@ -204,7 +239,7 @@ export default function StaffPage() {
               page={page}
               totalPages={totalPages}
               onPageChange={setPage}
-              totalItems={filteredStaff.length}
+              totalItems={totalItems}
               pageSize={PAGE_SIZE}
             />
           </CardContent>

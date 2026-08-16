@@ -43,6 +43,29 @@ export function useSearchStaffQuery(request: SearchStaffRequest) {
   });
 }
 
+/**
+ * There is no GET /common-portal/staff/:id endpoint, so a single staff
+ * record can only come from a /staff/search page already cached by
+ * useSearchStaffQuery (e.g. the staff list). Returns undefined if that
+ * page was never fetched in this session (no extra request is made).
+ */
+export function useStaffFromCache(id?: number | string) {
+  const queryClient = useQueryClient();
+
+  if (id === undefined || id === null || id === '') return undefined;
+
+  const cachedSearches = queryClient.getQueriesData<GetStaffsResponse>({
+    queryKey: ['staff', 'search'],
+  });
+
+  for (const [, data] of cachedSearches) {
+    const found = data?.content.find((item) => String(item.id) === String(id));
+    if (found) return found;
+  }
+
+  return undefined;
+}
+
 export function useStaffCoordinateCommentQuery(id?: number | string) {
   return useQuery<GetStaffCoordinateCommentResponse>({
     queryKey: id ? QUERY_KEY.STAFF_COORDINATE_COMMENT(id) : QUERY_KEY.STAFF_COORDINATE_COMMENT(''),

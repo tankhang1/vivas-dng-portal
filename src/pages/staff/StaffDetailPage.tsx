@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -21,15 +21,19 @@ import {
   AvatarImage,
 } from "../../shared/components/ui/avatar";
 import { mockFeedback } from "../../shared/data/mock";
-import { getStaffById } from "./store";
-import { statusBadgeVariant, statusLabel } from "./types";
+import {
+  useStaffCoordinateCommentQuery,
+  useStaffFromCache,
+} from "@/features/staff/hooks/staff.hook";
 import {
   ArrowLeft,
   CalendarDays,
   FileText,
   Mail,
   MapPin,
+  MessageSquareWarning,
   Phone,
+  ShieldCheck,
   Tag,
   User2,
 } from "lucide-react";
@@ -38,15 +42,42 @@ type StaffDetailPageProps = {
   staffId?: string;
 };
 
+function staffStatusLabel(status: number) {
+  return status === 1 ? "Hoạt động" : "Tạm khóa";
+}
+
+function staffStatusVariant(status: number) {
+  return status === 1 ? "success" : "warning";
+}
+
+const APPROVAL_LABEL: Record<number, string> = {
+  0: "Xem",
+  1: "Duyệt",
+  2: "Từ chối",
+};
+
+function buildUsername(name: string, phone: string | null) {
+  const base = phone || name;
+  return (
+    base
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/^\.+|\.+$/g, "") || "chua-cap-nhat"
+  );
+}
+
 export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/staff/:id");
-
-  const staff = useMemo(() => {
-    const id = staffId ?? params?.id;
-    if (!id) return null;
-    return getStaffById(id);
-  }, [params?.id, staffId]);
+  const id = staffId ?? params?.id;
+  const staff = useStaffFromCache(id);
+  const {
+    data: coordinateComment,
+    isLoading: isCoordinateCommentLoading,
+    isError: isCoordinateCommentError,
+  } = useStaffCoordinateCommentQuery(staff?.id);
 
   const repliedFeedbacks = useMemo(() => {
     if (!staff) return [];
@@ -73,7 +104,8 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
     );
   }
 
-  const avatarUrl = staff.avatar[0]?.url ?? "";
+  const avatarUrl = staff.avatar ?? "";
+  const username = buildUsername(staff.name, staff.phone);
   const initials = staff.name
     .split(" ")
     .filter(Boolean)
@@ -131,13 +163,11 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-2xl font-semibold">{staff.name}</h2>
-                    <Badge variant={statusBadgeVariant(staff.status)}>
-                      {statusLabel(staff.status)}
+                    <Badge variant={staffStatusVariant(staff.status)}>
+                      {staffStatusLabel(staff.status)}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    @{staff.username || "chua-cap-nhat"}
-                  </p>
+                  <p className="text-sm text-muted-foreground">@{username}</p>
                 </div>
               </div>
 
@@ -161,32 +191,23 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                     <Tag className="h-4 w-4" />
                     Phòng ban
                   </div>
-                  <div className="text-sm font-medium">{staff.department || "-"}</div>
+                  <div className="text-sm font-medium">
+                    {staff.department_name || "-"}
+                  </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <MapPin className="h-4 w-4" />
                     Lĩnh vực
                   </div>
-                  <div className="text-sm font-medium">{staff.field || "-"}</div>
+                  <div className="text-sm font-medium">-</div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <User2 className="h-4 w-4" />
                     Chức vụ
                   </div>
-                  <div className="text-sm font-medium">{staff.position || "-"}</div>
-                </div>
-                <div className="rounded-lg border border-border bg-muted/30 p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <CalendarDays className="h-4 w-4" />
-                    Dữ liệu mở rộng
-                  </div>
-                  <div className="text-sm font-medium">
-                    {staff.extraFields.length > 0
-                      ? `${staff.extraFields.length} mục`
-                      : "Không có"}
-                  </div>
+                  <div className="text-sm font-medium">{staff.potition || "-"}</div>
                 </div>
               </div>
             </CardContent>
@@ -279,6 +300,66 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-lg">
+              Thông tin điều phối tiếp nhận phản ánh
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {isCoordinateCommentLoading && (
+              <p className="text-sm text-muted-foreground">Đang tải...</p>
+            )}
+            {!isCoordinateCommentLoading && isCoordinateCommentError && (
+              <p className="text-sm text-muted-foreground">
+                Không tải được thông tin điều phối tiếp nhận phản ánh.
+              </p>
+            )}
+            {!isCoordinateCommentLoading &&
+              !isCoordinateCommentError &&
+              coordinateComment && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <MessageSquareWarning className="h-4 w-4" />
+                      Nhóm phản ánh
+                    </div>
+                    <div className="text-sm font-medium">
+                      {coordinateComment.comments_category_name || "-"}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <ShieldCheck className="h-4 w-4" />
+                      Quyền xử lý
+                    </div>
+                    <div className="text-sm font-medium">
+                      {APPROVAL_LABEL[coordinateComment.approval] ?? "-"}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <CalendarDays className="h-4 w-4" />
+                      Thời gian tạo
+                    </div>
+                    <div className="text-sm font-medium">
+                      {coordinateComment.time_create || "-"}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <User2 className="h-4 w-4" />
+                      Trạng thái
+                    </div>
+                    <Badge variant={staffStatusVariant(coordinateComment.status)}>
+                      {staffStatusLabel(coordinateComment.status)}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

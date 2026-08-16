@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { cn } from './ui';
-import { ImagePlus, X, UploadCloud } from 'lucide-react';
+import { ImagePlus, X, UploadCloud, Loader2 } from 'lucide-react';
 
 export interface MediaFile {
   id: string;
@@ -14,20 +14,48 @@ interface MediaUploadProps {
   accept?: string;
   multiple?: boolean;
   hint?: string;
+  /** When provided, each selected file is uploaded and its blob preview URL is swapped for the returned remote URL. */
+  onUpload?: (file: File) => Promise<string>;
 }
 
-export function MediaUpload({ value, onChange, accept = 'image/*,video/*', multiple = true, hint }: MediaUploadProps) {
+export function MediaUpload({ value, onChange, accept = 'image/*,video/*', multiple = true, hint, onUpload }: MediaUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
-    const newFiles: MediaFile[] = Array.from(fileList).map(file => ({
+    const files = Array.from(fileList);
+    const newFiles: MediaFile[] = files.map(file => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       name: file.name,
       url: URL.createObjectURL(file),
     }));
-    onChange(multiple ? [...value, ...newFiles] : newFiles);
+    const nextValue = multiple ? [...value, ...newFiles] : newFiles;
+    onChange(nextValue);
+
+    if (!onUpload) return;
+
+    files.forEach((file, index) => {
+      const mediaFile = newFiles[index];
+      setUploadingIds((current) => new Set(current).add(mediaFile.id));
+
+      onUpload(file)
+        .then((url) => {
+          onChange(nextValue.map((item) => (item.id === mediaFile.id ? { ...item, url } : item)));
+        })
+        .catch(() => {
+          onChange(nextValue.filter((item) => item.id !== mediaFile.id));
+          window.alert(`Tải lên "${file.name}" thất bại. Vui lòng thử lại.`);
+        })
+        .finally(() => {
+          setUploadingIds((current) => {
+            const next = new Set(current);
+            next.delete(mediaFile.id);
+            return next;
+          });
+        });
+    });
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -79,6 +107,11 @@ export function MediaUpload({ value, onChange, accept = 'image/*,video/*', multi
                   <video src={file.url} className="h-full w-full object-cover" muted />
                 ) : (
                   <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
+                )}
+                {uploadingIds.has(file.id) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  </div>
                 )}
                 <button
                   type="button"
