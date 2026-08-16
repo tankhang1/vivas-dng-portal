@@ -22,6 +22,9 @@ export const API_PATH = {
     CREATE_PROCESS: '/admin/hotline/create/process',
     REMOVE_PROCESS: '/admin/hotline/remove/process',
   },
+  ZALO: {
+    POST_COMMENT_PROCESS: '/zalo/post-comment/process',
+  },
   DASHBOARD: {
     EDIT_PROCESS: '/admin/dashboard/edit/process',
   },

@@ -2,6 +2,8 @@ import { API_PATH, apiClient } from '@/shared/api';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
+import type { PostCommentProcessRequest } from '@/features/comment/types/post-comment-process.request';
+import type { PostCommentProcessResponse } from '@/features/comment/types/post-comment-process.response';
 
 export async function getComments(): Promise<GetCommentsResponse> {
   const response = await apiClient.get<GetCommentsResponse>(
@@ -45,6 +47,17 @@ export async function searchComments(
 
 export async function getCommentByUuid(cUuid: string): Promise<CommentItem> {
   const response = await apiClient.get<CommentItem>(API_PATH.COMMON_PORTAL.COMMENT(cUuid));
+
+  return response.data;
+}
+
+export async function postCommentProcess(
+  request: PostCommentProcessRequest,
+): Promise<PostCommentProcessResponse> {
+  const response = await apiClient.post<PostCommentProcessResponse>(
+    API_PATH.ZALO.POST_COMMENT_PROCESS,
+    request,
+  );
 
   return response.data;
 }

@@ -3,12 +3,16 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   getCommentByUuid,
   getComments,
+  postCommentProcess,
   searchComments,
 } from '@/features/comment/api/comment.api';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
+import type { PostCommentProcessRequest } from '@/features/comment/types/post-comment-process.request';
+import type { PostCommentProcessResponse } from '@/features/comment/types/post-comment-process.response';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
 import { QUERY_KEY } from '@/shared/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useCommentsQuery() {
   return useQuery<GetCommentsResponse>({
@@ -30,5 +34,16 @@ export function useCommentQuery(cUuid?: string) {
     queryKey: cUuid ? QUERY_KEY.COMMENT(cUuid) : QUERY_KEY.COMMENT(''),
     queryFn: () => getCommentByUuid(cUuid as string),
     enabled: !!cUuid,
+  });
+}
+
+export function usePostCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<PostCommentProcessResponse, Error, PostCommentProcessRequest>({
+    mutationFn: postCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.COMMENTS });
+    },
   });
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createDepartmentProcess,
@@ -16,32 +16,53 @@ import type { RemoveDepartmentProcessRequest } from '@/features/department/types
 import { QUERY_KEY } from '@/shared/api';
 
 export function useCreateDepartmentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     CreateDepartmentProcessResponse,
     Error,
     CreateDepartmentProcessRequest
   >({
     mutationFn: createDepartmentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.DEPARTMENTS });
+    },
   });
 }
 
 export function useEditDepartmentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     CreateDepartmentProcessResponse,
     Error,
     EditDepartmentProcessRequest
   >({
     mutationFn: editDepartmentProcess,
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DEPARTMENTS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DEPARTMENT(variables.item) }),
+      ]);
+    },
   });
 }
 
 export function useRemoveDepartmentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     CreateDepartmentProcessResponse,
     Error,
     RemoveDepartmentProcessRequest
   >({
     mutationFn: removeDepartmentProcess,
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DEPARTMENTS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DEPARTMENT(variables.item) }),
+      ]);
+    },
   });
 }
 
