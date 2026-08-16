@@ -19,11 +19,13 @@ import {
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
 import {
+  useActiveStaffProcessMutation,
   useDeactiveStaffProcessMutation,
   useSearchStaffQuery,
 } from "@/features/staff/hooks/staff.hook";
 import { useDepartmentsQuery } from "@/features/department/hooks/department.hook";
-import { Edit2, Eye, Plus, Search, Trash2 } from "lucide-react";
+import type { StaffItem } from "@/features/staff/types/get-staffs.response";
+import { Edit2, Eye, Lock, Plus, Search, Unlock } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
@@ -50,6 +52,7 @@ export default function StaffPage() {
   });
   const { data: departmentsData, isLoading: isDepartmentsLoading } =
     useDepartmentsQuery();
+  const activeStaffMutation = useActiveStaffProcessMutation();
   const deactiveStaffMutation = useDeactiveStaffProcessMutation();
 
   const staffList = data?.content ?? [];
@@ -72,13 +75,23 @@ export default function StaffPage() {
     setPage(1);
   };
 
-  const handleDelete = async (id: number, phone: string | null) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa cán bộ này?")) return;
+  const handleToggleStatus = async (staff: StaffItem) => {
+    const isActive = staff.status === 1;
+    const confirmMessage = isActive
+      ? `Khóa tài khoản cán bộ "${staff.name}"?`
+      : `Mở khóa tài khoản cán bộ "${staff.name}"?`;
+    if (!confirm(confirmMessage)) return;
+
     try {
-      await deactiveStaffMutation.mutateAsync({ id, phone: phone ?? "" });
+      const request = { id: staff.id, phone: staff.phone ?? "" };
+      if (isActive) {
+        await deactiveStaffMutation.mutateAsync(request);
+      } else {
+        await activeStaffMutation.mutateAsync(request);
+      }
       refetch();
     } catch {
-      window.alert("Xóa cán bộ thất bại. Vui lòng thử lại.");
+      window.alert("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -221,10 +234,18 @@ export default function StaffPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="Xóa"
-                            onClick={() => handleDelete(staff.id, staff.phone)}
+                            title={
+                              staff.status === 1
+                                ? "Khóa tài khoản"
+                                : "Mở khóa tài khoản"
+                            }
+                            onClick={() => handleToggleStatus(staff)}
                           >
-                            <Trash2 className="h-4 w-4 text-red-600" />
+                            {staff.status === 1 ? (
+                              <Lock className="h-4 w-4 text-red-600" />
+                            ) : (
+                              <Unlock className="h-4 w-4 text-emerald-600" />
+                            )}
                           </Button>
                         </div>
                       </TableCell>
