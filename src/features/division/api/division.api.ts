@@ -4,6 +4,7 @@ import type { CreateDivisionProcessResponse } from "@/features/division/types/cr
 import type { GetDivisionsResponse } from "@/features/division/types/get-divisions.response";
 import type { EditDivisionProcessRequest } from "@/features/division/types/edit-division-process.request";
 import type { RemoveDivisionProcessRequest } from "@/features/division/types/remove-division-process.request";
+import type { RemoveDivisionProcessResponse } from "@/features/division/types/remove-division-process.response";
 
 export async function createDivisionProcess(
   request: CreateDivisionProcessRequest,
@@ -29,8 +30,8 @@ export async function editDivisionProcess(
 
 export async function removeDivisionProcess(
   request: RemoveDivisionProcessRequest,
-): Promise<CreateDivisionProcessResponse> {
-  const response = await apiClient.post<CreateDivisionProcessResponse>(
+): Promise<RemoveDivisionProcessResponse> {
+  const response = await apiClient.post<RemoveDivisionProcessResponse>(
     API_PATH.DIVISION.REMOVE_PROCESS,
     request,
   );

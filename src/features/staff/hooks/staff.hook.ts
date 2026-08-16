@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   activeStaffCoordinateCommentProcess,
@@ -29,81 +29,127 @@ import type { DeactiveStaffProcessRequest } from '@/features/staff/types/deactiv
 import type { DeactiveStaffProcessResponse } from '@/features/staff/types/deactive-staff-process.response';
 import type { EditStaffProcessRequest } from '@/features/staff/types/edit-staff-process.request';
 import type { EditStaffProcessResponse } from '@/features/staff/types/edit-staff-process.response';
+import { QUERY_KEY } from '@/shared/api';
 
 export function useCreateStaffProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<CreateStaffProcessResponse, Error, CreateStaffProcessRequest>({
     mutationFn: createStaffProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useEditStaffProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<EditStaffProcessResponse, Error, EditStaffProcessRequest>({
     mutationFn: editStaffProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useDeactiveStaffProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     DeactiveStaffProcessResponse,
     Error,
     DeactiveStaffProcessRequest
   >({
     mutationFn: deactiveStaffProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useActiveStaffProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<ActiveStaffProcessResponse, Error, ActiveStaffProcessRequest>({
     mutationFn: activeStaffProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useCreateStaffCoordinateCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     CreateStaffCoordinateCommentProcessResponse,
     Error,
     CreateStaffCoordinateCommentProcessRequest
   >({
     mutationFn: createStaffCoordinateCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useEditStaffCoordinateCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     EditStaffCoordinateCommentProcessResponse,
     Error,
     EditStaffCoordinateCommentProcessRequest
   >({
     mutationFn: editStaffCoordinateCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useDeactiveStaffCoordinateCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     DeactiveStaffCoordinateCommentProcessResponse,
     Error,
     DeactiveStaffCoordinateCommentProcessRequest
   >({
     mutationFn: deactiveStaffCoordinateCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useActiveStaffCoordinateCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     ActiveStaffCoordinateCommentProcessResponse,
     Error,
     ActiveStaffCoordinateCommentProcessRequest
   >({
     mutationFn: activeStaffCoordinateCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }
 
 export function useRemoveStaffCoordinateCommentProcessMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation<
     RemoveStaffCoordinateCommentProcessResponse,
     Error,
     RemoveStaffCoordinateCommentProcessRequest
   >({
     mutationFn: removeStaffCoordinateCommentProcess,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
   });
 }

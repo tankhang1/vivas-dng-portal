@@ -5,8 +5,6 @@ export type EditStaffProcessRequest = {
   email: string;
   phone: string;
   potition: string;
-  status: number;
   department_item: number;
   department_name: string;
-  password: string;
 };

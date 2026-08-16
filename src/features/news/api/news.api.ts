@@ -1,9 +1,12 @@
 import { API_PATH, apiClient } from "@/shared/api";
 import type { ApprovalNewsProcessRequest } from "@/features/news/types/approval-news-process.request";
+import type { ApprovalNewsProcessResponse } from "@/features/news/types/approval-news-process.response";
 import type { PostNewsProcessRequest } from "@/features/news/types/post-news-process.request";
 import type { PostNewsProcessResponse } from "@/features/news/types/post-news-process.response";
 import type { EditNewsProcessRequest } from "@/features/news/types/edit-news-process.request";
+import type { EditNewsProcessResponse } from "@/features/news/types/edit-news-process.response";
 import type { RemoveNewsProcessRequest } from "@/features/news/types/remove-news-process.request";
+import type { RemoveNewsProcessResponse } from "@/features/news/types/remove-news-process.response";
 import type { GetNewsResponse } from "@/features/news/types/get-news.response";
 import type { SearchNewsRequest } from "@/features/news/types/search-news.request";
 
@@ -20,8 +23,8 @@ export async function postNewsProcess(
 
 export async function editNewsProcess(
   request: EditNewsProcessRequest,
-): Promise<PostNewsProcessResponse> {
-  const response = await apiClient.post<PostNewsProcessResponse>(
+): Promise<EditNewsProcessResponse> {
+  const response = await apiClient.post<EditNewsProcessResponse>(
     API_PATH.NEWS.EDIT_PROCESS,
     request,
   );
@@ -31,8 +34,8 @@ export async function editNewsProcess(
 
 export async function approvalNewsProcess(
   request: ApprovalNewsProcessRequest,
-): Promise<PostNewsProcessResponse> {
-  const response = await apiClient.post<PostNewsProcessResponse>(
+): Promise<ApprovalNewsProcessResponse> {
+  const response = await apiClient.post<ApprovalNewsProcessResponse>(
     API_PATH.NEWS.APPROVAL_PROCESS,
     request,
   );
@@ -42,8 +45,8 @@ export async function approvalNewsProcess(
 
 export async function removeNewsProcess(
   request: RemoveNewsProcessRequest,
-): Promise<PostNewsProcessResponse> {
-  const response = await apiClient.post<PostNewsProcessResponse>(
+): Promise<RemoveNewsProcessResponse> {
+  const response = await apiClient.post<RemoveNewsProcessResponse>(
     API_PATH.NEWS.REMOVE_PROCESS,
     request,
   );

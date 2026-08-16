@@ -1,5 +1,7 @@
 import { API_PATH, apiClient } from '@/shared/api';
 import type { GetCitizensResponse } from '@/features/citizen/types/get-citizens.response';
+import type { EditCitizenProcessRequest } from '@/features/citizen/types/edit-citizen-process.request';
+import type { EditCitizenProcessResponse } from '@/features/citizen/types/edit-citizen-process.response';
 import type { SearchCitizensRequest } from '@/features/citizen/types/search-citizens.request';
 
 export async function getCitizens(): Promise<GetCitizensResponse> {
@@ -40,6 +42,17 @@ export async function searchCitizens(
     query
       ? `${API_PATH.COMMON_PORTAL.CITIZEN}/search?${query}`
       : `${API_PATH.COMMON_PORTAL.CITIZEN}/search`,
+  );
+
+  return response.data;
+}
+
+export async function editCitizenProcess(
+  request: EditCitizenProcessRequest,
+): Promise<EditCitizenProcessResponse> {
+  const response = await apiClient.post<EditCitizenProcessResponse>(
+    API_PATH.CITIZEN.EDIT_PROCESS,
+    request,
   );
 
   return response.data;

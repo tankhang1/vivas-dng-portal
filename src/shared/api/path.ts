@@ -53,6 +53,9 @@ export const API_PATH = {
     EDIT_PROCESS: '/admin/department/edit/process',
     REMOVE_PROCESS: '/admin/department/remove/process',
   },
+  CITIZEN: {
+    EDIT_PROCESS: '/admin/citizen/edit/process',
+  },
   DIVISION: {
     CREATE_PROCESS: '/admin/division/create/process',
     EDIT_PROCESS: '/admin/division/edit/process',

@@ -12,6 +12,9 @@ export const QUERY_KEY = {
   DEPARTMENTS: ['departments'] as const,
   DEPARTMENT: (id: number | string) => ['department', id] as const,
   DIVISIONS: ['divisions'] as const,
+  STAFF: ['staff'] as const,
+  NEWS: ['news'] as const,
+  MEDIA: ['media'] as const,
   COMMENTS: ['comments'] as const,
   COMMENTS_SEARCH: (params: {
     key?: string;
