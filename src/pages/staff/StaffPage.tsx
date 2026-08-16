@@ -106,7 +106,7 @@ export default function StaffPage() {
             <div className="relative w-full md:max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Tìm kiếm theo tên, email hoặc điện thoại..."
+                placeholder="Tìm kiếm theo tên"
                 className="pl-9 pr-9"
                 value={searchTerm}
                 onChange={(e) =>
@@ -148,7 +148,11 @@ export default function StaffPage() {
           </CardHeader>
 
           <CardContent
-            className={showRefetchOverlay ? "opacity-60 transition-opacity" : "transition-opacity"}
+            className={
+              showRefetchOverlay
+                ? "opacity-60 transition-opacity"
+                : "transition-opacity"
+            }
           >
             <Table>
               <TableHeader>
@@ -173,56 +177,59 @@ export default function StaffPage() {
                     </TableCell>
                   </TableRow>
                 )}
-                {!showInitialLoading && filteredStaff.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {staff.email || "-"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {staff.phone || "-"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {staff.department_name || "-"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {staff.potition || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={staffStatusVariant(staff.status)}>
-                        {staffStatusLabel(staff.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Xem chi tiết"
-                          onClick={() => navigate(`/staff/${staff.id}`)}
-                        >
-                          <Eye className="h-4 w-4 text-emerald-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Chỉnh sửa"
-                          onClick={() => navigate(`/staff/${staff.id}/edit`)}
-                        >
-                          <Edit2 className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Xóa"
-                          onClick={() => handleDelete(staff.id, staff.phone)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {!showInitialLoading &&
+                  filteredStaff.map((staff) => (
+                    <TableRow key={staff.id}>
+                      <TableCell className="font-medium">
+                        {staff.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {staff.email || "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {staff.phone || "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {staff.department_name || "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {staff.potition || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={staffStatusVariant(staff.status)}>
+                          {staffStatusLabel(staff.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Xem chi tiết"
+                            onClick={() => navigate(`/staff/${staff.id}`)}
+                          >
+                            <Eye className="h-4 w-4 text-emerald-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Chỉnh sửa"
+                            onClick={() => navigate(`/staff/${staff.id}/edit`)}
+                          >
+                            <Edit2 className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Xóa"
+                            onClick={() => handleDelete(staff.id, staff.phone)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 {!showInitialLoading && filteredStaff.length === 0 && (
                   <TableRow>
                     <TableCell
