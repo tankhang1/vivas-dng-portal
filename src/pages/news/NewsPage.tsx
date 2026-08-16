@@ -51,8 +51,8 @@ export default function NewsPage() {
       })),
     [items],
   );
-  const totalPages = Math.max(1, data?.totalPages ?? 1);
-  const totalItems = data?.totalElements ?? 0;
+  const totalPages = Math.max(1, data?.page.totalPages ?? 1);
+  const totalItems = data?.page.totalElements ?? 0;
   const showInitialLoading = isLoading && rows.length === 0;
   const showRefetchOverlay = isFetching && !showInitialLoading;
 

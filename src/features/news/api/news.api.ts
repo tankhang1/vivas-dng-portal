@@ -7,8 +7,30 @@ import type { EditNewsProcessRequest } from "@/features/news/types/edit-news-pro
 import type { EditNewsProcessResponse } from "@/features/news/types/edit-news-process.response";
 import type { RemoveNewsProcessRequest } from "@/features/news/types/remove-news-process.request";
 import type { RemoveNewsProcessResponse } from "@/features/news/types/remove-news-process.response";
-import type { GetNewsResponse } from "@/features/news/types/get-news.response";
+import type { GetNewsResponse, NewsItem } from "@/features/news/types/get-news.response";
 import type { SearchNewsRequest } from "@/features/news/types/search-news.request";
+import type { GetAllNewsRequest } from "@/features/news/types/get-all-news.request";
+
+export async function getAllNews(
+  request: GetAllNewsRequest = {},
+): Promise<GetNewsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append("sz", String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append("nu", String(request.nu));
+  }
+
+  const query = params.toString();
+  const response = await apiClient.get<GetNewsResponse>(
+    query ? `${API_PATH.COMMON_PORTAL.NEWS}?${query}` : API_PATH.COMMON_PORTAL.NEWS,
+  );
+
+  return response.data;
+}
 
 export async function postNewsProcess(
   request: PostNewsProcessRequest,
@@ -78,9 +100,36 @@ export async function searchNews(
   const query = params.toString();
   const response = await apiClient.get<GetNewsResponse>(
     query
-      ? `${API_PATH.COMMON.NEWS_PUBLIC_SEARCH}?${query}`
-      : API_PATH.COMMON.NEWS_PUBLIC_SEARCH,
+      ? `${API_PATH.COMMON_PORTAL.NEWS_SEARCH}?${query}`
+      : API_PATH.COMMON_PORTAL.NEWS_SEARCH,
   );
+
+  return response.data;
+}
+
+export async function getNewsIndex(
+  request: GetAllNewsRequest = {},
+): Promise<GetNewsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append("sz", String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append("nu", String(request.nu));
+  }
+
+  const query = params.toString();
+  const response = await apiClient.get<GetNewsResponse>(
+    query ? `${API_PATH.COMMON_PORTAL.NEWS_INDEX}?${query}` : API_PATH.COMMON_PORTAL.NEWS_INDEX,
+  );
+
+  return response.data;
+}
+
+export async function getNewsById(id: number | string): Promise<NewsItem> {
+  const response = await apiClient.get<NewsItem>(API_PATH.COMMON_PORTAL.NEWS_DETAIL(id));
 
   return response.data;
 }

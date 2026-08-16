@@ -1,8 +1,7 @@
-import type { BasePaginationResponse } from "@/shared/types/base-response";
-
 export type NewsItem = {
   id: number;
   category_item: number;
+  category_name: string | null;
   thumbnail: string | null;
   title: string;
   path: string | null;
@@ -22,4 +21,14 @@ export type NewsItem = {
   url: string | null;
 };
 
-export type GetNewsResponse = BasePaginationResponse<NewsItem>;
+export type NewsPage = {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type GetNewsResponse = {
+  content: NewsItem[];
+  page: NewsPage;
+};

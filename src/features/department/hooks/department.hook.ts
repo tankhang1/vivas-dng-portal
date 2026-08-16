@@ -4,6 +4,7 @@ import {
   createDepartmentProcess,
   getDepartmentById,
   getDepartments,
+  getDepartmentSubs,
   editDepartmentProcess,
   removeDepartmentProcess,
 } from '@/features/department/api/department.api';
@@ -70,6 +71,17 @@ export function useDepartmentsQuery() {
   return useQuery<GetDepartmentsResponse>({
     queryKey: QUERY_KEY.DEPARTMENTS,
     queryFn: getDepartments,
+  });
+}
+
+export function useDepartmentSubsQuery(idRoot?: number | string) {
+  return useQuery<GetDepartmentsResponse>({
+    queryKey:
+      idRoot === undefined || idRoot === null || idRoot === ''
+        ? QUERY_KEY.DEPARTMENTS_SUB('')
+        : QUERY_KEY.DEPARTMENTS_SUB(idRoot),
+    queryFn: () => getDepartmentSubs(idRoot as number | string),
+    enabled: idRoot !== undefined && idRoot !== null && idRoot !== '',
   });
 }
 

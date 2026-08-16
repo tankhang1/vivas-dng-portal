@@ -1,5 +1,3 @@
-import type { BasePaginationResponse } from "@/shared/types/base-response";
-
 export type CitizenItem = {
   address: string | null;
   avatar: string | null;
@@ -21,4 +19,14 @@ export type CitizenItem = {
   zalo_user_id: string;
 };
 
-export type GetCitizensResponse = BasePaginationResponse<CitizenItem>;
+export type CitizenPage = {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type GetCitizensResponse = {
+  content: CitizenItem[];
+  page: CitizenPage;
+};

@@ -10,10 +10,19 @@ export const QUERY_KEY = {
   CATEGORY_MEDIA: ['category-media'] as const,
   CATEGORY_NEWS: ['category-news'] as const,
   DEPARTMENTS: ['departments'] as const,
+  DEPARTMENTS_SUB: (idRoot: number | string) => ['departments', 'sub', idRoot] as const,
   DEPARTMENT: (id: number | string) => ['department', id] as const,
   DIVISIONS: ['divisions'] as const,
+  DIVISION: (id: number | string) => ['division', id] as const,
   STAFF: ['staff'] as const,
+  STAFF_SEARCH: (params: { key?: string; sz?: number; nu?: number }) =>
+    ['staff', 'search', params] as const,
+  STAFF_COORDINATE_COMMENT: (id: number | string) =>
+    ['staff', 'coordinate-comment', id] as const,
   NEWS: ['news'] as const,
+  NEWS_DETAIL: (id: number | string) => ['news', 'detail', id] as const,
+  NEWS_ALL: (params: { sz?: number; nu?: number }) => ['news', 'all', params] as const,
+  NEWS_INDEX: (params: { sz?: number; nu?: number }) => ['news', 'index', params] as const,
   MEDIA: ['media'] as const,
   COMMENTS: ['comments'] as const,
   COMMENTS_SEARCH: (params: {

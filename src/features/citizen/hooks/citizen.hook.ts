@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   editCitizenProcess,
@@ -22,6 +22,7 @@ export function useSearchCitizensQuery(request: SearchCitizensRequest) {
   return useQuery<GetCitizensResponse>({
     queryKey: QUERY_KEY.CITIZENS_SEARCH(request),
     queryFn: () => searchCitizens(request),
+    placeholderData: keepPreviousData,
   });
 }
 

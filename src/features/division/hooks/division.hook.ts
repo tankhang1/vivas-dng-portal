@@ -2,12 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createDivisionProcess,
+  getDivisionById,
   getDivisions,
   editDivisionProcess,
   removeDivisionProcess,
 } from '@/features/division/api/division.api';
 import type { CreateDivisionProcessRequest } from '@/features/division/types/create-division-process.request';
 import type { CreateDivisionProcessResponse } from '@/features/division/types/create-division-process.response';
+import type { GetDivisionResponse } from '@/features/division/types/get-division.response';
 import type { GetDivisionsResponse } from '@/features/division/types/get-divisions.response';
 import type { EditDivisionProcessRequest } from '@/features/division/types/edit-division-process.request';
 import type { RemoveDivisionProcessRequest } from '@/features/division/types/remove-division-process.request';
@@ -38,8 +40,11 @@ export function useEditDivisionProcessMutation() {
     EditDivisionProcessRequest
   >({
     mutationFn: editDivisionProcess,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS });
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISION(variables.item) }),
+      ]);
     },
   });
 }
@@ -53,8 +58,11 @@ export function useRemoveDivisionProcessMutation() {
     RemoveDivisionProcessRequest
   >({
     mutationFn: removeDivisionProcess,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS });
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISIONS }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.DIVISION(variables.item) }),
+      ]);
     },
   });
 }
@@ -63,5 +71,16 @@ export function useDivisionsQuery() {
   return useQuery<GetDivisionsResponse>({
     queryKey: QUERY_KEY.DIVISIONS,
     queryFn: getDivisions,
+  });
+}
+
+export function useDivisionQuery(id?: number | string) {
+  return useQuery<GetDivisionResponse>({
+    queryKey:
+      id === undefined || id === null || id === ''
+        ? QUERY_KEY.DIVISION('')
+        : QUERY_KEY.DIVISION(id),
+    queryFn: () => getDivisionById(id as number | string),
+    enabled: id !== undefined && id !== null && id !== '',
   });
 }

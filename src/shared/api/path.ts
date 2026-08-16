@@ -82,8 +82,10 @@ export const API_PATH = {
     HOTLINE: '/common/hotline',
     DASHBOARD: '/common/dashboard',
     DEPARTMENTS: '/common/departments',
+    DEPARTMENTS_SUB: (idRoot: number | string) => `/common/departments/sub/${idRoot}`,
     DEPARTMENT: '/common/department',
     DIVISIONS: '/common/divisions',
+    DIVISION: '/common/division',
     NEWS_PUBLIC_SEARCH: '/common/news/public/search',
     CATEGORIES: (type: number) => `/common/categorys/${type}`,
   },
@@ -91,5 +93,12 @@ export const API_PATH = {
     COMMENTS: '/common-portal/comments',
     COMMENT: (cUuid: string) => `/common-portal/comments/get/${cUuid}`,
     CITIZEN: '/common-portal/citizen',
+    STAFF: '/common-portal/staff',
+    STAFF_COORDINATE_COMMENT: (id: number | string) =>
+      `/common-portal/staff-coordinate-comments/get/${id}`,
+    NEWS: '/common-portal/news',
+    NEWS_DETAIL: (id: number | string) => `/common-portal/news/${id}`,
+    NEWS_SEARCH: '/common-portal/news/search',
+    NEWS_INDEX: '/common-portal/news/index',
   },
 } as const;

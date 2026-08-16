@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   activeStaffCoordinateCommentProcess,
+  getStaffCoordinateCommentById,
   activeStaffProcess,
   createStaffProcess,
   createStaffCoordinateCommentProcess,
@@ -10,7 +11,10 @@ import {
   editStaffCoordinateCommentProcess,
   editStaffProcess,
   removeStaffCoordinateCommentProcess,
+  searchStaff,
 } from '@/features/staff/api/staff.api';
+import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
+import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -21,6 +25,7 @@ import type { EditStaffCoordinateCommentProcessRequest } from '@/features/staff/
 import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff/types/edit-staff-coordinate-comment-process.response';
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
+import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
 import type { ActiveStaffProcessRequest } from '@/features/staff/types/active-staff-process.request';
 import type { ActiveStaffProcessResponse } from '@/features/staff/types/active-staff-process.response';
 import type { CreateStaffProcessRequest } from '@/features/staff/types/create-staff-process.request';
@@ -30,6 +35,21 @@ import type { DeactiveStaffProcessResponse } from '@/features/staff/types/deacti
 import type { EditStaffProcessRequest } from '@/features/staff/types/edit-staff-process.request';
 import type { EditStaffProcessResponse } from '@/features/staff/types/edit-staff-process.response';
 import { QUERY_KEY } from '@/shared/api';
+
+export function useSearchStaffQuery(request: SearchStaffRequest) {
+  return useQuery<GetStaffsResponse>({
+    queryKey: QUERY_KEY.STAFF_SEARCH(request),
+    queryFn: () => searchStaff(request),
+  });
+}
+
+export function useStaffCoordinateCommentQuery(id?: number | string) {
+  return useQuery<GetStaffCoordinateCommentResponse>({
+    queryKey: id ? QUERY_KEY.STAFF_COORDINATE_COMMENT(id) : QUERY_KEY.STAFF_COORDINATE_COMMENT(''),
+    queryFn: () => getStaffCoordinateCommentById(id as number | string),
+    enabled: id !== undefined && id !== null && id !== '',
+  });
+}
 
 export function useCreateStaffProcessMutation() {
   const queryClient = useQueryClient();

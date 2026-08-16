@@ -1,5 +1,3 @@
-import type { BasePaginationResponse } from "@/shared/types/base-response";
-
 export type CommentItem = {
   id: number;
   category_item: number;
@@ -24,4 +22,14 @@ export type CommentItem = {
   rating: number;
 };
 
-export type GetCommentsResponse = BasePaginationResponse<CommentItem>;
+export type CommentPage = {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type GetCommentsResponse = {
+  content: CommentItem[];
+  page: CommentPage;
+};

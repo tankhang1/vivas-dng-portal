@@ -1,4 +1,6 @@
 import { API_PATH, apiClient } from '@/shared/api';
+import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
+import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -9,6 +11,7 @@ import type { EditStaffCoordinateCommentProcessRequest } from '@/features/staff/
 import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff/types/edit-staff-coordinate-comment-process.response';
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
+import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
 import type { CreateStaffProcessRequest } from '@/features/staff/types/create-staff-process.request';
 import type { CreateStaffProcessResponse } from '@/features/staff/types/create-staff-process.response';
 import type { ActiveStaffProcessRequest } from '@/features/staff/types/active-staff-process.request';
@@ -17,6 +20,28 @@ import type { DeactiveStaffProcessRequest } from '@/features/staff/types/deactiv
 import type { DeactiveStaffProcessResponse } from '@/features/staff/types/deactive-staff-process.response';
 import type { EditStaffProcessRequest } from '@/features/staff/types/edit-staff-process.request';
 import type { EditStaffProcessResponse } from '@/features/staff/types/edit-staff-process.response';
+
+export async function searchStaff(request: SearchStaffRequest): Promise<GetStaffsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.key !== undefined && request.key !== '') {
+    params.append('key', request.key);
+  }
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffsResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF}/search?${params.toString()}`,
+  );
+
+  return response.data;
+}
 
 export async function createStaffProcess(
   request: CreateStaffProcessRequest,
@@ -112,6 +137,16 @@ export async function removeStaffCoordinateCommentProcess(
   const response = await apiClient.post<RemoveStaffCoordinateCommentProcessResponse>(
     API_PATH.STAFF.COORDINATE_COMMENT_REMOVE_PROCESS,
     request,
+  );
+
+  return response.data;
+}
+
+export async function getStaffCoordinateCommentById(
+  id: number | string,
+): Promise<GetStaffCoordinateCommentResponse> {
+  const response = await apiClient.get<GetStaffCoordinateCommentResponse>(
+    API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENT(id),
   );
 
   return response.data;

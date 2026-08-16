@@ -47,6 +47,16 @@ export async function getDepartments(): Promise<GetDepartmentsResponse> {
   return response.data;
 }
 
+export async function getDepartmentSubs(
+  idRoot: number | string,
+): Promise<GetDepartmentsResponse> {
+  const response = await apiClient.get<GetDepartmentsResponse>(
+    API_PATH.COMMON.DEPARTMENTS_SUB(idRoot),
+  );
+
+  return response.data;
+}
+
 export async function getDepartmentById(
   id: number | string,
 ): Promise<GetDepartmentResponse> {

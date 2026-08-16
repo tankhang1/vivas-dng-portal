@@ -1,5 +1,3 @@
-export type GetDepartmentResponse = {
-  id: number;
-  name: string;
-  note: string;
-};
+import type { DepartmentItem } from "@/features/department/types/get-departments.response";
+
+export type GetDepartmentResponse = DepartmentItem;
