@@ -1,6 +1,7 @@
 import { API_PATH, apiClient } from '@/shared/api';
 import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
+import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -12,6 +13,9 @@ import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
 import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
+import type { GetStaffCoordinateCommentsByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-category.request';
+import type { GetStaffCoordinateCommentsByCategoryResponse } from '@/features/staff/types/get-staff-coordinate-comments-by-category.response';
+import type { GetStaffCoordinateCommentsByStaffRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-staff.request';
 import type { CreateStaffProcessRequest } from '@/features/staff/types/create-staff-process.request';
 import type { CreateStaffProcessResponse } from '@/features/staff/types/create-staff-process.response';
 import type { ActiveStaffProcessRequest } from '@/features/staff/types/active-staff-process.request';
@@ -38,6 +42,26 @@ export async function searchStaff(request: SearchStaffRequest): Promise<GetStaff
 
   const response = await apiClient.get<GetStaffsResponse>(
     `${API_PATH.COMMON_PORTAL.STAFF}/search?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function getStaffByDepartment(
+  request: GetStaffByDepartmentRequest,
+): Promise<GetStaffsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffsResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF_BY_DEPARTMENT(request.department)}?${params.toString()}`,
   );
 
   return response.data;
@@ -147,6 +171,66 @@ export async function getStaffCoordinateCommentById(
 ): Promise<GetStaffCoordinateCommentResponse> {
   const response = await apiClient.get<GetStaffCoordinateCommentResponse>(
     API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENT(id),
+  );
+
+  return response.data;
+}
+
+export async function getStaffCoordinateCommentsByCategoryApprove(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+): Promise<GetStaffCoordinateCommentsByCategoryResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffCoordinateCommentsByCategoryResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE(request.categoryId)}?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function getStaffCoordinateCommentsByCategoryNoneApprove(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+): Promise<GetStaffCoordinateCommentsByCategoryResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffCoordinateCommentsByCategoryResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE(request.categoryId)}?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function getStaffCoordinateCommentsByStaffNoneApprove(
+  request: GetStaffCoordinateCommentsByStaffRequest,
+): Promise<GetStaffCoordinateCommentsByCategoryResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffCoordinateCommentsByCategoryResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE(request.staffId)}?${params.toString()}`,
   );
 
   return response.data;

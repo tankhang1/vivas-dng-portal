@@ -94,8 +94,16 @@ export const API_PATH = {
     COMMENT: (cUuid: string) => `/common-portal/comments/get/${cUuid}`,
     CITIZEN: '/common-portal/citizen',
     STAFF: '/common-portal/staff',
+    STAFF_BY_DEPARTMENT: (departmentId: number | string) =>
+      `/common-portal/staff/department/${departmentId}`,
     STAFF_COORDINATE_COMMENT: (id: number | string) =>
       `/common-portal/staff-coordinate-comments/get/${id}`,
+    STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE: (categoryId: number | string) =>
+      `/common-portal/staff-coordinate-comments/category-approve/${categoryId}`,
+    STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE: (categoryId: number | string) =>
+      `/common-portal/staff-coordinate-comments/category-none-approve/${categoryId}`,
+    STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE: (staffId: number | string) =>
+      `/common-portal/staff-coordinate-comments/staff-none-approve/${staffId}`,
     NEWS: '/common-portal/news',
     NEWS_DETAIL: (id: number | string) => `/common-portal/news/${id}`,
     NEWS_SEARCH: '/common-portal/news/search',

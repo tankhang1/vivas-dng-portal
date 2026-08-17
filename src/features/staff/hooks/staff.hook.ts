@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   activeStaffCoordinateCommentProcess,
   getStaffCoordinateCommentById,
+  getStaffCoordinateCommentsByCategoryApprove,
+  getStaffCoordinateCommentsByCategoryNoneApprove,
+  getStaffCoordinateCommentsByStaffNoneApprove,
   activeStaffProcess,
   createStaffProcess,
   createStaffCoordinateCommentProcess,
@@ -12,9 +15,11 @@ import {
   editStaffProcess,
   removeStaffCoordinateCommentProcess,
   searchStaff,
+  getStaffByDepartment,
 } from '@/features/staff/api/staff.api';
 import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
+import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -26,6 +31,9 @@ import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
 import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
+import type { GetStaffCoordinateCommentsByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-category.request';
+import type { GetStaffCoordinateCommentsByCategoryResponse } from '@/features/staff/types/get-staff-coordinate-comments-by-category.response';
+import type { GetStaffCoordinateCommentsByStaffRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-staff.request';
 import type { ActiveStaffProcessRequest } from '@/features/staff/types/active-staff-process.request';
 import type { ActiveStaffProcessResponse } from '@/features/staff/types/active-staff-process.response';
 import type { CreateStaffProcessRequest } from '@/features/staff/types/create-staff-process.request';
@@ -40,6 +48,16 @@ export function useSearchStaffQuery(request: SearchStaffRequest) {
   return useQuery<GetStaffsResponse>({
     queryKey: QUERY_KEY.STAFF_SEARCH(request),
     queryFn: () => searchStaff(request),
+  });
+}
+
+export function useStaffByDepartmentQuery(request: GetStaffByDepartmentRequest) {
+  const { department, sz, nu } = request;
+
+  return useQuery<GetStaffsResponse>({
+    queryKey: QUERY_KEY.STAFF_BY_DEPARTMENT(department, { sz, nu }),
+    queryFn: () => getStaffByDepartment(request),
+    enabled: department !== undefined && department !== null && department !== '',
   });
 }
 
@@ -71,6 +89,42 @@ export function useStaffCoordinateCommentQuery(id?: number | string) {
     queryKey: id ? QUERY_KEY.STAFF_COORDINATE_COMMENT(id) : QUERY_KEY.STAFF_COORDINATE_COMMENT(''),
     queryFn: () => getStaffCoordinateCommentById(id as number | string),
     enabled: id !== undefined && id !== null && id !== '',
+  });
+}
+
+export function useStaffCoordinateCommentsByCategoryApproveQuery(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+) {
+  const { categoryId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE(categoryId, { sz, nu }),
+    queryFn: () => getStaffCoordinateCommentsByCategoryApprove(request),
+    enabled: categoryId !== undefined && categoryId !== null && categoryId !== '',
+  });
+}
+
+export function useStaffCoordinateCommentsByCategoryNoneApproveQuery(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+) {
+  const { categoryId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE(categoryId, { sz, nu }),
+    queryFn: () => getStaffCoordinateCommentsByCategoryNoneApprove(request),
+    enabled: categoryId !== undefined && categoryId !== null && categoryId !== '',
+  });
+}
+
+export function useStaffCoordinateCommentsByStaffNoneApproveQuery(
+  request: GetStaffCoordinateCommentsByStaffRequest,
+) {
+  const { staffId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE(staffId, { sz, nu }),
+    queryFn: () => getStaffCoordinateCommentsByStaffNoneApprove(request),
+    enabled: staffId !== undefined && staffId !== null && staffId !== '',
   });
 }
 

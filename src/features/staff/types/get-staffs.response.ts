@@ -10,6 +10,8 @@ export type StaffItem = {
   time_deactive: string | null;
   department_name: string;
   department_item: number;
+  division_item?: number;
+  division_name?: string | null;
 };
 
 export type StaffPage = {

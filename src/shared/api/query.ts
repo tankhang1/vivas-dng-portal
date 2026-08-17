@@ -17,8 +17,22 @@ export const QUERY_KEY = {
   STAFF: ['staff'] as const,
   STAFF_SEARCH: (params: { key?: string; sz?: number; nu?: number }) =>
     ['staff', 'search', params] as const,
+  STAFF_BY_DEPARTMENT: (departmentId: number | string, params: { sz?: number; nu?: number }) =>
+    ['staff', 'department', departmentId, params] as const,
   STAFF_COORDINATE_COMMENT: (id: number | string) =>
     ['staff', 'coordinate-comment', id] as const,
+  STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE: (
+    categoryId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-comment', 'category-approve', categoryId, params] as const,
+  STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE: (
+    categoryId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-comment', 'category-none-approve', categoryId, params] as const,
+  STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE: (
+    staffId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-comment', 'staff-none-approve', staffId, params] as const,
   NEWS: ['news'] as const,
   NEWS_DETAIL: (id: number | string) => ['news', 'detail', id] as const,
   NEWS_ALL: (params: { sz?: number; nu?: number }) => ['news', 'all', params] as const,
