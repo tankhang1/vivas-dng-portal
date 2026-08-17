@@ -5,7 +5,7 @@ import Staff from "@/pages/staff";
 import StaffCreate from "@/pages/staff/Create";
 import StaffDetail from "@/pages/staff/Detail";
 import StaffEdit from "@/pages/staff/Edit";
-import Departments from "@/pages/Departments";
+import Departments from "@/pages/department/Departments";
 import Divisions from "@/pages/Divisions";
 import NewsPage from "@/pages/news/NewsPage";
 import NewsCreate from "@/pages/news/Create";
