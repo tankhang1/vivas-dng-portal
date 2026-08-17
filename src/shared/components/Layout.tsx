@@ -21,6 +21,7 @@ import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { BrandMark } from './BrandMark';
 import { useAuth } from '@/shared/providers';
+import { getCurrentStaff } from '@/shared/api';
 
 const navItems = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
@@ -67,6 +68,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { logout } = useAuth();
+  const currentStaff = React.useMemo(() => getCurrentStaff(), []);
+  const staffRole = currentStaff.id === 0 ? 'Admin' : 'Cán bộ';
+  const staffInitials = currentStaff.name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
   const [menuOpen, setMenuOpen] = React.useState<Record<string, boolean>>({
     internal:
       location.startsWith('/staff') ||
@@ -169,12 +179,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm">
-            <div className="h-9 w-9 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary font-bold">
-              NA
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary/20 font-bold text-sidebar-primary">
+              {staffInitials || 'NA'}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate font-medium text-white">Nguyễn Văn A</p>
-              <p className="truncate text-xs text-sidebar-foreground/60">Super Admin</p>
+              <p className="truncate font-medium text-white">
+                {currentStaff.name}
+              </p>
+              <p className="truncate text-xs text-sidebar-foreground/60">
+                {staffRole}
+              </p>
             </div>
           </div>
         </div>

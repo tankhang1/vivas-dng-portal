@@ -41,10 +41,16 @@ export function useSearchCommentsByStaffApproveQuery(
   request: SearchCommentsByStaffApproveRequest,
   enabled = true,
 ) {
-  const { staffId, key, start, end, nu } = request;
+  const { staffId, key, category_item, start, end, nu } = request;
 
   return useQuery<GetCommentsResponse>({
-    queryKey: QUERY_KEY.COMMENTS_STAFF_APPROVE_SEARCH(staffId, { key, start, end, nu }),
+    queryKey: QUERY_KEY.COMMENTS_STAFF_APPROVE_SEARCH(staffId, {
+      key,
+      category_item,
+      start,
+      end,
+      nu,
+    }),
     queryFn: () => searchCommentsByStaffApprove(request),
     placeholderData: keepPreviousData,
     enabled:

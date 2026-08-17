@@ -1,4 +1,10 @@
-import { type ChangeEvent, useDeferredValue, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "../shared/components/Layout";
 import {
@@ -7,6 +13,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardTitle,
   Dialog,
   DialogFooter,
   DialogHeader,
@@ -33,10 +40,14 @@ import {
   useFeedbackQuery,
 } from "@/features/feedback/hooks/feedback.hook";
 import {
-  useSearchCommentsByStaffApproveQuery,
   useSearchCommentsQuery,
 } from "@/features/comment/hooks/comment.hook";
+import {
+  useStaffCoordinateCommentsByStaffApproveQuery,
+  useStaffCoordinateCommentsByStaffNoneApproveQuery,
+} from "@/features/staff/hooks/staff.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
+import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
 import {
   CheckCircle2,
   Clock,
@@ -86,6 +97,104 @@ type FeedbackTableProps = {
   isError: boolean;
   onOpenDetail: (item: CommentItem) => void;
 };
+
+type RoutingSidebarProps = {
+  approvedItems: StaffCoordinateCommentItem[];
+  pendingItems: StaffCoordinateCommentItem[];
+  isLoadingApproved: boolean;
+  isLoadingPending: boolean;
+  activeMode: FeedbackMode;
+  selectedCategoryId: number | "";
+  onSelectCategory: (categoryId: number) => void;
+  onModeChange: (mode: FeedbackMode) => void;
+};
+
+function RoutingSidebar({
+  approvedItems,
+  pendingItems,
+  isLoadingApproved,
+  isLoadingPending,
+  activeMode,
+  selectedCategoryId,
+  onSelectCategory,
+  onModeChange,
+}: RoutingSidebarProps) {
+  const activeItems = activeMode === "approve" ? approvedItems : pendingItems;
+  const showInitialLoading =
+    (activeMode === "approve" ? isLoadingApproved : isLoadingPending) &&
+    activeItems.length === 0;
+
+  return (
+    <Card>
+      <CardHeader className="border-b border-border">
+        <div>
+          <CardTitle className="text-lg">Danh sách điều phối</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chọn một điều phối để lọc danh sách phản ánh bên trái.
+          </p>
+        </div>
+        <Tabs value={activeMode} onValueChange={(value) => onModeChange(value as FeedbackMode)}>
+          <TabsList className="mt-3">
+            <TabsTrigger value="view">Được quyền xem</TabsTrigger>
+            <TabsTrigger value="approve">Được quyền duyệt</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-4">
+        {showInitialLoading && (
+          <div className="flex justify-center py-8">
+            <Spinner className="h-5 w-5" />
+          </div>
+        )}
+        {!showInitialLoading && activeItems.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Chưa có điều phối nào.
+          </p>
+        )}
+        {!showInitialLoading &&
+          activeItems.map((item) => {
+            const isSelected = item.comments_category_item === selectedCategoryId;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelectCategory(item.comments_category_item)}
+                className={[
+                  "w-full rounded-lg border px-3 py-3 text-left transition-colors",
+                  isSelected
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:bg-slate-50",
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={[
+                        "truncate font-medium",
+                        isSelected ? "text-primary" : "text-foreground",
+                      ].join(" ")}
+                    >
+                      {item.comments_category_name || "Không rõ điều phối"}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {item.staff_name || "Không rõ cán bộ"}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={activeMode === "approve" ? "success" : "secondary"}
+                    className="shrink-0"
+                  >
+                    {activeMode === "approve" ? "Được duyệt" : "Được xem"}
+                  </Badge>
+                </div>
+              </button>
+            );
+          })}
+      </CardContent>
+    </Card>
+  );
+}
 
 function FeedbackTable({
   items,
@@ -527,9 +636,10 @@ function FeedbackDetailDialog({
 
 export default function Feedback() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<FeedbackMode>("view");
+  const [activeTab, setActiveTab] = useState<FeedbackMode>("approve");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [page, setPage] = useState(1);
   const [current, setCurrent] = useState<CommentItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -537,31 +647,57 @@ export default function Feedback() {
   const [replyFile, setReplyFile] = useState<File | null>(null);
   const [replyFileUrl, setReplyFileUrl] = useState<string | null>(null);
 
+  const routingQuery = useStaffCoordinateCommentsByStaffApproveQuery({
+    staffId: CURRENT_STAFF.id,
+    sz: 10,
+    nu: 0,
+  });
+  const routingPendingQuery = useStaffCoordinateCommentsByStaffNoneApproveQuery({
+    staffId: CURRENT_STAFF.id,
+    sz: 10,
+    nu: 0,
+  });
+  const routingApprovedItems = routingQuery.data?.content ?? [];
+  const routingPendingItems = routingPendingQuery.data?.content ?? [];
+
+  useEffect(() => {
+    const activeItems =
+      activeTab === "approve" ? routingApprovedItems : routingPendingItems;
+
+    if (
+      activeItems.length > 0 &&
+      !activeItems.some(
+        (item) => item.comments_category_item === selectedCategoryId,
+      )
+    ) {
+      setSelectedCategoryId(activeItems[0].comments_category_item);
+    }
+  }, [activeTab, routingApprovedItems, routingPendingItems, selectedCategoryId]);
+
+  const selectedCategoryName = useMemo(() => {
+    if (selectedCategoryId === "") return "";
+    return (
+      [...routingApprovedItems, ...routingPendingItems].find(
+        (item) => item.comments_category_item === selectedCategoryId,
+      )
+        ?.comments_category_name ?? ""
+    );
+  }, [routingApprovedItems, routingPendingItems, selectedCategoryId]);
+
   const viewQuery = useSearchCommentsQuery(
     {
       key: debouncedSearch || undefined,
+      category_item: selectedCategoryId === "" ? undefined : selectedCategoryId,
       sz: PAGE_SIZE,
       nu: page - 1,
     },
-    activeTab === "view",
+    true,
   );
-  const approveQuery = useSearchCommentsByStaffApproveQuery(
-    {
-      staffId: CURRENT_STAFF.id,
-      key: debouncedSearch || undefined,
-      start: 0,
-      end: 0,
-      nu: page - 1,
-    },
-    activeTab === "approve",
-  );
-
-  const activeQuery = activeTab === "view" ? viewQuery : approveQuery;
-  const items = activeQuery.data?.content ?? [];
-  const totalPages = Math.max(1, activeQuery.data?.page.totalPages ?? 1);
-  const totalItems = activeQuery.data?.page.totalElements ?? 0;
-  const showInitialLoading = activeQuery.isLoading && items.length === 0;
-  const showRefetchOverlay = activeQuery.isFetching && !showInitialLoading;
+  const items = viewQuery.data?.content ?? [];
+  const totalPages = Math.max(1, viewQuery.data?.page.totalPages ?? 1);
+  const totalItems = viewQuery.data?.page.totalElements ?? 0;
+  const showInitialLoading = viewQuery.isLoading && items.length === 0;
+  const showRefetchOverlay = viewQuery.isFetching && !showInitialLoading;
 
   const replyMutation = useCreateFeedbackProcessMutation();
   const approveMutation = useApproveFeedbackProcessMutation();
@@ -586,6 +722,11 @@ export default function Feedback() {
     setReplyContent("");
     setReplyFile(null);
     setReplyFileUrl(null);
+  };
+
+  const handleSelectRoutingCategory = (categoryId: number) => {
+    setSelectedCategoryId(categoryId);
+    setPage(1);
   };
 
   const handleReplyFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -664,51 +805,67 @@ export default function Feedback() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={
-                  activeTab === "view"
-                    ? "Tìm theo tiêu đề, người gửi..."
-                    : "Tìm trong danh sách được quyền duyệt..."
-                }
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
+          <Card className="min-w-0">
+            <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
+              <div className="relative w-full md:max-w-sm">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={
+                    selectedCategoryName
+                      ? `Tìm theo tiêu đề, người gửi trong ${selectedCategoryName}...`
+                      : "Tìm theo tiêu đề, người gửi..."
+                  }
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <FeedbackTable
+                items={items}
+                isLoading={showInitialLoading}
+                isFetching={showRefetchOverlay}
+                isError={viewQuery.isError}
+                onOpenDetail={handleOpenDetail}
               />
-            </div>
 
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList>
-                <TabsTrigger value="view">Được quyền xem</TabsTrigger>
-                <TabsTrigger value="approve">Được quyền duyệt</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardHeader>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                totalItems={totalItems}
+                pageSize={PAGE_SIZE}
+              />
+            </CardContent>
+          </Card>
 
-          <CardContent className="space-y-4">
-            <FeedbackTable
-              items={items}
-              isLoading={showInitialLoading}
-              isFetching={showRefetchOverlay}
-              isError={activeQuery.isError}
-              onOpenDetail={handleOpenDetail}
+          <div className="min-w-0">
+            <RoutingSidebar
+              approvedItems={routingApprovedItems}
+              pendingItems={routingPendingItems}
+              isLoadingApproved={routingQuery.isLoading}
+              isLoadingPending={routingPendingQuery.isLoading}
+              activeMode={activeTab}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={handleSelectRoutingCategory}
+              onModeChange={(mode) => {
+                setActiveTab(mode);
+                setPage(1);
+                setIsDialogOpen(false);
+                setCurrent(null);
+                setReplyContent("");
+                setReplyFile(null);
+                setReplyFileUrl(null);
+              }}
             />
-
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              totalItems={totalItems}
-              pageSize={PAGE_SIZE}
-            />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <FeedbackDetailDialog

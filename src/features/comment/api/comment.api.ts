@@ -24,6 +24,10 @@ export async function searchComments(
     params.append('key', request.key);
   }
 
+  if (request.category_item !== undefined) {
+    params.append('category_item', String(request.category_item));
+  }
+
   if (request.start !== undefined) {
     params.append('start', String(request.start));
   }
@@ -58,6 +62,10 @@ export async function searchCommentsByStaffApprove(
 
   if (request.key !== undefined && request.key !== '') {
     params.append('key', request.key);
+  }
+
+  if (request.category_item !== undefined) {
+    params.append('category_item', String(request.category_item));
   }
 
   if (request.start !== undefined) {

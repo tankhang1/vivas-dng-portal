@@ -44,6 +44,7 @@ export const QUERY_KEY = {
   COMMENTS: ['comments'] as const,
   COMMENTS_SEARCH: (params: {
     key?: string;
+    category_item?: number;
     start?: number;
     end?: number;
     pageStart?: number;
@@ -53,6 +54,7 @@ export const QUERY_KEY = {
     staffId: number | string,
     params: {
       key?: string;
+      category_item?: number;
       start?: number;
       end?: number;
       nu?: number;
