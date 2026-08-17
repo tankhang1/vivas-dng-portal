@@ -1,6 +1,5 @@
 import {
   type ChangeEvent,
-  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -37,10 +36,11 @@ import { useUploadPdfMutation } from "@/features/upload/hooks/upload.hook";
 import {
   useApproveFeedbackProcessMutation,
   useCreateFeedbackProcessMutation,
+  useEditFeedbackProcessMutation,
   useFeedbackQuery,
 } from "@/features/feedback/hooks/feedback.hook";
 import {
-  useSearchCommentsQuery,
+  useCommentsByCategoryQuery,
 } from "@/features/comment/hooks/comment.hook";
 import {
   useStaffCoordinateCommentsByStaffApproveQuery,
@@ -55,7 +55,6 @@ import {
   EyeOff,
   MapPin,
   Paperclip,
-  Search,
   User,
   X,
 } from "lucide-react";
@@ -75,6 +74,15 @@ const formatDateTime = (value: string) => {
   });
 };
 
+const getFileNameFromUrl = (value: string) => {
+  if (!value) return "";
+
+  const cleanValue = value.split("?")[0].split("#")[0];
+  const fileName = cleanValue.split("/").filter(Boolean).pop() ?? "";
+
+  return decodeURIComponent(fileName);
+};
+
 const statusMeta = {
   pending: { label: "Chưa duyệt", variant: "secondary" as const, icon: Clock },
   approved: {
@@ -85,7 +93,7 @@ const statusMeta = {
 };
 
 function feedbackStatus(item: CommentItem) {
-  return item.staff_approve_item > 0 ? statusMeta.approved : statusMeta.pending;
+  return item.status === 1 ? statusMeta.approved : statusMeta.pending;
 }
 
 type FeedbackMode = "view" | "approve";
@@ -321,14 +329,19 @@ type FeedbackDetailDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   current: CommentItem | null;
+  feedbackDetail: ReturnType<typeof useFeedbackQuery>["data"];
+  isFeedbackLoading: boolean;
+  isFeedbackFetching: boolean;
   mode: FeedbackMode;
   replyContent: string;
   replyFile: File | null;
   replyFileUrl: string | null;
+  replyFileName: string;
   onReplyContentChange: (value: string) => void;
   onReplyFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onRemoveReplyFile: () => void;
   onSendReply: () => void;
+  replyActionLabel: string;
   onApprove: () => void;
   isSendingReply: boolean;
   isApproving: boolean;
@@ -339,21 +352,24 @@ function FeedbackDetailDialog({
   open,
   onOpenChange,
   current,
+  feedbackDetail,
+  isFeedbackLoading,
+  isFeedbackFetching,
   mode,
   replyContent,
   replyFile,
   replyFileUrl,
+  replyFileName,
   onReplyContentChange,
   onReplyFileChange,
   onRemoveReplyFile,
   onSendReply,
+  replyActionLabel,
   onApprove,
   isSendingReply,
   isApproving,
   isUploadingFile,
 }: FeedbackDetailDialogProps) {
-  const feedbackQuery = useFeedbackQuery(current?.c_uuid);
-  const feedbackDetail = feedbackQuery.data;
   const feedbackAttachmentUrls = useMemo(
     () =>
       (feedbackDetail?.url ?? "")
@@ -376,7 +392,7 @@ function FeedbackDetailDialog({
   }
 
   const canAct = mode === "approve";
-  const isApproved = current.staff_approve_item > 0;
+  const isApproved = current.status === 1;
   const status = feedbackStatus(current);
   const StatusIcon = status.icon;
 
@@ -459,9 +475,12 @@ function FeedbackDetailDialog({
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="break-all text-sm text-primary hover:underline"
+                      className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm text-primary hover:border-primary"
                     >
-                      {url}
+                      <Paperclip className="h-4 w-4 shrink-0" />
+                      <span className="truncate">
+                        {getFileNameFromUrl(url) || url}
+                      </span>
                     </a>
                   ),
                 )}
@@ -474,40 +493,32 @@ function FeedbackDetailDialog({
               <div>
                 <p className="text-sm font-semibold">Chi tiết phản hồi</p>
               </div>
-              {feedbackQuery.isFetching ? (
-                <Spinner className="h-4 w-4" />
-              ) : null}
+              {isFeedbackFetching ? <Spinner className="h-4 w-4" /> : null}
             </div>
 
-            {feedbackQuery.isLoading ? (
+            {isFeedbackLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner className="h-4 w-4" />
                 Đang tải chi tiết phản hồi...
               </div>
-            ) : feedbackQuery.isError || !feedbackQuery.data ? (
+            ) : !feedbackDetail ? (
               <p className="text-sm text-muted-foreground">
                 Chưa có dữ liệu chi tiết phản hồi.
               </p>
             ) : (
               <div className="grid gap-3 text-sm">
                 <div className="grid gap-1">
-                  <span className="text-muted-foreground">Tiêu đề</span>
-                  <span className="font-medium">
-                    {feedbackDetail?.title_url || "-"}
-                  </span>
-                </div>
-                <div className="grid gap-1">
                   <span className="text-muted-foreground">
                     Nội dung phản hồi
                   </span>
                   <span className="whitespace-pre-line leading-relaxed">
-                    {feedbackDetail?.content || "-"}
+                    {feedbackDetail.content || "-"}
                   </span>
                 </div>
                 <div className="grid gap-1">
                   <span className="text-muted-foreground">Ngày tạo</span>
                   <span className="font-medium">
-                    {feedbackDetail?.time_create
+                    {feedbackDetail.time_create
                       ? formatDateTime(feedbackDetail.time_create)
                       : "-"}
                   </span>
@@ -515,13 +526,13 @@ function FeedbackDetailDialog({
                 <div className="grid gap-1">
                   <span className="text-muted-foreground">Người phản hồi</span>
                   <span className="font-medium">
-                    {feedbackDetail?.staff_name || "-"}
+                    {feedbackDetail.staff_name || "-"}
                   </span>
                 </div>
                 <div className="grid gap-1">
                   <span className="text-muted-foreground">Người duyệt</span>
                   <span className="font-medium">
-                    {feedbackDetail?.staff_approve_name || "-"}
+                    {feedbackDetail.staff_approve_name || "-"}
                   </span>
                 </div>
                 {feedbackAttachmentUrls.length > 0 && (
@@ -542,9 +553,12 @@ function FeedbackDetailDialog({
                             href={url}
                             target="_blank"
                             rel="noreferrer"
-                            className="break-all text-sm text-primary hover:underline"
+                            className="flex w-full min-w-[220px] items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm text-primary hover:border-primary"
                           >
-                            {url}
+                            <Paperclip className="h-4 w-4 shrink-0" />
+                            <span className="truncate">
+                              {getFileNameFromUrl(url) || url}
+                            </span>
                           </a>
                         ),
                       )}
@@ -564,12 +578,24 @@ function FeedbackDetailDialog({
                 onChange={(e) => onReplyContentChange(e.target.value)}
               />
 
-              {replyFile ? (
+              {replyFileName || replyFileUrl ? (
                 <div className="flex items-center gap-2 rounded-md border bg-slate-50 px-3 py-2 text-sm">
                   <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="min-w-0 flex-1 truncate">
-                    {replyFile.name}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {replyFileName || getFileNameFromUrl(replyFileUrl || "")}
+                    </p>
+                    {replyFileUrl && (
+                      <a
+                        href={replyFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block truncate text-xs text-muted-foreground hover:text-primary hover:underline"
+                      >
+                        {replyFileUrl}
+                      </a>
+                    )}
+                  </div>
                   {isUploadingFile ? (
                     <Spinner className="h-4 w-4 shrink-0" />
                   ) : (
@@ -617,7 +643,7 @@ function FeedbackDetailDialog({
                   !replyContent.trim() || isSendingReply || isUploadingFile
                 }
               >
-                {isSendingReply ? "Đang gửi..." : "Gửi phản hồi"}
+                {isSendingReply ? "Đang lưu..." : replyActionLabel}
               </Button>
               <Button onClick={onApprove} disabled={isApproved || isApproving}>
                 {isApproved
@@ -637,8 +663,6 @@ function FeedbackDetailDialog({
 export default function Feedback() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<FeedbackMode>("approve");
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDeferredValue(searchTerm);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [page, setPage] = useState(1);
   const [current, setCurrent] = useState<CommentItem | null>(null);
@@ -646,6 +670,7 @@ export default function Feedback() {
   const [replyContent, setReplyContent] = useState("");
   const [replyFile, setReplyFile] = useState<File | null>(null);
   const [replyFileUrl, setReplyFileUrl] = useState<string | null>(null);
+  const [replyFileName, setReplyFileName] = useState("");
 
   const routingQuery = useStaffCoordinateCommentsByStaffApproveQuery({
     staffId: CURRENT_STAFF.id,
@@ -684,14 +709,13 @@ export default function Feedback() {
     );
   }, [routingApprovedItems, routingPendingItems, selectedCategoryId]);
 
-  const viewQuery = useSearchCommentsQuery(
+  const viewQuery = useCommentsByCategoryQuery(
     {
-      key: debouncedSearch || undefined,
-      category_item: selectedCategoryId === "" ? undefined : selectedCategoryId,
+      categoryId: selectedCategoryId,
       sz: PAGE_SIZE,
       nu: page - 1,
     },
-    true,
+    selectedCategoryId !== "",
   );
   const items = viewQuery.data?.content ?? [];
   const totalPages = Math.max(1, viewQuery.data?.page.totalPages ?? 1);
@@ -700,8 +724,38 @@ export default function Feedback() {
   const showRefetchOverlay = viewQuery.isFetching && !showInitialLoading;
 
   const replyMutation = useCreateFeedbackProcessMutation();
+  const editReplyMutation = useEditFeedbackProcessMutation();
   const approveMutation = useApproveFeedbackProcessMutation();
   const uploadPdfMutation = useUploadPdfMutation();
+  const feedbackQuery = useFeedbackQuery(current?.c_uuid);
+  const feedbackDetail = feedbackQuery.data;
+
+  useEffect(() => {
+    if (!isDialogOpen || !current) return;
+
+    if (feedbackQuery.isLoading || feedbackQuery.isFetching) return;
+
+    if (feedbackDetail) {
+      setReplyContent(feedbackDetail.content ?? "");
+      setReplyFileUrl(feedbackDetail.url || null);
+      setReplyFileName(
+        feedbackDetail.title_url || getFileNameFromUrl(feedbackDetail.url || ""),
+      );
+    } else {
+      setReplyContent("");
+      setReplyFileUrl(null);
+      setReplyFileName("");
+    }
+
+    setReplyFile(null);
+  }, [
+    current?.c_uuid,
+    current?.id,
+    feedbackDetail?.id,
+    feedbackQuery.isFetching,
+    feedbackQuery.isLoading,
+    isDialogOpen,
+  ]);
 
   const invalidateComments = () =>
     queryClient.invalidateQueries({ queryKey: QUERY_KEY.COMMENTS });
@@ -711,6 +765,7 @@ export default function Feedback() {
     setReplyContent("");
     setReplyFile(null);
     setReplyFileUrl(null);
+    setReplyFileName("");
     setIsDialogOpen(true);
   };
 
@@ -722,6 +777,7 @@ export default function Feedback() {
     setReplyContent("");
     setReplyFile(null);
     setReplyFileUrl(null);
+    setReplyFileName("");
   };
 
   const handleSelectRoutingCategory = (categoryId: number) => {
@@ -736,6 +792,7 @@ export default function Feedback() {
 
     setReplyFile(file);
     setReplyFileUrl(null);
+    setReplyFileName(file.name);
 
     try {
       const link = await uploadPdfMutation.mutateAsync({
@@ -746,32 +803,48 @@ export default function Feedback() {
     } catch {
       window.alert("Tải file PDF thất bại. Vui lòng thử lại.");
       setReplyFile(null);
+      setReplyFileUrl(null);
+      setReplyFileName("");
     }
   };
 
   const handleRemoveReplyFile = () => {
     setReplyFile(null);
     setReplyFileUrl(null);
+    setReplyFileName("");
   };
 
   const handleSendReply = async () => {
     if (!current || !replyContent.trim()) return;
 
     try {
-      await replyMutation.mutateAsync({
+      const payload = {
         comment_item: current.id,
         content: replyContent.trim(),
-        title_url: replyFile?.name ?? "",
+        title_url: replyFileName,
         url: replyFileUrl ?? "",
         staff_item: CURRENT_STAFF.id,
         staff_name: CURRENT_STAFF.name,
-      });
+      };
+
+      if (feedbackDetail) {
+        await editReplyMutation.mutateAsync(payload);
+      } else {
+        await replyMutation.mutateAsync(payload);
+      }
+
+      if (current?.c_uuid) {
+        await queryClient.invalidateQueries({
+          queryKey: QUERY_KEY.FEEDBACK(current.c_uuid),
+        });
+      }
+
       setReplyContent("");
       setReplyFile(null);
       setReplyFileUrl(null);
       invalidateComments();
     } catch {
-      window.alert("Gửi phản hồi thất bại. Vui lòng thử lại.");
+      window.alert("Lưu phản hồi thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -785,7 +858,7 @@ export default function Feedback() {
         staff_name: CURRENT_STAFF.name,
       });
       setCurrent((value) =>
-        value ? { ...value, staff_approve_item: 1 } : value,
+        value ? { ...value, status: 1, staff_approve_item: 1 } : value,
       );
       invalidateComments();
     } catch {
@@ -808,21 +881,12 @@ export default function Feedback() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
           <Card className="min-w-0">
             <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
-              <div className="relative w-full md:max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={
-                    selectedCategoryName
-                      ? `Tìm theo tiêu đề, người gửi trong ${selectedCategoryName}...`
-                      : "Tìm theo tiêu đề, người gửi..."
-                  }
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setPage(1);
-                  }}
-                />
+              <div className="w-full md:max-w-sm">
+                <div className="text-sm text-muted-foreground">
+                  {selectedCategoryName
+                    ? `Đang xem danh mục: ${selectedCategoryName}`
+                    : "Chọn một điều phối để tải danh sách phản ánh."}
+                </div>
               </div>
             </CardHeader>
 
@@ -876,14 +940,19 @@ export default function Feedback() {
         replyContent={replyContent}
         replyFile={replyFile}
         replyFileUrl={replyFileUrl}
+        replyFileName={replyFileName}
         onReplyContentChange={setReplyContent}
         onReplyFileChange={handleReplyFileChange}
         onRemoveReplyFile={handleRemoveReplyFile}
         onSendReply={handleSendReply}
+        replyActionLabel={feedbackDetail ? "Cập nhật phản hồi" : "Gửi phản hồi"}
         onApprove={handleApprove}
-        isSendingReply={replyMutation.isPending}
+        isSendingReply={replyMutation.isPending || editReplyMutation.isPending}
         isApproving={approveMutation.isPending}
         isUploadingFile={uploadPdfMutation.isPending}
+        feedbackDetail={feedbackDetail}
+        isFeedbackLoading={feedbackQuery.isLoading}
+        isFeedbackFetching={feedbackQuery.isFetching}
       />
     </Layout>
   );

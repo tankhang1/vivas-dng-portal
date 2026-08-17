@@ -2,12 +2,14 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import {
   getCitizenComments,
+  getCommentsByCategory,
   getCommentByUuid,
   getComments,
   postCommentProcess,
   searchComments,
   searchCommentsByStaffApprove,
 } from '@/features/comment/api/comment.api';
+import type { GetCommentsByCategoryRequest } from '@/features/comment/types/get-comments-by-category.request';
 import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
@@ -22,6 +24,24 @@ export function useCommentsQuery() {
   return useQuery<GetCommentsResponse>({
     queryKey: QUERY_KEY.COMMENTS,
     queryFn: getComments,
+  });
+}
+
+export function useCommentsByCategoryQuery(
+  request: GetCommentsByCategoryRequest,
+  enabled = true,
+) {
+  const { categoryId, sz, nu } = request;
+
+  return useQuery<GetCommentsResponse>({
+    queryKey: QUERY_KEY.COMMENTS_BY_CATEGORY(categoryId, { sz, nu }),
+    queryFn: () => getCommentsByCategory(request),
+    placeholderData: keepPreviousData,
+    enabled:
+      enabled &&
+      categoryId !== undefined &&
+      categoryId !== null &&
+      categoryId !== '',
   });
 }
 

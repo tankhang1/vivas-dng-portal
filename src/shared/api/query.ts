@@ -50,6 +50,10 @@ export const QUERY_KEY = {
     pageStart?: number;
     nu?: number;
   }) => ['comments', 'search', params] as const,
+  COMMENTS_BY_CATEGORY: (
+    categoryId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['comments', 'category', categoryId, params] as const,
   COMMENTS_STAFF_APPROVE_SEARCH: (
     staffId: number | string,
     params: {

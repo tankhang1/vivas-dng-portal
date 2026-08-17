@@ -1,4 +1,5 @@
 import { API_PATH, apiClient } from '@/shared/api';
+import type { GetCommentsByCategoryRequest } from '@/features/comment/types/get-comments-by-category.request';
 import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
 import type { SearchCommentsByStaffApproveRequest } from '@/features/comment/types/search-comments-by-staff-approve.request';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
@@ -50,6 +51,29 @@ export async function searchComments(
 
   const response = await apiClient.get<GetCommentsResponse>(
     `${API_PATH.COMMON_PORTAL.COMMENTS}/search?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function getCommentsByCategory(
+  request: GetCommentsByCategoryRequest,
+): Promise<GetCommentsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const query = params.toString();
+  const response = await apiClient.get<GetCommentsResponse>(
+    query
+      ? `${API_PATH.COMMON_PORTAL.COMMENTS_BY_CATEGORY(request.categoryId)}?${query}`
+      : API_PATH.COMMON_PORTAL.COMMENTS_BY_CATEGORY(request.categoryId),
   );
 
   return response.data;
