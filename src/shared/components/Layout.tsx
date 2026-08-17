@@ -11,7 +11,6 @@ import {
   Menu,
   LayoutDashboard,
   MessageSquareWarning,
-  CalendarClock,
   ChevronDown,
   Tag,
   Settings,
@@ -46,7 +45,8 @@ const navItems = [
   },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
-  { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
+  // Temporarily hidden
+  // { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
   {
     name: 'Cài đặt',
