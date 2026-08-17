@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Layout } from "../../shared/components/Layout";
 import {
   Button,
@@ -13,11 +16,20 @@ import {
   Textarea,
 } from "../../shared/components/ui";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../../shared/components/ui/form";
+import { FormInputField } from "../../shared/components/FormInputField";
+import {
   MediaUpload,
   type MediaFile,
 } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
-import { CURRENT_STAFF, type NewsStatus } from "./types";
+import { CURRENT_STAFF } from "./types";
 import {
   usePostNewsProcessMutation,
   useEditNewsProcessMutation,
@@ -31,24 +43,26 @@ type NewsEditorPageProps = {
   articleId?: string;
 };
 
-type NewsFormState = {
-  title: string;
-  categoryItem: number | null;
-  shortDescription: string;
-  path: string;
-  contentHtml: string;
-  thumbnail: MediaFile[];
-  status: NewsStatus;
-};
+const newsFormSchema = z.object({
+  title: z.string().min(1, "Vui lòng nhập tiêu đề"),
+  categoryItem: z.coerce
+    .number({ invalid_type_error: "Vui lòng chọn danh mục" })
+    .min(1, "Vui lòng chọn danh mục"),
+  thumbnail: z.string().min(1, "Vui lòng chọn ảnh bìa"),
+  shortDescription: z.string().min(1, "Vui lòng nhập mô tả ngắn"),
+  path: z.string().min(1, "Vui lòng nhập URL liên kết"),
+  contentHtml: z.string().min(1, "Vui lòng nhập nội dung"),
+});
 
-const defaultFormState = (): NewsFormState => ({
+type NewsFormValues = z.infer<typeof newsFormSchema>;
+
+const defaultValues = (): NewsFormValues => ({
   title: "",
-  categoryItem: null,
+  categoryItem: 0,
+  thumbnail: "",
   shortDescription: "",
   path: "",
   contentHtml: "",
-  thumbnail: [],
-  status: "draft",
 });
 
 export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
@@ -61,27 +75,36 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   const editNewsMutation = useEditNewsProcessMutation();
   const uploadImageMutation = useUploadImageMutation();
 
-  const [form, setForm] = useState<NewsFormState>(defaultFormState());
+  const [thumbnail, setThumbnailState] = useState<MediaFile[]>([]);
+
+  const form = useForm<NewsFormValues>({
+    resolver: zodResolver(newsFormSchema),
+    defaultValues: defaultValues(),
+  });
+  const { control, handleSubmit, reset, watch, setValue } = form;
+
+  const setThumbnail = (files: MediaFile[]) => {
+    setThumbnailState(files);
+    setValue("thumbnail", files[0]?.url ?? "", { shouldValidate: true });
+  };
 
   useEffect(() => {
     if (mode === "edit" && article) {
-      setForm({
+      reset({
         title: article.title,
         categoryItem: article.category_item,
+        thumbnail: article.thumbnail ?? "",
         shortDescription: article.short_describe ?? "",
         path: article.path ?? "",
         contentHtml: article.content ?? "",
-        thumbnail: article.thumbnail
+      });
+      setThumbnailState(
+        article.thumbnail
           ? [{ id: "cover", name: "cover-image", url: article.thumbnail }]
           : [],
-        status: article.status === 1 ? "published" : "draft",
-      });
+      );
     }
-  }, [mode, article]);
-
-  const updateForm = (patch: Partial<NewsFormState>) => {
-    setForm((prev) => ({ ...prev, ...patch }));
-  };
+  }, [mode, article, reset]);
 
   const handleUploadThumbnail = async (file: File) => {
     const url = await uploadImageMutation.mutateAsync({
@@ -96,15 +119,10 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
 
   const isSaving = postNewsMutation.isPending || editNewsMutation.isPending;
 
-  const handleSave = async (status: NewsStatus) => {
-    if (!form.title.trim() || !form.contentHtml.trim() || !form.categoryItem) {
-      window.alert("Vui lòng nhập tiêu đề, danh mục và nội dung.");
-      return;
-    }
-
-    const thumbnail = form.thumbnail[0]?.url ?? "";
+  const handleSave = async (values: NewsFormValues) => {
+    const thumbnailUrl = values.thumbnail;
     const category = categoriesData?.content.find(
-      (item) => item.id === form.categoryItem,
+      (item) => item.id === values.categoryItem,
     );
     const categoryName = category?.name ?? "";
 
@@ -112,28 +130,27 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
       if (mode === "edit" && article) {
         await editNewsMutation.mutateAsync({
           news_item: article.id,
-          category_item: form.categoryItem,
+          category_item: values.categoryItem,
           category_name: categoryName,
-          thumbnail,
-          title: form.title,
-          path: form.path,
-          short_describe: form.shortDescription,
-          content: form.contentHtml,
+          thumbnail: thumbnailUrl,
+          title: values.title,
+          path: values.path,
+          short_describe: values.shortDescription,
+          content: values.contentHtml,
         });
       } else {
         await postNewsMutation.mutateAsync({
-          category_item: form.categoryItem,
+          category_item: values.categoryItem,
           category_name: categoryName,
-          thumbnail,
-          title: form.title,
-          path: form.path,
-          short_describe: form.shortDescription,
-          content: form.contentHtml,
+          thumbnail: thumbnailUrl,
+          title: values.title,
+          path: values.path,
+          short_describe: values.shortDescription,
+          content: values.contentHtml,
           staff_item: CURRENT_STAFF.id,
           staff_name: CURRENT_STAFF.name,
         });
       }
-      updateForm({ status });
       navigate("/news");
     } catch {
       window.alert("Lưu bản tin thất bại. Vui lòng thử lại.");
@@ -148,9 +165,9 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
 
   const isNotFound = mode === "edit" && !isArticleLoading && !article;
 
-  return (
-    <Layout>
-      {isNotFound ? (
+  if (isNotFound) {
+    return (
+      <Layout>
         <div className="flex min-h-[50vh] items-center justify-center">
           <Card className="w-full max-w-lg">
             <CardHeader>
@@ -166,8 +183,17 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
             </CardContent>
           </Card>
         </div>
-      ) : (
-        <div className="flex flex-col gap-6">
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <Form {...form}>
+        <form
+          onSubmit={handleSubmit(handleSave)}
+          className="flex flex-col gap-6"
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1">
               <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
@@ -175,13 +201,14 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => navigate("/news")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/news")}
+              >
                 Hủy
               </Button>
-              <Button
-                onClick={() => handleSave("published")}
-                disabled={isSaving}
-              >
+              <Button type="submit" disabled={isSaving}>
                 {isSaving ? "Đang lưu..." : "Lưu"}
               </Button>
             </div>
@@ -190,13 +217,15 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           <Card className="w-full">
             <CardContent className="space-y-5 pt-6">
               <div className="grid gap-2">
-                <Label htmlFor="cover-url">Ảnh bìa (URL)</Label>
+                <Label htmlFor="cover-url">
+                  Ảnh bìa (URL) <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="cover-url"
-                  value={form.thumbnail[0]?.url ?? ""}
+                  value={thumbnail[0]?.url ?? ""}
                   onChange={(e) =>
-                    updateForm({
-                      thumbnail: e.target.value
+                    setThumbnail(
+                      e.target.value
                         ? [
                             {
                               id: "cover",
@@ -205,23 +234,28 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                             },
                           ]
                         : [],
-                    })
+                    )
                   }
                   placeholder="https://..."
                 />
+                {form.formState.errors.thumbnail && (
+                  <p className="text-[0.8rem] font-medium text-destructive">
+                    {form.formState.errors.thumbnail.message}
+                  </p>
+                )}
               </div>
-              {form.thumbnail[0]?.url ? (
+              {thumbnail[0]?.url ? (
                 <div className="overflow-hidden rounded-lg border bg-slate-100">
                   <img
-                    src={form.thumbnail[0].url}
-                    alt={form.title || "Ảnh bìa"}
+                    src={thumbnail[0].url}
+                    alt={watch("title") || "Ảnh bìa"}
                     className="h-48 w-full object-cover"
                   />
                 </div>
               ) : (
                 <MediaUpload
-                  value={form.thumbnail}
-                  onChange={(thumbnail) => updateForm({ thumbnail })}
+                  value={thumbnail}
+                  onChange={setThumbnail}
                   onUpload={handleUploadThumbnail}
                   accept="image/*"
                   multiple={false}
@@ -230,78 +264,100 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               )}
 
               <div className="grid gap-4 md:grid-cols-10">
-                <div className="grid gap-2 md:col-span-7">
-                  <Label htmlFor="news-title">
-                    Tiêu đề <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="news-title"
-                    value={form.title}
-                    onChange={(e) => updateForm({ title: e.target.value })}
-                    placeholder="Tiêu đề thông báo..."
+                <div className="md:col-span-7">
+                  <FormInputField
+                    control={control}
+                    name="title"
+                    label="Tiêu đề"
+                    required
+                    inputProps={{ placeholder: "Tiêu đề thông báo..." }}
                   />
                 </div>
-                <div className="grid gap-2 md:col-span-3">
-                  <Label htmlFor="news-category">Danh mục</Label>
-                  <Select
-                    id="news-category"
-                    value={form.categoryItem ?? ""}
-                    onChange={(e) =>
-                      updateForm({ categoryItem: Number(e.target.value) })
-                    }
-                  >
-                    <option value="">Chọn...</option>
-                    {categoriesData?.content.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
+                <div className="md:col-span-3">
+                  <FormField
+                    control={control}
+                    name="categoryItem"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel required>Danh mục</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value ? String(field.value) : ""}
+                            onChange={(e) =>
+                              setValue(
+                                "categoryItem",
+                                Number(e.target.value),
+                                { shouldValidate: true },
+                              )
+                            }
+                          >
+                            <option value="">Chọn...</option>
+                            {categoriesData?.content.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="news-summary">Mô tả ngắn</Label>
-                <Textarea
-                  id="news-summary"
-                  value={form.shortDescription}
-                  onChange={(e) =>
-                    updateForm({ shortDescription: e.target.value })
-                  }
-                  placeholder="Mô tả ngắn hiển thị ở danh sách..."
-                  className="min-h-[96px]"
-                />
-              </div>
+              <FormField
+                control={control}
+                name="shortDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required>Mô tả ngắn</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Mô tả ngắn hiển thị ở danh sách..."
+                        className="min-h-24"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="grid gap-2">
-                <Label htmlFor="link-url">URL liên kết</Label>
-                <Input
-                  id="link-url"
-                  value={form.path}
-                  onChange={(e) => updateForm({ path: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
+              <FormInputField
+                control={control}
+                name="path"
+                label="URL liên kết"
+                required
+                inputProps={{ placeholder: "https://..." }}
+              />
 
-              <div className="grid gap-2">
-                <Label>
-                  Nội dung <span className="text-red-500">*</span>
-                </Label>
-                <FormEditor
-                  value={form.contentHtml}
-                  onChange={(contentHtml) => updateForm({ contentHtml })}
-                  placeholder="Nhập nội dung thông báo..."
-                  className="min-h-[260px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được lưu
-                  dưới dạng HTML.
-                </p>
-              </div>
+              <FormField
+                control={control}
+                name="contentHtml"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required>Nội dung</FormLabel>
+                    <FormControl>
+                      <FormEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Nhập nội dung thông báo..."
+                        className="min-h-65"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ
+                      được lưu dưới dạng HTML.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
-        </div>
-      )}
+        </form>
+      </Form>
     </Layout>
   );
 }
