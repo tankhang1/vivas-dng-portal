@@ -11,8 +11,6 @@ import NewsPage from "@/pages/news/NewsPage";
 import NewsCreate from "@/pages/news/Create";
 import NewsEdit from "@/pages/news/Edit";
 import CategoriesPage from "@/pages/categories";
-import CategoriesCreate from "@/pages/categories/Create";
-import CategoriesEdit from "@/pages/categories/Edit";
 import RoutingPage from "@/pages/routing/RoutingPage";
 import Citizens from "@/pages/citizens";
 import CitizensCreate from "@/pages/citizens/Create";
@@ -57,8 +55,6 @@ function Router() {
       <Route path="/news/:id/edit" component={NewsEdit} />
       <Route path="/news" component={NewsPage} />
       <Route path="/news/:id" component={NewsPage} />
-      <Route path="/categories/new" component={CategoriesCreate} />
-      <Route path="/categories/:id/edit" component={CategoriesEdit} />
       <Route path="/categories" component={CategoriesPage} />
       <Route path="/citizens/new" component={CitizensCreate} />
       <Route path="/citizens/:id/edit" component={CitizensEdit} />

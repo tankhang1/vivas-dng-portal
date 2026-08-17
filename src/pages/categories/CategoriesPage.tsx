@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
   Button,
@@ -15,23 +14,110 @@ import {
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { categoryTypeOptions, type CategoryType } from "./types";
+import { categoryTypeLabel, categoryTypeOptions, type CategoryType } from "./types";
 import {
+  useCreateCategoryNewsProcessMutation,
+  useEditCategoryNewsProcessMutation,
   useNewsCategoriesQuery,
   useRemoveCategoryNewsProcessMutation,
 } from "@/features/category-news/hooks/category-news.hook";
 import {
   useCommentCategoriesQuery,
+  useCreateCategoryCommentProcessMutation,
+  useEditCategoryCommentProcessMutation,
   useRemoveCategoryCommentProcessMutation,
 } from "@/features/category-comment/hooks/category-comment.hook";
+import type { CategoryItem } from "@/features/category-news/types/get-categories.response";
 import { Edit2, Plus, Trash2 } from "lucide-react";
+import {
+  CategoryFormDialog,
+  type CategoryFormValues,
+} from "./components/CategoryFormDialog";
 
 const PAGE_SIZE = 8;
 
 export default function CategoriesPage() {
-  const [, navigate] = useLocation();
   const [activeType, setActiveType] = useState<CategoryType>("feedback");
   const [page, setPage] = useState(1);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CategoryItem | null>(null);
+
+  const createNewsMutation = useCreateCategoryNewsProcessMutation();
+  const editNewsMutation = useEditCategoryNewsProcessMutation();
+  const createCommentMutation = useCreateCategoryCommentProcessMutation();
+  const editCommentMutation = useEditCategoryCommentProcessMutation();
+
+  const isSaving =
+    createNewsMutation.isPending ||
+    editNewsMutation.isPending ||
+    createCommentMutation.isPending ||
+    editCommentMutation.isPending;
+
+  const openCreateDialog = () => {
+    setEditingItem(null);
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (item: CategoryItem) => {
+    setEditingItem(item);
+    setIsDialogOpen(true);
+  };
+
+  const dialogInitialValues: CategoryFormValues | null = isDialogOpen
+    ? {
+        name: editingItem?.name ?? "",
+        path: editingItem?.path ?? "",
+        orderNumber: editingItem?.order_number ?? 0,
+        note: editingItem?.note ?? "",
+      }
+    : null;
+
+  const handleSubmit = async (values: CategoryFormValues) => {
+    try {
+      if (activeType === "news") {
+        if (editingItem) {
+          await editNewsMutation.mutateAsync({
+            category_item: editingItem.id,
+            name: values.name,
+            path: values.path,
+            note: values.note,
+            order_number: values.orderNumber,
+          });
+        } else {
+          await createNewsMutation.mutateAsync({
+            name: values.name,
+            path: values.path,
+            note: values.note,
+            order_number: values.orderNumber,
+          });
+        }
+      } else {
+        if (editingItem) {
+          await editCommentMutation.mutateAsync({
+            category_item: editingItem.id,
+            name: values.name,
+            path: values.path,
+            note: values.note,
+            order_number: values.orderNumber,
+          });
+        } else {
+          // No parent-category picker in this UI yet, so new categories are
+          // always created at the top level.
+          await createCommentMutation.mutateAsync({
+            category_item: 0,
+            name: values.name,
+            path: values.path,
+            note: values.note,
+            order_number: values.orderNumber,
+          });
+        }
+      }
+      setIsDialogOpen(false);
+    } catch {
+      window.alert("Lưu danh mục thất bại. Vui lòng thử lại.");
+    }
+  };
 
   return (
     <Layout>
@@ -43,10 +129,7 @@ export default function CategoriesPage() {
               Quản lý danh mục dùng cho phản ánh và tin tức.
             </p>
           </div>
-          <Button
-            onClick={() => navigate(`/categories/new?type=${activeType}`)}
-            className="gap-2 self-start"
-          >
+          <Button onClick={openCreateDialog} className="gap-2 self-start">
             <Plus className="h-4 w-4" />
             Thêm danh mục
           </Button>
@@ -74,20 +157,28 @@ export default function CategoriesPage() {
               <NewsCategoriesTable
                 page={page}
                 onPageChange={setPage}
-                onEdit={(id) => navigate(`/categories/${id}/edit?type=news`)}
+                onEdit={openEditDialog}
               />
             ) : (
               <FeedbackCategoriesTable
                 page={page}
                 onPageChange={setPage}
-                onEdit={(id) =>
-                  navigate(`/categories/${id}/edit?type=feedback`)
-                }
+                onEdit={openEditDialog}
               />
             )}
           </CardContent>
         </Card>
       </div>
+
+      <CategoryFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        isEdit={!!editingItem}
+        typeLabel={categoryTypeLabel(activeType)}
+        initialValues={dialogInitialValues}
+        isSaving={isSaving}
+        onSubmit={handleSubmit}
+      />
     </Layout>
   );
 }
@@ -95,7 +186,7 @@ export default function CategoriesPage() {
 type CategoryTableProps = {
   page: number;
   onPageChange: (page: number) => void;
-  onEdit: (id: string) => void;
+  onEdit: (item: CategoryItem) => void;
 };
 
 function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps) {
@@ -156,7 +247,7 @@ function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps)
                       variant="ghost"
                       size="icon"
                       title="Chỉnh sửa"
-                      onClick={() => onEdit(String(item.id))}
+                      onClick={() => onEdit(item)}
                     >
                       <Edit2 className="h-4 w-4 text-blue-600" />
                     </Button>
@@ -258,7 +349,7 @@ function FeedbackCategoriesTable({
                       variant="ghost"
                       size="icon"
                       title="Chỉnh sửa"
-                      onClick={() => onEdit(String(item.id))}
+                      onClick={() => onEdit(item)}
                     >
                       <Edit2 className="h-4 w-4 text-blue-600" />
                     </Button>
