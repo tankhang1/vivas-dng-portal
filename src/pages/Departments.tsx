@@ -22,12 +22,6 @@ import {
   TableRow,
   Textarea,
 } from "../shared/components/ui";
-import { getStaff } from "./staff/store";
-import {
-  statusBadgeVariant,
-  statusLabel,
-  type StaffRecord,
-} from "./staff/types";
 import {
   ChevronDown,
   ChevronRight,
@@ -59,11 +53,15 @@ import {
   useEditDepartmentProcessMutation,
   useRemoveDepartmentProcessMutation,
 } from "@/features/department/hooks/department.hook";
-import { useSearchStaffQuery } from "@/features/staff/hooks/staff.hook";
+import {
+  useSearchStaffQuery,
+  useStaffByDepartmentQuery,
+} from "@/features/staff/hooks/staff.hook";
 import type { DepartmentItem } from "@/features/department/types/get-departments.response";
 import { useQueryClient } from "@tanstack/react-query";
 import type { GetDepartmentsResponse } from "@/features/department/types/get-departments.response";
 import { QUERY_KEY } from "@/shared/api";
+import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 
 type DepartmentStatus = "active" | "inactive";
 
@@ -91,7 +89,7 @@ type DepartmentFormState = {
   status: DepartmentStatus;
 };
 
-type StaffDetailState = StaffRecord | null;
+type StaffDetailState = StaffItem | null;
 
 const PAGE_TITLE = "Phòng ban";
 
@@ -126,6 +124,14 @@ function departmentItemToRecord(item: DepartmentItem): DepartmentRecord {
   };
 }
 
+function staffStatusLabel(status: number) {
+  return status === 1 ? "Hoạt động" : "Tạm khóa";
+}
+
+function staffStatusVariant(status: number) {
+  return status === 1 ? "success" : "warning";
+}
+
 /**
  * The department API returns a single flat, paginated list of every
  * department (root and sub alike), each carrying its own
@@ -153,9 +159,8 @@ export default function Departments() {
   const editDepartmentMutation = useEditDepartmentProcessMutation();
   const removeDepartmentMutation = useRemoveDepartmentProcessMutation();
 
-  const [staffList, setStaffList] = useState<StaffRecord[]>(() => getStaff());
-  const { data: managerStaffData } = useSearchStaffQuery({ sz: 200, nu: 0 });
-  const managerOptions = managerStaffData?.content ?? [];
+  const { data: staffData } = useSearchStaffQuery({ sz: 200, nu: 0 });
+  const managerOptions = staffData?.content ?? [];
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -166,6 +171,11 @@ export default function Departments() {
 
   const [departments, setDepartments] = useState<DepartmentRecord[]>([]);
   const hasSeededDepartments = useRef(false);
+  const { data: selectedDepartmentStaffData } = useStaffByDepartmentQuery({
+    department: selectedDepartmentId || "",
+    sz: 200,
+    nu: 0,
+  });
 
   useEffect(() => {
     if (!hasSeededDepartments.current && !isDepartmentsLoading) {
@@ -181,6 +191,7 @@ export default function Departments() {
 
   const isSaving =
     createDepartmentMutation.isPending || editDepartmentMutation.isPending;
+  const allStaff = staffData?.content ?? [];
 
   const departmentsById = useMemo(
     () =>
@@ -210,26 +221,6 @@ export default function Departments() {
     return map;
   }, [departments]);
 
-  const staffDepartmentNames = useMemo(() => {
-    if (!selectedDepartmentId) return new Set<string>();
-
-    const stack = [selectedDepartmentId];
-    const names = new Set<string>();
-
-    while (stack.length > 0) {
-      const currentId = stack.pop();
-      if (!currentId) continue;
-      const current = departmentsById.get(currentId);
-      if (!current) continue;
-      names.add(current.name);
-
-      const children = childrenByParentId.get(currentId) ?? [];
-      children.forEach((child) => stack.push(child.id));
-    }
-
-    return names;
-  }, [childrenByParentId, departmentsById, selectedDepartmentId]);
-
   const selectedDepartment = selectedDepartmentId
     ? (departmentsById.get(selectedDepartmentId) ?? null)
     : null;
@@ -256,13 +247,7 @@ export default function Departments() {
     return rootDepartments.filter(matchesNode);
   }, [childrenByParentId, rootDepartments, searchTerm]);
 
-  const visibleStaff = useMemo(() => {
-    if (!selectedDepartment) return [];
-
-    return staffList.filter((staff) =>
-      staffDepartmentNames.has(staff.department),
-    );
-  }, [selectedDepartment, staffDepartmentNames, staffList]);
+  const visibleStaff = selectedDepartmentStaffData?.content ?? [];
 
   const selectedDepartmentStaffCount = visibleStaff.length;
   const selectedDepartmentChildren = selectedDepartment
@@ -435,13 +420,6 @@ export default function Departments() {
       const childItems = childrenByParentId.get(department.id) ?? [];
       const isSelected = department.id === selectedDepartmentId;
       const hasChildren = childItems.length > 0;
-      const staffCount = staffList.filter((staff) => {
-        if (!selectedDepartmentId) return false;
-        return collectDescendantIds(department.id)
-          .map((id) => departmentsById.get(id)?.name)
-          .filter(Boolean)
-          .includes(staff.department);
-      }).length;
 
       return (
         <div key={department.id} className="space-y-1">
@@ -466,9 +444,6 @@ export default function Departments() {
             <span className="min-w-0 flex-1 truncate font-medium">
               {department.name}
             </span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-muted-foreground">
-              {staffCount}
-            </span>
           </button>
 
           {hasChildren && (
@@ -481,7 +456,7 @@ export default function Departments() {
     });
   };
 
-  const handleOpenStaffDetail = (staff: StaffRecord) => {
+  const handleOpenStaffDetail = (staff: StaffItem) => {
     setCurrentStaff(staff);
   };
 
@@ -678,14 +653,14 @@ export default function Departments() {
                           {staff.name}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {staff.position || "-"}
+                          {staff.potition || "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {staff.phone || "-"}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusBadgeVariant(staff.status)}>
-                            {statusLabel(staff.status)}
+                          <Badge variant={staffStatusVariant(staff.status)}>
+                            {staffStatusLabel(staff.status)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -898,17 +873,15 @@ export default function Departments() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <InfoRow label="Họ và tên" value={currentStaff.name} />
-              <InfoRow label="Tài khoản" value={currentStaff.username} />
-              <InfoRow label="Phòng ban" value={currentStaff.department} />
-              <InfoRow label="Chức vụ" value={currentStaff.position || "-"} />
+              <InfoRow label="Phòng ban" value={currentStaff.department_name} />
+              <InfoRow label="Lĩnh vực" value={currentStaff.division_name || "-"} />
+              <InfoRow label="Chức vụ" value={currentStaff.potition || "-"} />
               <InfoRow label="Email" value={currentStaff.email || "-"} />
               <InfoRow label="Điện thoại" value={currentStaff.phone || "-"} />
               <div className="md:col-span-2">
                 <InfoRow
                   label="Trạng thái"
-                  value={
-                    currentStaff.status === "active" ? "Hoạt động" : "Tạm khóa"
-                  }
+                  value={currentStaff.status === 1 ? "Hoạt động" : "Tạm khóa"}
                 />
               </div>
             </div>

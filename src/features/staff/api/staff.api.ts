@@ -3,6 +3,7 @@ import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.respon
 import type { GetStaffDetailResponse } from '@/features/staff/types/get-staff-detail.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
+import type { GetStaffByDepartmentResponse } from '@/features/staff/types/get-staff-by-department.response';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -59,7 +60,7 @@ export async function getStaffDetail(
 
 export async function getStaffByDepartment(
   request: GetStaffByDepartmentRequest,
-): Promise<GetStaffsResponse> {
+): Promise<GetStaffByDepartmentResponse> {
   const params = new URLSearchParams();
 
   if (request.sz !== undefined) {
@@ -70,7 +71,7 @@ export async function getStaffByDepartment(
     params.append('nu', String(request.nu));
   }
 
-  const response = await apiClient.get<GetStaffsResponse>(
+  const response = await apiClient.get<GetStaffByDepartmentResponse>(
     `${API_PATH.COMMON_PORTAL.STAFF_BY_DEPARTMENT(request.department)}?${params.toString()}`,
   );
 

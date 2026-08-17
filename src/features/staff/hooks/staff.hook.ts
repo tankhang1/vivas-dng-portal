@@ -22,6 +22,7 @@ import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.respon
 import type { GetStaffDetailResponse } from '@/features/staff/types/get-staff-detail.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
+import type { GetStaffByDepartmentResponse } from '@/features/staff/types/get-staff-by-department.response';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
@@ -55,7 +56,7 @@ export function useSearchStaffQuery(request: SearchStaffRequest) {
 export function useStaffByDepartmentQuery(request: GetStaffByDepartmentRequest) {
   const { department, sz, nu } = request;
 
-  return useQuery<GetStaffsResponse>({
+  return useQuery<GetStaffByDepartmentResponse>({
     queryKey: QUERY_KEY.STAFF_BY_DEPARTMENT(department, { sz, nu }),
     queryFn: () => getStaffByDepartment(request),
     enabled: department !== undefined && department !== null && department !== '',
