@@ -56,14 +56,14 @@ export default function NewsPage() {
   const goToCreate = () => navigate("/news/new");
   const goToEdit = (id: string) => navigate(`/news/${id}/edit`);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bản tin này?")) return;
+  const handleDeactivate = async (id: string) => {
+    if (!window.confirm("Vô hiệu hóa bản tin này?")) return;
     try {
       await removeNewsMutation.mutateAsync({ news_item: Number(id) });
       setDetailArticle((current) => (current?.id === id ? null : current));
       refetch();
     } catch {
-      window.alert("Xóa bản tin thất bại. Vui lòng thử lại.");
+      window.alert("Vô hiệu hóa bản tin thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -120,7 +120,7 @@ export default function NewsPage() {
               showRefetchOverlay={showRefetchOverlay}
               onView={setDetailArticle}
               onEdit={goToEdit}
-              onDelete={handleDelete}
+              onDeactivate={handleDeactivate}
               onApprove={handleApprove}
             />
 
@@ -142,7 +142,8 @@ export default function NewsPage() {
           if (!open) setDetailArticle(null);
         }}
         onEdit={(id) => navigate(`/news/${id}/edit`)}
-        onDelete={handleDelete}
+        onDeactivate={handleDeactivate}
+        onApprove={(id) => handleApprove(Number(id))}
       />
     </Layout>
   );

@@ -1,5 +1,6 @@
 export type PostNewsProcessRequest = {
   category_item: number;
+  category_name: string;
   thumbnail: string;
   title: string;
   path: string;

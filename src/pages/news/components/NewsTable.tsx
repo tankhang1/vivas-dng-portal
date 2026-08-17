@@ -10,12 +10,12 @@ import {
 } from "../../../shared/components/ui";
 import { Spinner } from "@/shared/components/ui/spinner";
 import {
+  Ban,
   CheckCircle2,
   Edit2,
   Eye,
   ImageUp,
   Paperclip,
-  Trash2,
 } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { formatDate, sourceLabel, type NewsArticle } from "../types";
@@ -35,7 +35,7 @@ type NewsTableProps = {
   showRefetchOverlay: boolean;
   onView: (article: NewsArticle) => void;
   onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDeactivate: (id: string) => void;
   onApprove: (id: number) => void;
 };
 
@@ -46,7 +46,7 @@ export function NewsTable({
   showRefetchOverlay,
   onView,
   onEdit,
-  onDelete,
+  onDeactivate,
   onApprove,
 }: NewsTableProps) {
   return (
@@ -154,24 +154,25 @@ export function NewsTable({
                       >
                         <Edit2 className="h-4 w-4 text-blue-600" />
                       </Button>
-                      {item.status !== 1 && (
+                      {item.status === 1 ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDeactivate(article.id)}
+                          title="Vô hiệu hóa"
+                        >
+                          <Ban className="h-4 w-4 text-red-600" />
+                        </Button>
+                      ) : (
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onApprove(item.id)}
-                          title="Duyệt bản tin"
+                          title="Kích hoạt"
                         >
                           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(article.id)}
-                        title="Xóa"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

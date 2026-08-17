@@ -1,23 +1,22 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Badge,
   Button,
   Dialog,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "../../shared/components/ui";
+import { StatusBadge } from "./components/StatusBadge";
 import {
   ArrowRight,
   CalendarDays,
-  Globe,
   Link as LinkIcon,
+  Newspaper,
   Paperclip,
+  User2,
   X,
 } from "lucide-react";
 import {
   audienceLabel,
-  categoryLabel,
   formatDate,
   linkTypeLabel,
   sourceLabel,
@@ -29,18 +28,43 @@ type NewsDetailDialogProps = {
   article: NewsArticle | null;
   onOpenChange: (open: boolean) => void;
   onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDeactivate: (id: string) => void;
+  onApprove: (id: string) => void;
 };
+
+const ARTICLE_BODY_STYLE = `
+  body {
+    margin: 0;
+    padding: 24px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #1f2937;
+  }
+  img { max-width: 100%; height: auto; border-radius: 12px; }
+  h1, h2, h3 { line-height: 1.35; color: #0f172a; }
+  a { color: #2563eb; }
+  p { margin: 0 0 1em; }
+`;
 
 export function NewsDetailDialog({
   open,
   article,
   onOpenChange,
   onEdit,
-  onDelete,
+  onDeactivate,
+  onApprove,
 }: NewsDetailDialogProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState(360);
+  const [iframeHeight, setIframeHeight] = useState(200);
+
+  const srcDoc = useMemo(
+    () =>
+      `<!doctype html><html><head><style>${ARTICLE_BODY_STYLE}</style></head><body>${
+        article?.contentHtml ?? ""
+      }</body></html>`,
+    [article?.contentHtml],
+  );
 
   const handleIframeLoad = () => {
     const doc = iframeRef.current?.contentDocument;
@@ -49,150 +73,111 @@ export function NewsDetailDialog({
     }
   };
 
+  const initial = article?.source?.trim()?.[0]?.toUpperCase() || "?";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} className="!max-w-6xl !p-0">
+    <Dialog open={open} onOpenChange={onOpenChange} className="!max-w-4xl !p-0">
       {article && (
         <div className="flex max-h-[88vh] flex-col overflow-hidden rounded-lg bg-background">
-          <div className="border-b border-border px-6 py-5">
-            <DialogHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>{categoryLabel(article.category)}</span>
-                    <span>•</span>
-                    <span>{formatDate(article.date)}</span>
-                  </div>
-                  <DialogTitle className="mt-2 text-2xl leading-snug">
-                    {article.title}
-                  </DialogTitle>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="gap-1">
-                      <CalendarDays className="h-3 w-3" />
-                      {formatDate(article.date)}
-                    </Badge>
-                    <Badge variant="outline" className="gap-1">
-                      <Globe className="h-3 w-3" />
-                      {article.status === "published"
-                        ? "Đã xuất bản"
-                        : "Bản nháp"}
-                    </Badge>
-                    <Badge variant="outline" className="gap-1">
-                      <LinkIcon className="h-3 w-3" />
-                      {linkTypeLabel(article.linkType)}
-                    </Badge>
-                  </div>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                  className="shrink-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+          <div className="relative">
+            {article.thumbnail[0]?.url ? (
+              <div className="h-56 w-full overflow-hidden bg-slate-100 sm:h-72">
+                <img
+                  src={article.thumbnail[0].url}
+                  alt={article.title}
+                  className="h-full w-full object-cover"
+                />
               </div>
-            </DialogHeader>
+            ) : (
+              <div className="flex h-40 w-full items-center justify-center bg-slate-100 text-slate-300">
+                <Newspaper className="h-10 w-10" />
+              </div>
+            )}
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4 top-4 shadow-md"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
-          <div className="grid min-h-0 gap-0 overflow-hidden lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="min-h-0 overflow-y-auto px-6 py-6">
-              <article className="space-y-6">
-                {article.thumbnail[0]?.url && (
-                  <div className="overflow-hidden rounded-2xl border bg-slate-100">
-                    <img
-                      src={article.thumbnail[0].url}
-                      alt={article.title}
-                      className="max-h-[360px] w-full object-cover"
-                    />
-                  </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="border-b border-border px-6 py-5">
+              <div className="flex flex-wrap items-center gap-2">
+                {article.categoryName && (
+                  <Badge variant="outline" className="gap-1">
+                    {article.categoryName}
+                  </Badge>
                 )}
-
-                {article.shortDescription && (
-                  <p className="text-base leading-7 text-muted-foreground">
-                    {article.shortDescription}
-                  </p>
-                )}
-
-                <iframe
-                  ref={iframeRef}
-                  title={article.title || "Nội dung bản tin"}
-                  srcDoc={article.contentHtml}
-                  onLoad={handleIframeLoad}
-                  sandbox=""
-                  className="w-full rounded-2xl border border-border bg-white"
-                  style={{ height: iframeHeight }}
-                />
-              </article>
+                <StatusBadge status={article.status} />
+              </div>
+              <h1 className="mt-3 text-2xl font-bold leading-snug text-foreground">
+                {article.title}
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    {initial}
+                  </span>
+                  {sourceLabel(article.source)}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  {formatDate(article.date)}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <User2 className="h-3.5 w-3.5" />
+                  {audienceLabel(article.audience)}
+                </span>
+              </div>
             </div>
 
-            <div className="border-l border-border bg-slate-50 px-6 py-6">
-              <div className="space-y-5">
-                <section className="rounded-2xl border bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Thông tin bài viết
-                  </p>
-                  <dl className="mt-4 space-y-3 text-sm">
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted-foreground">Nguồn tin</dt>
-                      <dd className="text-right font-medium">
-                        {sourceLabel(article.source)}
-                      </dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted-foreground">Danh mục</dt>
-                      <dd className="text-right font-medium">
-                        {categoryLabel(article.category)}
-                      </dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted-foreground">Đối tượng</dt>
-                      <dd className="text-right font-medium">
-                        {audienceLabel(article.audience)}
-                      </dd>
-                    </div>
-                    <div className="flex items-start justify-between gap-4">
-                      <dt className="text-muted-foreground">Trạng thái</dt>
-                      <dd className="text-right font-medium">
-                        {article.status === "published"
-                          ? "Xuất bản"
-                          : "Lưu nháp"}
-                      </dd>
-                    </div>
-                  </dl>
-                </section>
+            <div className="px-6 py-5">
+              {article.shortDescription && (
+                <p className="mb-4 text-base font-medium leading-7 text-foreground">
+                  {article.shortDescription}
+                </p>
+              )}
 
-                <section className="rounded-2xl border bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Liên kết
-                  </p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <p className="font-medium">
-                      {linkTypeLabel(article.linkType)}
-                    </p>
-                    {article.linkUrl ? (
-                      <a
-                        href={article.linkUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="break-all text-primary hover:underline"
-                      >
-                        {article.linkUrl}
-                      </a>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        Chưa gắn liên kết.
-                      </p>
-                    )}
-                  </div>
-                </section>
+              <iframe
+                ref={iframeRef}
+                title={article.title || "Nội dung bản tin"}
+                srcDoc={srcDoc}
+                onLoad={handleIframeLoad}
+                sandbox=""
+                className="w-full"
+                style={{ height: iframeHeight }}
+              />
 
-                {article.media.length > 0 && (
-                  <section className="rounded-2xl border bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Tệp đính kèm
-                    </p>
-                    <div className="mt-3 space-y-2">
+              {(article.linkUrl || article.media.length > 0) && (
+                <div className="mt-6 space-y-3 border-t border-border pt-5">
+                  {article.linkType !== "none" && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {linkTypeLabel(article.linkType)}:
+                      </span>
+                      {article.linkUrl ? (
+                        <a
+                          href={article.linkUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="break-all text-primary hover:underline"
+                        >
+                          {article.linkUrl}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Chưa gắn liên kết.
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {article.media.length > 0 && (
+                    <div className="space-y-2">
                       {article.media.map((file) => (
                         <a
                           key={file.id}
@@ -208,9 +193,9 @@ export function NewsDetailDialog({
                         </a>
                       ))}
                     </div>
-                  </section>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -218,9 +203,18 @@ export function NewsDetailDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Đóng
             </Button>
-            <Button variant="outline" onClick={() => onDelete(article.id)}>
-              Xóa
-            </Button>
+            {article.status === "published" ? (
+              <Button
+                variant="outline"
+                onClick={() => onDeactivate(article.id)}
+              >
+                Vô hiệu hóa
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => onApprove(article.id)}>
+                Kích hoạt
+              </Button>
+            )}
             <Button onClick={() => onEdit(article.id)}>
               <ArrowRight className="mr-2 h-4 w-4" />
               Chỉnh sửa

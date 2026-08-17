@@ -5,7 +5,6 @@ import type { MediaFile } from '../../shared/components/MediaUpload';
 // a shared placeholder.
 export const CURRENT_STAFF = { id: 1, name: 'Quản trị viên' };
 
-export type NewsCategory = 'thong-bao' | 'su-kien' | 'khan-cap';
 export type NewsStatus = 'draft' | 'published';
 export type Audience = 'all-citizens' | 'residents' | 'staff' | 'leaders';
 export type LinkType = 'none' | 'external' | 'document' | 'attachment';
@@ -13,7 +12,7 @@ export type LinkType = 'none' | 'external' | 'document' | 'attachment';
 export type NewsArticle = {
   id: string;
   title: string;
-  category: NewsCategory;
+  categoryName: string;
   status: NewsStatus;
   date: string;
   source: string;
@@ -25,12 +24,6 @@ export type NewsArticle = {
   linkType: LinkType;
   linkUrl: string;
 };
-
-export const categoryOptions: { value: NewsCategory; label: string }[] = [
-  { value: 'thong-bao', label: 'Thông báo' },
-  { value: 'su-kien', label: 'Sự kiện' },
-  { value: 'khan-cap', label: 'Khẩn cấp' },
-];
 
 export const audienceOptions: { value: Audience; label: string }[] = [
   { value: 'all-citizens', label: 'Tất cả người dân' },
@@ -54,7 +47,7 @@ export const statusOptions: { value: NewsStatus; label: string }[] = [
 export const defaultArticle = (): NewsArticle => ({
   id: '',
   title: '',
-  category: 'thong-bao',
+  categoryName: '',
   status: 'draft',
   date: new Date().toISOString().split('T')[0],
   source: '',
@@ -78,9 +71,6 @@ export const normalizeArticle = (article: Partial<NewsArticle>): NewsArticle => 
   linkType: article.linkType ?? 'none',
   linkUrl: article.linkUrl ?? '',
 });
-
-export const categoryLabel = (category: NewsCategory) =>
-  categoryOptions.find((item) => item.value === category)?.label ?? category;
 
 export const audienceLabel = (audience: Audience) =>
   audienceOptions.find((item) => item.value === audience)?.label ?? audience;

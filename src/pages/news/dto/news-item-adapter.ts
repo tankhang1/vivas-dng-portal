@@ -5,7 +5,7 @@ export function newsItemToArticle(item: NewsItem): NewsArticle {
   return {
     id: String(item.id),
     title: item.title,
-    category: String(item.category_item) as NewsArticle["category"],
+    categoryName: item.category_name ?? "",
     status: item.status === 1 ? "published" : "draft",
     date: item.time_create,
     source: item.staff_name ?? "",

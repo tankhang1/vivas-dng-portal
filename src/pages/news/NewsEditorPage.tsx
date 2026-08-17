@@ -17,7 +17,7 @@ import {
   type MediaFile,
 } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
-import { CURRENT_STAFF, statusOptions, type NewsStatus } from "./types";
+import { CURRENT_STAFF, type NewsStatus } from "./types";
 import {
   usePostNewsProcessMutation,
   useEditNewsProcessMutation,
@@ -103,12 +103,17 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
     }
 
     const thumbnail = form.thumbnail[0]?.url ?? "";
+    const category = categoriesData?.content.find(
+      (item) => item.id === form.categoryItem,
+    );
+    const categoryName = category?.name ?? "";
 
     try {
       if (mode === "edit" && article) {
         await editNewsMutation.mutateAsync({
           news_item: article.id,
           category_item: form.categoryItem,
+          category_name: categoryName,
           thumbnail,
           title: form.title,
           path: form.path,
@@ -118,6 +123,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
       } else {
         await postNewsMutation.mutateAsync({
           category_item: form.categoryItem,
+          category_name: categoryName,
           thumbnail,
           title: form.title,
           path: form.path,
@@ -171,13 +177,6 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => navigate("/news")}>
                 Hủy
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSave("draft")}
-                disabled={isSaving}
-              >
-                Lưu nháp
               </Button>
               <Button
                 onClick={() => handleSave("published")}
@@ -300,24 +299,6 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 </p>
               </div>
 
-              {mode === "edit" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="news-status">Trạng thái</Label>
-                  <Select
-                    id="news-status"
-                    value={form.status}
-                    onChange={(e) =>
-                      updateForm({ status: e.target.value as NewsStatus })
-                    }
-                  >
-                    {statusOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
