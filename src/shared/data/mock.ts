@@ -395,12 +395,12 @@ export const mockCitizens = [
 ];
 
 export const mockRoutingRules = [
-  { id: '1', field: 'Môi trường', department: 'Địa chính', staff: 'Lê Văn C' },
-  { id: '2', field: 'Trật tự', department: 'Công an', staff: 'Phạm Thị D' },
-  { id: '3', field: 'Hành chính', department: 'Văn phòng UBND', staff: 'Nguyễn Văn A' },
-  { id: '4', field: 'An ninh', department: 'Công an', staff: 'Phạm Thị D' },
-  { id: '5', field: 'Tài chính', department: 'Tài chính - Kế toán', staff: 'Đặng Văn G' },
-  { id: '6', field: 'Văn hóa', department: 'Văn hóa - Xã hội', staff: 'Hoàng Thị E' },
+  { id: '1', field: 'Môi trường', staff: 'Lê Văn C', position: 'Cán bộ xử lý', createdAt: '2023-10-01 08:30' },
+  { id: '2', field: 'Trật tự', staff: 'Phạm Thị D', position: 'Cán bộ xử lý', createdAt: '2023-10-02 09:15' },
+  { id: '3', field: 'Hành chính', staff: 'Nguyễn Văn A', position: 'Super Admin', createdAt: '2023-10-03 10:00' },
+  { id: '4', field: 'An ninh', staff: 'Phạm Thị D', position: 'Cán bộ xử lý', createdAt: '2023-10-04 14:20' },
+  { id: '5', field: 'Tài chính', staff: 'Đặng Văn G', position: 'Cán bộ xử lý', createdAt: '2023-10-05 11:45' },
+  { id: '6', field: 'Văn hóa', staff: 'Hoàng Thị E', position: 'Biên tập viên', createdAt: '2023-10-06 16:10' },
 ];
 
 export const mockRoutedItems = [

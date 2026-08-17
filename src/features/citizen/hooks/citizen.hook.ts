@@ -1,4 +1,9 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
   editCitizenProcess,
@@ -24,6 +29,29 @@ export function useSearchCitizensQuery(request: SearchCitizensRequest) {
     queryFn: () => searchCitizens(request),
     placeholderData: keepPreviousData,
   });
+}
+
+/**
+ * There is no GET-by-id endpoint for a single citizen, so a record can only
+ * come from a citizens list/search page already cached by useCitizensQuery
+ * or useSearchCitizensQuery. Returns undefined if that page was never
+ * fetched in this session (no extra request is made).
+ */
+export function useCitizenFromCache(id?: number | string) {
+  const queryClient = useQueryClient();
+
+  if (id === undefined || id === null || id === '') return undefined;
+
+  const cached = queryClient.getQueriesData<GetCitizensResponse>({
+    queryKey: ['citizens'],
+  });
+
+  for (const [, data] of cached) {
+    const found = data?.content.find((item) => String(item.id) === String(id));
+    if (found) return found;
+  }
+
+  return undefined;
 }
 
 export function useEditCitizenProcessMutation() {

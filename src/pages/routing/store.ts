@@ -10,9 +10,18 @@ export function getRoutingRules() {
   return [...rulesState];
 }
 
+function formatDateTime(date: Date) {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function saveRoutingRule(rule: RoutingRule) {
-  const nextRule = { ...rule, id: rule.id || Date.now().toString() };
-  const exists = rulesState.some((item) => item.id === nextRule.id);
+  const exists = rulesState.some((item) => item.id === rule.id);
+  const nextRule = {
+    ...rule,
+    id: rule.id || Date.now().toString(),
+    createdAt: exists ? rule.createdAt : formatDateTime(new Date()),
+  };
   rulesState = exists
     ? rulesState.map((item) => (item.id === nextRule.id ? nextRule : item))
     : [...rulesState, nextRule];

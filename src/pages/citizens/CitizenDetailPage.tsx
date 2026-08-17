@@ -32,20 +32,13 @@ import {
   FileText,
   MapPin,
   Pencil,
-  Trash2,
   User,
   User2,
 } from "lucide-react";
 import { useCommentsQuery } from "@/features/comment/hooks/comment.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import { mockCitizenComments } from "@/shared/data/mock";
-import { deleteCitizen, getCitizenById } from "./store";
-import {
-  displayCitizenValue,
-  statusBadgeVariant,
-  statusLabel,
-  type CitizenRecord,
-} from "./types";
+import { useCitizenFromCache } from "@/features/citizen/hooks/citizen.hook";
 
 type CommentReply = {
   staffName: string;
@@ -72,6 +65,14 @@ function commentStatus(item: CitizenComment) {
     : commentStatusMeta.pending;
 }
 
+function citizenStatusLabel(status: number) {
+  return status === 1 ? "Đang hoạt động" : "Tạm ẩn";
+}
+
+function citizenStatusVariant(status: number) {
+  return status === 1 ? "success" : "warning";
+}
+
 const formatDateTime = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -89,14 +90,12 @@ function InfoItem({
   value,
 }: {
   label: string;
-  value: string | number | boolean | undefined;
+  value: string | number | null | undefined;
 }) {
   return (
     <div className="flex items-start gap-2 text-sm">
       <span className="min-w-40 text-muted-foreground">{label}:</span>
-      <span className="font-medium text-foreground">
-        {displayCitizenValue(value)}
-      </span>
+      <span className="font-medium text-foreground">{value || "-"}</span>
     </div>
   );
 }
@@ -110,15 +109,12 @@ export default function CitizenDetailPage({
 }: CitizenDetailPageProps) {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/citizens/:id");
+  const id = citizenId ?? params?.id;
   const [selectedComment, setSelectedComment] = useState<CitizenComment | null>(
     null,
   );
 
-  const citizen: CitizenRecord | null = useMemo(() => {
-    const id = citizenId ?? params?.id;
-    if (!id) return null;
-    return getCitizenById(id);
-  }, [citizenId, params?.id]);
+  const citizen = useCitizenFromCache(id);
 
   const { data: commentsData } = useCommentsQuery();
 
@@ -132,23 +128,19 @@ export default function CitizenDetailPage({
     return mockCitizenComments.filter((item) => item.phone === citizen.phone);
   }, [commentsData, citizen?.phone]);
 
-  const handleDelete = () => {
-    if (!citizen) return;
-    if (!confirm("Bạn có chắc chắn muốn xóa hồ sơ công dân này?")) return;
-    deleteCitizen(citizen.id);
-    navigate("/citizens");
-  };
-
   if (!citizen) {
     return (
       <Layout>
         <Card className="mx-auto max-w-lg">
           <CardHeader>
-            <CardTitle>Không tìm thấy công dân</CardTitle>
+            <CardTitle>Không có sẵn dữ liệu công dân</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Hồ sơ công dân bạn muốn xem không tồn tại hoặc đã bị xóa.
+              API chưa có endpoint lấy chi tiết công dân theo ID, nên trang
+              này chỉ hiển thị được khi mở từ danh sách Công dân đã tải sẵn
+              dòng tương ứng (công dân #{id}). Hãy quay lại danh sách và mở
+              chi tiết từ đó.
             </p>
             <Button onClick={() => navigate("/citizens")}>
               Quay lại danh sách
@@ -159,7 +151,7 @@ export default function CitizenDetailPage({
     );
   }
 
-  const avatarUrl = citizen.avatar[0]?.url ?? "";
+  const avatarUrl = citizen.avatar ?? "";
   const initials = citizen.name
     .split(" ")
     .filter(Boolean)
@@ -193,10 +185,6 @@ export default function CitizenDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Xóa
-            </Button>
             <Button
               variant="outline"
               onClick={() => navigate(`/citizens/${citizen.id}/edit`)}
@@ -220,25 +208,33 @@ export default function CitizenDetailPage({
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-2xl font-semibold">{citizen.name}</h2>
-                    <Badge variant={statusBadgeVariant(citizen.status)}>
-                      {statusLabel(citizen.status)}
+                    <Badge variant={citizenStatusVariant(citizen.status)}>
+                      {citizenStatusLabel(citizen.status)}
                     </Badge>
                   </div>
                 </div>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <InfoItem label="Ngày sinh" value={citizen.birthday} />
-                <InfoItem label="Giới tính" value={citizen.gender} />
-                <InfoItem label="Căn Cước" value={citizen.cccd} />
                 <InfoItem label="Điện thoại" value={citizen.phone} />
                 <InfoItem label="Email" value={citizen.email} />
-                <InfoItem label="Nghề nghiệp" value={citizen.occupation} />
-                <InfoItem label="Học vấn" value={citizen.education} />
-                <InfoItem label="Dân tộc" value={citizen.ethnicity} />
-                <InfoItem label="Tôn giáo" value={citizen.religion} />
+                <InfoItem label="Căn Cước" value={citizen.citizen_number} />
                 <InfoItem label="Địa chỉ" value={citizen.address} />
-                <InfoItem label="Ghi chú" value={citizen.notes} />
+                <InfoItem label="Thôn/Xóm" value={citizen.hamlet} />
+                <InfoItem label="Phường/Xã" value={citizen.ward_name} />
+                <InfoItem label="Tỉnh/Thành" value={citizen.province_name} />
+                <InfoItem
+                  label="Theo dõi Zalo OA"
+                  value={citizen.followed_oa === 1 ? "Có" : "Không"}
+                />
+                <InfoItem
+                  label="Ngày tạo"
+                  value={
+                    citizen.time_create
+                      ? formatDateTime(citizen.time_create)
+                      : "-"
+                  }
+                />
               </div>
             </CardContent>
           </Card>

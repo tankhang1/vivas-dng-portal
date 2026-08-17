@@ -21,7 +21,7 @@ import {
   Select,
   Pagination,
 } from "../../shared/components/ui";
-import { mockDepartments, mockStaff } from "../../shared/data/mock";
+import { mockStaff } from "../../shared/data/mock";
 import {
   deleteRoutingRule,
   getRoutingRules,
@@ -38,16 +38,13 @@ export default function RoutingSetupPage() {
   const [currentRule, setCurrentRule] = useState<RoutingRule | null>(null);
 
   const [ruleSearch, setRuleSearch] = useState("");
-  const [ruleDeptFilter, setRuleDeptFilter] = useState("all");
   const [rulePage, setRulePage] = useState(1);
 
   const filteredRules = useMemo(() => {
-    return rules.filter(
-      (r) =>
-        r.field.toLowerCase().includes(ruleSearch.toLowerCase()) &&
-        (ruleDeptFilter === "all" || r.department === ruleDeptFilter),
+    return rules.filter((r) =>
+      r.field.toLowerCase().includes(ruleSearch.toLowerCase()),
     );
-  }, [rules, ruleSearch, ruleDeptFilter]);
+  }, [rules, ruleSearch]);
   const ruleTotalPages = Math.max(
     1,
     Math.ceil(filteredRules.length / PAGE_SIZE),
@@ -62,8 +59,9 @@ export default function RoutingSetupPage() {
       rule || {
         id: "",
         field: "",
-        department: mockDepartments[0].name,
         staff: mockStaff[0].name,
+        position: mockStaff[0].role,
+        createdAt: "",
       },
     );
     setIsDialogOpen(true);
@@ -119,23 +117,6 @@ export default function RoutingSetupPage() {
                   }}
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={ruleDeptFilter}
-                  onChange={(e) => {
-                    setRuleDeptFilter(e.target.value);
-                    setRulePage(1);
-                  }}
-                  className="w-48"
-                >
-                  <option value="all">Tất cả phòng ban</option>
-                  {mockDepartments.map((d) => (
-                    <option key={d.id} value={d.name}>
-                      {d.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -143,8 +124,9 @@ export default function RoutingSetupPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Lĩnh vực</TableHead>
-                  <TableHead>Phòng ban phụ trách</TableHead>
-                  <TableHead>Cán bộ tiếp nhận</TableHead>
+                  <TableHead>Cán bộ xử lý</TableHead>
+                  <TableHead>Chức vụ</TableHead>
+                  <TableHead>Thời gian thiết lập</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
@@ -152,8 +134,11 @@ export default function RoutingSetupPage() {
                 {paginatedRules.map((rule) => (
                   <TableRow key={rule.id}>
                     <TableCell className="font-medium">{rule.field}</TableCell>
-                    <TableCell>{rule.department}</TableCell>
                     <TableCell>{rule.staff}</TableCell>
+                    <TableCell>{rule.position}</TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {rule.createdAt}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
@@ -175,7 +160,7 @@ export default function RoutingSetupPage() {
                 {paginatedRules.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={5}
                       className="h-24 text-center text-muted-foreground"
                     >
                       Không tìm thấy quy tắc nào.
@@ -215,34 +200,19 @@ export default function RoutingSetupPage() {
             />
           </div>
           <div className="grid gap-2">
-            <Label>Phòng ban phụ trách</Label>
+            <Label>Cán bộ xử lý</Label>
             <Select
-              value={currentRule?.department || ""}
-              onChange={(e) =>
+              value={currentRule?.staff || ""}
+              onChange={(e) => {
+                const staff = mockStaff.find((s) => s.name === e.target.value);
                 setCurrentRule(
                   currentRule && {
                     ...currentRule,
-                    department: e.target.value,
+                    staff: e.target.value,
+                    position: staff?.role || "",
                   },
-                )
-              }
-            >
-              {mockDepartments.map((d) => (
-                <option key={d.id} value={d.name}>
-                  {d.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Cán bộ tiếp nhận</Label>
-            <Select
-              value={currentRule?.staff || ""}
-              onChange={(e) =>
-                setCurrentRule(
-                  currentRule && { ...currentRule, staff: e.target.value },
-                )
-              }
+                );
+              }}
             >
               {mockStaff.map((s) => (
                 <option key={s.id} value={s.name}>
@@ -250,6 +220,10 @@ export default function RoutingSetupPage() {
                 </option>
               ))}
             </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label>Chức vụ</Label>
+            <Input value={currentRule?.position || ""} disabled readOnly />
           </div>
         </div>
         <DialogFooter>
