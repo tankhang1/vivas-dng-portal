@@ -204,7 +204,7 @@ export default function CitizenDetailPage({
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              onClick={() => navigate(`/citizens/${citizen.id}/edit`)}
+              onClick={() => navigate(`/citizens/${citizen.zalo_user_id}/edit`)}
             >
               <Pencil className="mr-2 h-4 w-4" />
               Chỉnh sửa

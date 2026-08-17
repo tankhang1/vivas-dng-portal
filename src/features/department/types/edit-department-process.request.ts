@@ -1,5 +1,5 @@
 export type EditDepartmentProcessRequest = {
-  item: number;
+  id: number;
   name: string;
   note: string;
   staff_item: number;

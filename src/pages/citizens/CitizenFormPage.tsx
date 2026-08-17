@@ -25,6 +25,7 @@ type CitizenFormPageProps = {
 };
 
 type CitizenFormFields = {
+  citizen_number: string;
   name: string;
   email: string;
   address: string;
@@ -38,6 +39,7 @@ type CitizenFormFields = {
 };
 
 const defaultFields = (): CitizenFormFields => ({
+  citizen_number: "",
   name: "",
   email: "",
   address: "",
@@ -64,6 +66,7 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
     if (mode === "edit" && citizen) {
       setFields({
         ...defaultFields(),
+        citizen_number: citizen.citizen_number ?? "",
         name: citizen.name,
         email: citizen.email ?? "",
         address: citizen.address ?? "",
@@ -105,7 +108,9 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
 
     try {
       await editMutation.mutateAsync({
+        id: citizen.id,
         zalo_user_id: citizen.zalo_user_id,
+        citizen_number: fields.citizen_number.trim(),
         name,
         avatar: avatarFiles[0]?.url ?? "",
         email: fields.email,
@@ -231,6 +236,18 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
               </div>
 
               <div className="grid gap-2">
+                <Label htmlFor="citizen-number">Số CCCD / CMND</Label>
+                <Input
+                  id="citizen-number"
+                  value={fields.citizen_number}
+                  onChange={(e) =>
+                    updateForm({ citizen_number: e.target.value })
+                  }
+                  placeholder="Nhập số CCCD/CMND"
+                />
+              </div>
+
+              <div className="grid gap-2">
                 <Label htmlFor="citizen-phone">Số điện thoại</Label>
                 <Input id="citizen-phone" value={citizen.phone} disabled />
               </div>
@@ -248,6 +265,16 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
                   <option value="1">Nam</option>
                   <option value="2">Nữ</option>
                 </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="citizen-religion">Tôn giáo</Label>
+                <Input
+                  id="citizen-religion"
+                  value={fields.religion}
+                  onChange={(e) => updateForm({ religion: e.target.value })}
+                  placeholder="Nhập tôn giáo"
+                />
               </div>
 
               <div className="grid gap-2 md:col-span-2">
@@ -307,16 +334,6 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
                   value={fields.ethnicity}
                   onChange={(e) => updateForm({ ethnicity: e.target.value })}
                   placeholder="Nhập dân tộc"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="citizen-religion">Tôn giáo</Label>
-                <Input
-                  id="citizen-religion"
-                  value={fields.religion}
-                  onChange={(e) => updateForm({ religion: e.target.value })}
-                  placeholder="Nhập tôn giáo"
                 />
               </div>
             </div>

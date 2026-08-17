@@ -10,12 +10,6 @@ import {
   Badge,
   Button,
   Input,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Label,
-  Select,
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
 import {
@@ -38,6 +32,7 @@ import {
 import { getStaffCoordinateCommentsByCategoryApprove } from "@/features/staff/api/staff.api";
 import { QUERY_KEY } from "@/shared/api";
 import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
+import { RoutingStaffDialog } from "./components/RoutingStaffDialog";
 import {
   CheckCircle2,
   ChevronDown,
@@ -58,14 +53,11 @@ const STAFF_LIST_SIZE = 200;
 export default function RoutingPage() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">(
-    "",
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [expandedGroup, setExpandedGroup] = useState<
     "approved" | "pending" | null
   >("approved");
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
-  const [newStaffId, setNewStaffId] = useState<number | "">("");
 
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useCommentCategoriesQuery({ sz: CATEGORY_LIST_SIZE, nu: 0 });
@@ -109,10 +101,7 @@ export default function RoutingPage() {
   const approvedCountByCategory = useMemo(() => {
     const map = new Map<number, number>();
     categories.forEach((category, index) => {
-      map.set(
-        category.id,
-        countQueries[index]?.data?.page.totalElements ?? 0,
-      );
+      map.set(category.id, countQueries[index]?.data?.page.totalElements ?? 0);
     });
     return map;
   }, [categories, countQueries]);
@@ -143,7 +132,8 @@ export default function RoutingPage() {
   const activeMutation = useActiveStaffCoordinateCommentProcessMutation();
   const deactiveMutation = useDeactiveStaffCoordinateCommentProcessMutation();
   const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
-  const createStaffLinkMutation = useCreateStaffCoordinateCommentProcessMutation();
+  const createStaffLinkMutation =
+    useCreateStaffCoordinateCommentProcessMutation();
   const isToggling = activeMutation.isPending || deactiveMutation.isPending;
 
   const handleSelectCategory = (id: number) => {
@@ -159,25 +149,27 @@ export default function RoutingPage() {
   };
 
   const handleDeleteCategory = async (id: number, name: string) => {
-    if (!window.confirm(`Xóa lĩnh vực "${name}"?`)) return;
+    if (!window.confirm(`Xóa điều phối "${name}"?`)) return;
     try {
       await removeCategoryMutation.mutateAsync({ category_item: id });
       if (activeCategoryId === id) {
         setSelectedCategoryId("");
       }
     } catch {
-      window.alert("Xóa lĩnh vực thất bại. Vui lòng thử lại.");
+      window.alert("Xóa điều phối thất bại. Vui lòng thử lại.");
     }
   };
 
   const handleOpenAddStaffDialog = () => {
-    setNewStaffId("");
     setIsAddStaffDialogOpen(true);
   };
 
-  const handleAddStaff = async () => {
-    if (!activeCategory || newStaffId === "") return;
-    const staff = staffById.get(newStaffId);
+  const handleAddStaff = async (values: {
+    staffId: string;
+    approval: boolean;
+  }) => {
+    if (!activeCategory || values.staffId === "") return;
+    const staff = staffById.get(Number(values.staffId));
     if (!staff) return;
 
     try {
@@ -185,12 +177,12 @@ export default function RoutingPage() {
         id: 0,
         staff_item: staff.id,
         staff_name: staff.name,
-        approval: 0,
+        approval: values.approval ? 1 : 0,
         comments_category_item: activeCategory.id,
         comments_category_name: activeCategory.name,
       });
       setIsAddStaffDialogOpen(false);
-      setExpandedGroup("pending");
+      setExpandedGroup(values.approval ? "approved" : "pending");
     } catch {
       window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
     }
@@ -238,10 +230,10 @@ export default function RoutingPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Lĩnh vực chuyên trách
+              Điều phối chuyên trách
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Chọn một lĩnh vực chuyên trách để xem và điều phối cán bộ xử lý
+              Chọn một điều phối chuyên trách để xem và điều phối cán bộ xử lý
               tương ứng.
             </p>
           </div>
@@ -250,7 +242,7 @@ export default function RoutingPage() {
             className="gap-2 self-start"
           >
             <Plus className="h-4 w-4" />
-            Thêm lĩnh vực
+            Thêm điều phối
           </Button>
         </div>
 
@@ -282,17 +274,15 @@ export default function RoutingPage() {
                     </div>
                   </div>
                 ) : (
-                  <CardTitle className="text-lg">
-                    Chưa chọn lĩnh vực
-                  </CardTitle>
+                  <CardTitle className="text-lg">Chưa chọn điều phối</CardTitle>
                 )}
               </CardHeader>
               {activeCategory && (
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    {approveQuery.data?.page.totalElements ?? 0} người dùng
-                    đang giữ lĩnh vực này
+                    {approveQuery.data?.page.totalElements ?? 0} người dùng đang
+                    giữ điều phối này
                   </div>
                 </CardContent>
               )}
@@ -302,7 +292,7 @@ export default function RoutingPage() {
               <CardHeader className="flex flex-col gap-3 border-b border-border sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle className="text-lg">
-                    Danh sách cán bộ xử lý
+                    Danh sách cán bộ điều phối
                   </CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Mỗi nhóm có thể mở ra để xem cán bộ được gán, kèm số điện
@@ -321,7 +311,7 @@ export default function RoutingPage() {
               <CardContent className="space-y-3 pt-4">
                 {!activeCategory && (
                   <p className="py-8 text-center text-sm text-muted-foreground">
-                    Chọn một lĩnh vực ở bên phải để xem cán bộ phụ trách.
+                    Chọn một điều phối ở bên phải để xem cán bộ phụ trách.
                   </p>
                 )}
                 {activeCategory && isLoadingRows && (
@@ -341,7 +331,7 @@ export default function RoutingPage() {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
                         <span className="flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4 text-primary" />
-                          Đã phê duyệt
+                          Được quyền phê duyệt
                           <Badge variant="warning">
                             {approvedRows.length} cán bộ
                           </Badge>
@@ -353,7 +343,7 @@ export default function RoutingPage() {
                       <CollapsibleContent>
                         {approvedRows.length === 0 ? (
                           <p className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                            Chưa có cán bộ nào được phê duyệt.
+                            Chưa có cán bộ nào được quyền phê duyệt.
                           </p>
                         ) : (
                           approvedRows.map(renderStaffRow)
@@ -371,7 +361,7 @@ export default function RoutingPage() {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
                         <span className="flex items-center gap-2">
                           <CircleDashed className="h-4 w-4 text-muted-foreground" />
-                          Chưa phê duyệt
+                          Được quyền xem
                           <Badge variant="outline">
                             {pendingRows.length} cán bộ
                           </Badge>
@@ -383,7 +373,7 @@ export default function RoutingPage() {
                       <CollapsibleContent>
                         {pendingRows.length === 0 ? (
                           <p className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                            Không có cán bộ đang chờ phê duyệt.
+                            Không có cán bộ được quyền xem.
                           </p>
                         ) : (
                           pendingRows.map(renderStaffRow)
@@ -401,13 +391,13 @@ export default function RoutingPage() {
               <div className="flex items-center gap-2">
                 <Waypoints className="h-5 w-5 text-primary" />
                 <CardTitle className="text-lg">
-                  Danh sách lĩnh vực chuyên trách
+                  Danh sách điều phối chuyên trách
                 </CardTitle>
               </div>
               <div className="relative mt-3">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Tìm kiếm lĩnh vực..."
+                  placeholder="Tìm kiếm điều phối..."
                   className="pl-9"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
@@ -422,7 +412,7 @@ export default function RoutingPage() {
               )}
               {!isCategoriesLoading && filteredCategories.length === 0 && (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  Không tìm thấy lĩnh vực nào.
+                  Không tìm thấy điều phối nào.
                 </p>
               )}
               {filteredCategories.map((category) => {
@@ -483,50 +473,14 @@ export default function RoutingPage() {
         </div>
       </div>
 
-      <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>
-        <DialogHeader>
-          <DialogTitle>Thêm cán bộ vào lĩnh vực</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label>Lĩnh vực</Label>
-            <Input value={activeCategory?.name ?? ""} disabled readOnly />
-          </div>
-          <div className="grid gap-2">
-            <Label>Cán bộ xử lý</Label>
-            <Select
-              value={newStaffId}
-              onChange={(e) => setNewStaffId(Number(e.target.value))}
-            >
-              <option value="">Chọn cán bộ...</option>
-              {assignableStaff.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
-            {assignableStaff.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                Tất cả cán bộ đã được gán vào lĩnh vực này.
-              </p>
-            )}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setIsAddStaffDialogOpen(false)}
-          >
-            Hủy
-          </Button>
-          <Button
-            onClick={handleAddStaff}
-            disabled={newStaffId === "" || createStaffLinkMutation.isPending}
-          >
-            {createStaffLinkMutation.isPending ? "Đang lưu..." : "Thêm cán bộ"}
-          </Button>
-        </DialogFooter>
-      </Dialog>
+      <RoutingStaffDialog
+        open={isAddStaffDialogOpen}
+        onOpenChange={setIsAddStaffDialogOpen}
+        categoryName={activeCategory?.name ?? ""}
+        staffOptions={assignableStaff}
+        isSaving={createStaffLinkMutation.isPending}
+        onSubmit={handleAddStaff}
+      />
     </Layout>
   );
 }

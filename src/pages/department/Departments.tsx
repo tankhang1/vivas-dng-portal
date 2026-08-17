@@ -203,7 +203,7 @@ export default function Departments() {
     try {
       if (editingDepartmentId) {
         await editDepartmentMutation.mutateAsync({
-          item: Number(editingDepartmentId),
+          id: Number(editingDepartmentId),
           name,
           note: desc,
           staff_item: staffItem,
@@ -349,7 +349,9 @@ export default function Departments() {
               onAddChild={() =>
                 selectedDepartment && openCreateDialog(selectedDepartment.id)
               }
-              onEdit={() => selectedDepartment && openEditDialog(selectedDepartment)}
+              onEdit={() =>
+                selectedDepartment && openEditDialog(selectedDepartment)
+              }
               onDelete={() =>
                 selectedDepartment && handleDeleteDepartment(selectedDepartment)
               }

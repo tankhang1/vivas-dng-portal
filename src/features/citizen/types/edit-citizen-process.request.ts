@@ -1,5 +1,7 @@
 export type EditCitizenProcessRequest = {
+  id: number;
   zalo_user_id: string;
+  citizen_number: string;
   name: string;
   avatar: string;
   email: string;

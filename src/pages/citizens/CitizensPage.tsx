@@ -86,7 +86,7 @@ export default function CitizensPage() {
                   <TableHead>Họ và tên</TableHead>
                   <TableHead>Căn Cước</TableHead>
                   <TableHead>Điện thoại</TableHead>
-                  <TableHead>Phường/Xã</TableHead>
+                  <TableHead>Thôn/Ấp</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
@@ -118,7 +118,7 @@ export default function CitizensPage() {
                         {citizen.phone || "-"}
                       </TableCell>
                       <TableCell className="text-slate-600">
-                        {citizen.ward_name || "-"}
+                        {citizen.hamlet || "-"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={citizenStatusVariant(citizen.status)}>

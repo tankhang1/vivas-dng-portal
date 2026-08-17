@@ -61,9 +61,9 @@ export default function Dashboard() {
           isLoading={isDashboardLoading}
         />
 
-        <div className="grid gap-6 lg:grid-cols-1">
+        {/* <div className="grid gap-6 lg:grid-cols-1">
           <StaffByFieldChart data={staffByField} />
-        </div>
+        </div> */}
 
         <div className="grid gap-6 xl:grid-cols-3">
           <RecentNewsCard items={recentNews} isLoading={isRecentNewsLoading} />
