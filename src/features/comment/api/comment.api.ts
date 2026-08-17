@@ -1,4 +1,5 @@
 import { API_PATH, apiClient } from '@/shared/api';
+import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
@@ -51,6 +52,29 @@ export async function searchComments(
 
 export async function getCommentByUuid(cUuid: string): Promise<CommentItem> {
   const response = await apiClient.get<CommentItem>(API_PATH.COMMON_PORTAL.COMMENT(cUuid));
+
+  return response.data;
+}
+
+export async function getCitizenComments(
+  request: GetCitizenCommentsRequest,
+): Promise<GetCommentsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const query = params.toString();
+  const response = await apiClient.get<GetCommentsResponse>(
+    query
+      ? `${API_PATH.COMMON_PORTAL.CITIZEN_COMMENTS(request.zaloUserId)}?${query}`
+      : API_PATH.COMMON_PORTAL.CITIZEN_COMMENTS(request.zaloUserId),
+  );
 
   return response.data;
 }

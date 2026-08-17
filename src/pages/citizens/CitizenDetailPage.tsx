@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -35,10 +35,9 @@ import {
   User,
   User2,
 } from "lucide-react";
-import { useCommentsQuery } from "@/features/comment/hooks/comment.hook";
+import { useCitizenCommentsQuery } from "@/features/comment/hooks/comment.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import { useCitizenProfileQuery } from "@/features/citizen/hooks/citizen.hook";
-import { mockCitizenComments } from "@/shared/data/mock";
 import { Spinner } from "../../shared/components/ui/spinner";
 
 type CommentReply = {
@@ -121,17 +120,15 @@ export default function CitizenDetailPage({
     isError: isCitizenError,
   } = useCitizenProfileQuery(id);
 
-  const { data: commentsData } = useCommentsQuery();
+  const { data: commentsData } = useCitizenCommentsQuery({
+    zaloUserId: id ?? "",
+    sz: 200,
+    nu: 0,
+  });
 
-  const citizenComments = useMemo(() => {
-    if (!citizen?.phone) return [];
-    const apiMatches = (commentsData?.content ?? []).filter(
-      (item) => item.phone === citizen.phone,
-    );
-    if (apiMatches.length > 0) return apiMatches;
-    // Fallback dummy data khi API chưa trả về phản ánh nào cho công dân này.
-    return mockCitizenComments.filter((item) => item.phone === citizen.phone);
-  }, [commentsData, citizen?.phone]);
+  const citizenComments = commentsData?.content ?? [];
+  const isCommentsLoading =
+    !isCitizenLoading && !isCitizenError && id !== undefined && !commentsData;
 
   if (isCitizenLoading) {
     return (
@@ -260,7 +257,7 @@ export default function CitizenDetailPage({
             <CardHeader className="border-b border-border">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle className="text-lg">
-                  Danh sách phản ảnh của người dùng
+                  Danh sách phản ánh của người dùng
                 </CardTitle>
                 <Badge variant="outline">
                   {citizenComments.length} phản ánh
@@ -268,7 +265,11 @@ export default function CitizenDetailPage({
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              {citizenComments.length > 0 ? (
+              {isCommentsLoading ? (
+                <div className="flex justify-center py-10">
+                  <Spinner className="h-4 w-4" />
+                </div>
+              ) : citizenComments.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -281,7 +282,6 @@ export default function CitizenDetailPage({
                   <TableBody>
                     {citizenComments.map((item) => {
                       const meta = commentStatus(item);
-                      const isReplied = item.staff_approve_item > 0;
                       return (
                         <TableRow key={item.id}>
                           <TableCell className="max-w-[180px] font-medium">
@@ -297,18 +297,14 @@ export default function CitizenDetailPage({
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            {isReplied ? (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                title="Xem chi tiết phản hồi"
-                                onClick={() => setSelectedComment(item)}
-                              >
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                            ) : (
-                              "-"
-                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Xem chi tiết"
+                              onClick={() => setSelectedComment(item)}
+                            >
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );

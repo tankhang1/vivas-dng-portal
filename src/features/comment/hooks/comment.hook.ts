@@ -1,11 +1,13 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import {
+  getCitizenComments,
   getCommentByUuid,
   getComments,
   postCommentProcess,
   searchComments,
 } from '@/features/comment/api/comment.api';
+import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
 import type { PostCommentProcessRequest } from '@/features/comment/types/post-comment-process.request';
@@ -34,6 +36,17 @@ export function useCommentQuery(cUuid?: string) {
     queryKey: cUuid ? QUERY_KEY.COMMENT(cUuid) : QUERY_KEY.COMMENT(''),
     queryFn: () => getCommentByUuid(cUuid as string),
     enabled: !!cUuid,
+  });
+}
+
+export function useCitizenCommentsQuery(request: GetCitizenCommentsRequest) {
+  const { zaloUserId, sz, nu } = request;
+
+  return useQuery<GetCommentsResponse>({
+    queryKey: QUERY_KEY.CITIZEN_COMMENTS(zaloUserId, { sz, nu }),
+    queryFn: () => getCitizenComments(request),
+    enabled:
+      zaloUserId !== undefined && zaloUserId !== null && zaloUserId !== '',
   });
 }
 

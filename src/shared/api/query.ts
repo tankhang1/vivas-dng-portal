@@ -50,6 +50,10 @@ export const QUERY_KEY = {
     nu?: number;
   }) => ['comments', 'search', params] as const,
   COMMENT: (cUuid: string) => ['comments', 'detail', cUuid] as const,
+  CITIZEN_COMMENTS: (
+    zaloUserId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['comments', 'citizen', zaloUserId, params] as const,
   CITIZENS: ['citizens'] as const,
   CITIZENS_SEARCH: (params: {
     key?: string;
