@@ -29,6 +29,10 @@ export const QUERY_KEY = {
     categoryId: number | string,
     params: { sz?: number; nu?: number },
   ) => ['staff', 'coordinate-comment', 'category-none-approve', categoryId, params] as const,
+  STAFF_COORDINATE_COMMENTS_STAFF_APPROVE: (
+    staffId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-comment', 'staff-approve', staffId, params] as const,
   STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE: (
     staffId: number | string,
     params: { sz?: number; nu?: number },

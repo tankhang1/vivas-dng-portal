@@ -13,8 +13,7 @@ import NewsEdit from "@/pages/news/Edit";
 import CategoriesPage from "@/pages/categories";
 import CategoriesCreate from "@/pages/categories/Create";
 import CategoriesEdit from "@/pages/categories/Edit";
-import RoutingSetupPage from "@/pages/routing/RoutingSetupPage";
-import RoutingListPage from "@/pages/routing/RoutingListPage";
+import RoutingPage from "@/pages/routing/RoutingPage";
 import Citizens from "@/pages/citizens";
 import CitizensCreate from "@/pages/citizens/Create";
 import CitizenDetail from "@/pages/citizens/Detail";
@@ -65,11 +64,13 @@ function Router() {
       <Route path="/citizens/:id/edit" component={CitizensEdit} />
       <Route path="/citizens/:id" component={CitizenDetail} />
       <Route path="/citizens" component={Citizens} />
-      <Route path="/routing/list" component={RoutingListPage} />
-      <Route path="/routing/setup" component={RoutingSetupPage} />
-      <Route path="/routing">
-        <Redirect to="/routing/setup" />
+      <Route path="/routing/list">
+        <Redirect to="/routing" />
       </Route>
+      <Route path="/routing/setup">
+        <Redirect to="/routing" />
+      </Route>
+      <Route path="/routing" component={RoutingPage} />
       <Route path="/feedback" component={Feedback} />
       <Route path="/appointments" component={QueueTickets} />
       <Route path="/settings/general" component={GeneralSettingsPage} />

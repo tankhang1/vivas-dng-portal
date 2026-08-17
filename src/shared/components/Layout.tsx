@@ -15,8 +15,6 @@ import {
   ChevronDown,
   Tag,
   Settings,
-  Settings2,
-  ListChecks,
   Info,
 } from 'lucide-react';
 import { cn } from './ui';
@@ -48,15 +46,7 @@ const navItems = [
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
   { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
-  {
-    name: 'Điều phối',
-    menuKey: 'routing',
-    icon: Waypoints,
-    children: [
-      { name: 'Thiết lập tiếp nhận phản ánh', href: '/routing/setup', icon: Settings2 },
-      { name: 'Danh sách điều phối', href: '/routing/list', icon: ListChecks },
-    ],
-  },
+  { name: 'Điều phối', href: '/routing', icon: Waypoints },
   {
     name: 'Cài đặt',
     menuKey: 'settings',
@@ -85,7 +75,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     cms:
       location.startsWith('/news') ||
       location.startsWith('/categories'),
-    routing: location.startsWith('/routing'),
     settings: location.startsWith('/settings'),
   });
 

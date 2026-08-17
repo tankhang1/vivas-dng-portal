@@ -5,6 +5,7 @@ import {
   getStaffCoordinateCommentById,
   getStaffCoordinateCommentsByCategoryApprove,
   getStaffCoordinateCommentsByCategoryNoneApprove,
+  getStaffCoordinateCommentsByStaffApprove,
   getStaffCoordinateCommentsByStaffNoneApprove,
   activeStaffProcess,
   createStaffProcess,
@@ -113,6 +114,18 @@ export function useStaffCoordinateCommentsByCategoryNoneApproveQuery(
     queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE(categoryId, { sz, nu }),
     queryFn: () => getStaffCoordinateCommentsByCategoryNoneApprove(request),
     enabled: categoryId !== undefined && categoryId !== null && categoryId !== '',
+  });
+}
+
+export function useStaffCoordinateCommentsByStaffApproveQuery(
+  request: GetStaffCoordinateCommentsByStaffRequest,
+) {
+  const { staffId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_STAFF_APPROVE(staffId, { sz, nu }),
+    queryFn: () => getStaffCoordinateCommentsByStaffApprove(request),
+    enabled: staffId !== undefined && staffId !== null && staffId !== '',
   });
 }
 

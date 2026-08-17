@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import { MediaUpload } from "../../shared/components/MediaUpload";
@@ -18,8 +18,8 @@ import {
   type StaffRecord,
   type StaffStatus,
 } from "./types";
-import { mockRoutingRules } from "../../shared/data/mock";
 import { useDepartmentsQuery } from "@/features/department/hooks/department.hook";
+import { useDivisionsQuery } from "@/features/division/hooks/division.hook";
 import {
   useActiveStaffProcessMutation,
   useCreateStaffProcessMutation,
@@ -38,6 +38,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   const [, navigate] = useLocation();
   const staff = useStaffFromCache(mode === "edit" ? staffId : undefined);
   const { data: departmentsData } = useDepartmentsQuery();
+  const { data: divisionsData } = useDivisionsQuery();
   const createStaffMutation = useCreateStaffProcessMutation();
   const editStaffMutation = useEditStaffProcessMutation();
   const activeStaffMutation = useActiveStaffProcessMutation();
@@ -55,11 +56,6 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   const [form, setForm] = useState<StaffRecord>(defaultStaff());
   const [password, setPassword] = useState("");
 
-  const fieldOptions = useMemo(
-    () => Array.from(new Set(mockRoutingRules.map((rule) => rule.field))),
-    [],
-  );
-
   useEffect(() => {
     if (mode === "edit" && staff) {
       setForm({
@@ -69,6 +65,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
         email: staff.email ?? "",
         phone: staff.phone ?? "",
         department: String(staff.department_item),
+        field: staff.division_item ? String(staff.division_item) : "",
         position: staff.potition ?? "",
         status: staff.status === 1 ? "active" : "inactive",
         avatar: staff.avatar
@@ -100,6 +97,9 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
     const department = departmentsData?.content.find(
       (item) => String(item.id) === form.department,
     );
+    const division = divisionsData?.content.find(
+      (item) => String(item.id) === form.field,
+    );
     const avatar = form.avatar[0]?.url ?? "";
 
     try {
@@ -113,6 +113,8 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
           potition: form.position,
           department_item: department?.id ?? staff.department_item,
           department_name: department?.name ?? staff.department_name,
+          division_item: division?.id ?? staff.division_item ?? 0,
+          division_name: division?.name ?? staff.division_name ?? "",
         });
 
         const nextStatusValue = form.status === "active" ? 1 : 0;
@@ -133,6 +135,8 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
           potition: form.position,
           department_item: department?.id ?? 0,
           department_name: department?.name ?? "",
+          division_item: division?.id ?? 0,
+          division_name: division?.name ?? "",
           password,
         });
       }
@@ -269,9 +273,9 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     onChange={(e) => updateForm({ field: e.target.value })}
                   >
                     <option value="">Chọn...</option>
-                    {fieldOptions.map((field) => (
-                      <option key={field} value={field}>
-                        {field}
+                    {divisionsData?.content.map((division) => (
+                      <option key={division.id} value={String(division.id)}>
+                        {division.name}
                       </option>
                     ))}
                   </Select>
