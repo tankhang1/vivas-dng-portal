@@ -1,5 +1,3 @@
-import type { BasePaginationResponse } from "@/shared/types/base-response";
-
 export type CategoryItem = {
   id: number;
   uuid: number;
@@ -13,4 +11,14 @@ export type CategoryItem = {
   type: number;
 };
 
-export type GetCategoriesResponse = BasePaginationResponse<CategoryItem>;
+export type CategoryPage = {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type GetCategoriesResponse = {
+  content: CategoryItem[];
+  page: CategoryPage;
+};

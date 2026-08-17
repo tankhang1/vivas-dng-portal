@@ -49,6 +49,8 @@ export const QUERY_KEY = {
   }) => ['news', 'search', params] as const,
   NEWS_CATEGORIES: (params: { sz?: number; nu?: number }) =>
     ['category-news', 'list', params] as const,
+  COMMENT_CATEGORIES: (params: { sz?: number; nu?: number }) =>
+    ['category-comment', 'list', params] as const,
 } as const;
 
 export function createAppQueryClient() {

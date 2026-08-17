@@ -1,12 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { useLocation } from 'wouter';
-import { Layout } from '../../shared/components/Layout';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Layout } from "../../shared/components/Layout";
 import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  Input,
   Pagination,
   Table,
   TableBody,
@@ -14,37 +12,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../shared/components/ui';
-import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { deleteCategory, getCategories } from './store';
-import { categoryTypeOptions, type CategoryRecord, type CategoryType } from './types';
-import { Edit2, Plus, Search, Trash2 } from 'lucide-react';
+} from "../../shared/components/ui";
+import { Spinner } from "../../shared/components/ui/spinner";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { categoryTypeOptions, type CategoryType } from "./types";
+import {
+  useNewsCategoriesQuery,
+  useRemoveCategoryNewsProcessMutation,
+} from "@/features/category-news/hooks/category-news.hook";
+import {
+  useCommentCategoriesQuery,
+  useRemoveCategoryCommentProcessMutation,
+} from "@/features/category-comment/hooks/category-comment.hook";
+import { Edit2, Plus, Trash2 } from "lucide-react";
 
 const PAGE_SIZE = 8;
 
 export default function CategoriesPage() {
   const [, navigate] = useLocation();
-  const [categories, setCategories] = useState<CategoryRecord[]>(() => getCategories());
-  const [activeType, setActiveType] = useState<CategoryType>('feedback');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeType, setActiveType] = useState<CategoryType>("feedback");
   const [page, setPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    return categories.filter(
-      (item) =>
-        item.type === activeType &&
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [categories, activeType, searchTerm]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const handleDelete = (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
-    deleteCategory(id);
-    setCategories(getCategories());
-  };
 
   return (
     <Layout>
@@ -82,79 +69,231 @@ export default function CategoriesPage() {
         </Tabs>
 
         <Card>
-          <CardHeader className="flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                placeholder="Tìm theo tên danh mục..."
-                value={searchTerm}
-                onChange={(event) => {
-                  setSearchTerm(event.target.value);
-                  setPage(1);
-                }}
+          <CardContent className="pt-6">
+            {activeType === "news" ? (
+              <NewsCategoriesTable
+                page={page}
+                onPageChange={setPage}
+                onEdit={(id) => navigate(`/categories/${id}/edit?type=news`)}
               />
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tên danh mục</TableHead>
-                  <TableHead>Ghi chú</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {item.note || '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Chỉnh sửa"
-                          onClick={() => navigate(`/categories/${item.id}/edit`)}
-                        >
-                          <Edit2 className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Xóa"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {paginated.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                      Không tìm thấy danh mục nào.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              totalItems={filtered.length}
-              pageSize={PAGE_SIZE}
-            />
+            ) : (
+              <FeedbackCategoriesTable
+                page={page}
+                onPageChange={setPage}
+                onEdit={(id) =>
+                  navigate(`/categories/${id}/edit?type=feedback`)
+                }
+              />
+            )}
           </CardContent>
         </Card>
       </div>
     </Layout>
+  );
+}
+
+type CategoryTableProps = {
+  page: number;
+  onPageChange: (page: number) => void;
+  onEdit: (id: string) => void;
+};
+
+function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps) {
+  const { data, isLoading, refetch } = useNewsCategoriesQuery({
+    sz: PAGE_SIZE,
+    nu: page - 1,
+  });
+  const removeCategoryMutation = useRemoveCategoryNewsProcessMutation();
+
+  const items = data?.content ?? [];
+  const totalPages = Math.max(1, data?.page.totalPages ?? 1);
+  const totalItems = data?.page.totalElements ?? 0;
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    try {
+      await removeCategoryMutation.mutateAsync({ category_item: id });
+      refetch();
+    } catch {
+      window.alert("Xóa danh mục thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tên danh mục</TableHead>
+            <TableHead>Đường dẫn</TableHead>
+            <TableHead>Ghi chú</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading && (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center">
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Spinner className="h-4 w-4" /> Đang tải danh mục...
+                </span>
+              </TableCell>
+            </TableRow>
+          )}
+          {!isLoading &&
+            items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {item.path || "-"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {item.note || "-"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="inline-flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Chỉnh sửa"
+                      onClick={() => onEdit(String(item.id))}
+                    >
+                      <Edit2 className="h-4 w-4 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Xóa"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          {!isLoading && items.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className="h-24 text-center text-muted-foreground"
+              >
+                Không tìm thấy danh mục nào.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+      />
+    </>
+  );
+}
+
+function FeedbackCategoriesTable({
+  page,
+  onPageChange,
+  onEdit,
+}: CategoryTableProps) {
+  const { data, isLoading, refetch } = useCommentCategoriesQuery({
+    sz: PAGE_SIZE,
+    nu: page - 1,
+  });
+  const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
+
+  const items = data?.content ?? [];
+  const totalPages = Math.max(1, data?.page.totalPages ?? 1);
+  const totalItems = data?.page.totalElements ?? 0;
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    try {
+      await removeCategoryMutation.mutateAsync({ category_item: id });
+      refetch();
+    } catch {
+      window.alert("Xóa danh mục thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tên danh mục</TableHead>
+            <TableHead>Đường dẫn</TableHead>
+            <TableHead>Ghi chú</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading && (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center">
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Spinner className="h-4 w-4" /> Đang tải danh mục...
+                </span>
+              </TableCell>
+            </TableRow>
+          )}
+          {!isLoading &&
+            items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {item.path || "-"}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {item.note || "-"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="inline-flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Chỉnh sửa"
+                      onClick={() => onEdit(String(item.id))}
+                    >
+                      <Edit2 className="h-4 w-4 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Xóa"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          {!isLoading && items.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className="h-24 text-center text-muted-foreground"
+              >
+                Không tìm thấy danh mục nào.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+      />
+    </>
   );
 }
