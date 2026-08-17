@@ -182,7 +182,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 onClick={() => handleSave("published")}
                 disabled={isSaving}
               >
-                {isSaving ? "Đang lưu..." : "Xuất bản"}
+                {isSaving ? "Đang lưu..." : "Lưu"}
               </Button>
             </div>
           </div>
@@ -298,7 +298,6 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                   dưới dạng HTML.
                 </p>
               </div>
-
             </CardContent>
           </Card>
         </div>
