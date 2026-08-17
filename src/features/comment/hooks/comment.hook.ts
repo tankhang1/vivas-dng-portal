@@ -6,12 +6,14 @@ import {
   getComments,
   postCommentProcess,
   searchComments,
+  searchCommentsByStaffApprove,
 } from '@/features/comment/api/comment.api';
 import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
 import type { PostCommentProcessRequest } from '@/features/comment/types/post-comment-process.request';
 import type { PostCommentProcessResponse } from '@/features/comment/types/post-comment-process.response';
+import type { SearchCommentsByStaffApproveRequest } from '@/features/comment/types/search-comments-by-staff-approve.request';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
 import { QUERY_KEY } from '@/shared/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,11 +25,33 @@ export function useCommentsQuery() {
   });
 }
 
-export function useSearchCommentsQuery(request: SearchCommentsRequest) {
+export function useSearchCommentsQuery(
+  request: SearchCommentsRequest,
+  enabled = true,
+) {
   return useQuery<GetCommentsResponse>({
     queryKey: QUERY_KEY.COMMENTS_SEARCH(request),
     queryFn: () => searchComments(request),
     placeholderData: keepPreviousData,
+    enabled,
+  });
+}
+
+export function useSearchCommentsByStaffApproveQuery(
+  request: SearchCommentsByStaffApproveRequest,
+  enabled = true,
+) {
+  const { staffId, key, start, end, nu } = request;
+
+  return useQuery<GetCommentsResponse>({
+    queryKey: QUERY_KEY.COMMENTS_STAFF_APPROVE_SEARCH(staffId, { key, start, end, nu }),
+    queryFn: () => searchCommentsByStaffApprove(request),
+    placeholderData: keepPreviousData,
+    enabled:
+      enabled &&
+      staffId !== undefined &&
+      staffId !== null &&
+      staffId !== '',
   });
 }
 

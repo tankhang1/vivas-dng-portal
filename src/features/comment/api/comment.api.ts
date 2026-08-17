@@ -1,5 +1,6 @@
 import { API_PATH, apiClient } from '@/shared/api';
 import type { GetCitizenCommentsRequest } from '@/features/comment/types/get-citizen-comments.request';
+import type { SearchCommentsByStaffApproveRequest } from '@/features/comment/types/search-comments-by-staff-approve.request';
 import type { SearchCommentsRequest } from '@/features/comment/types/search-comments.request';
 import type { CommentItem } from '@/features/comment/types/get-comment.response';
 import type { GetCommentsResponse } from '@/features/comment/types/get-comments.response';
@@ -45,6 +46,37 @@ export async function searchComments(
 
   const response = await apiClient.get<GetCommentsResponse>(
     `${API_PATH.COMMON_PORTAL.COMMENTS}/search?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function searchCommentsByStaffApprove(
+  request: SearchCommentsByStaffApproveRequest,
+): Promise<GetCommentsResponse> {
+  const params = new URLSearchParams();
+
+  if (request.key !== undefined && request.key !== '') {
+    params.append('key', request.key);
+  }
+
+  if (request.start !== undefined) {
+    params.append('start', String(request.start));
+  }
+
+  if (request.end !== undefined) {
+    params.append('end', String(request.end));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const query = params.toString();
+  const response = await apiClient.get<GetCommentsResponse>(
+    query
+      ? `${API_PATH.COMMON_PORTAL.COMMENTS_STAFF_APPROVE_SEARCH(request.staffId)}?${query}`
+      : API_PATH.COMMON_PORTAL.COMMENTS_STAFF_APPROVE_SEARCH(request.staffId),
   );
 
   return response.data;

@@ -49,6 +49,16 @@ export const QUERY_KEY = {
     pageStart?: number;
     nu?: number;
   }) => ['comments', 'search', params] as const,
+  COMMENTS_STAFF_APPROVE_SEARCH: (
+    staffId: number | string,
+    params: {
+      key?: string;
+      start?: number;
+      end?: number;
+      nu?: number;
+    },
+  ) => ['comments', 'staff-approve-search', staffId, params] as const,
+  FEEDBACK: (commentUuid: number | string) => ['feedback', 'detail', commentUuid] as const,
   COMMENT: (cUuid: string) => ['comments', 'detail', cUuid] as const,
   CITIZEN_COMMENTS: (
     zaloUserId: number | string,
