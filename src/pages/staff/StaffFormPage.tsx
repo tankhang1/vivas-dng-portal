@@ -25,7 +25,7 @@ import {
   useCreateStaffProcessMutation,
   useDeactiveStaffProcessMutation,
   useEditStaffProcessMutation,
-  useStaffFromCache,
+  useStaffDetailQuery,
 } from "@/features/staff/hooks/staff.hook";
 import { useUploadImageMutation } from "@/features/upload/hooks/upload.hook";
 
@@ -36,7 +36,9 @@ type StaffFormPageProps = {
 
 export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   const [, navigate] = useLocation();
-  const staff = useStaffFromCache(mode === "edit" ? staffId : undefined);
+  const { data: staff, isLoading: isStaffLoading } = useStaffDetailQuery(
+    mode === "edit" ? staffId : undefined,
+  );
   const { data: departmentsData } = useDepartmentsQuery();
   const { data: divisionsData } = useDivisionsQuery();
   const createStaffMutation = useCreateStaffProcessMutation();
@@ -145,6 +147,14 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
       window.alert("Lưu thông tin cán bộ thất bại. Vui lòng thử lại.");
     }
   };
+
+  if (mode === "edit" && isStaffLoading) {
+    return (
+      <Layout>
+        <p className="text-sm text-muted-foreground">Đang tải...</p>
+      </Layout>
+    );
+  }
 
   if (mode === "edit" && !staff) {
     return (

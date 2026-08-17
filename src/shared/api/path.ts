@@ -94,10 +94,9 @@ export const API_PATH = {
     COMMENT: (cUuid: string) => `/common-portal/comments/get/${cUuid}`,
     CITIZEN: '/common-portal/citizen',
     STAFF: '/common-portal/staff',
+    STAFF_DETAIL: (id: number | string) => `/common-portal/staff/detail/${id}`,
     STAFF_BY_DEPARTMENT: (departmentId: number | string) =>
       `/common-portal/staff/department/${departmentId}`,
-    STAFF_COORDINATE_COMMENT: (id: number | string) =>
-      `/common-portal/staff-coordinate-comments/get/${id}`,
     STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE: (categoryId: number | string) =>
       `/common-portal/staff-coordinate-comments/category-approve/${categoryId}`,
     STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE: (categoryId: number | string) =>

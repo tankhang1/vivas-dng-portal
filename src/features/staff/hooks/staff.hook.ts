@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   activeStaffCoordinateCommentProcess,
-  getStaffCoordinateCommentById,
   getStaffCoordinateCommentsByCategoryApprove,
   getStaffCoordinateCommentsByCategoryNoneApprove,
   getStaffCoordinateCommentsByStaffApprove,
@@ -17,8 +16,10 @@ import {
   removeStaffCoordinateCommentProcess,
   searchStaff,
   getStaffByDepartment,
+  getStaffDetail,
 } from '@/features/staff/api/staff.api';
 import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
+import type { GetStaffDetailResponse } from '@/features/staff/types/get-staff-detail.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
@@ -31,7 +32,6 @@ import type { EditStaffCoordinateCommentProcessRequest } from '@/features/staff/
 import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff/types/edit-staff-coordinate-comment-process.response';
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
-import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
 import type { GetStaffCoordinateCommentsByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-category.request';
 import type { GetStaffCoordinateCommentsByCategoryResponse } from '@/features/staff/types/get-staff-coordinate-comments-by-category.response';
 import type { GetStaffCoordinateCommentsByStaffRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-staff.request';
@@ -62,33 +62,10 @@ export function useStaffByDepartmentQuery(request: GetStaffByDepartmentRequest) 
   });
 }
 
-/**
- * There is no GET /common-portal/staff/:id endpoint, so a single staff
- * record can only come from a /staff/search page already cached by
- * useSearchStaffQuery (e.g. the staff list). Returns undefined if that
- * page was never fetched in this session (no extra request is made).
- */
-export function useStaffFromCache(id?: number | string) {
-  const queryClient = useQueryClient();
-
-  if (id === undefined || id === null || id === '') return undefined;
-
-  const cachedSearches = queryClient.getQueriesData<GetStaffsResponse>({
-    queryKey: ['staff', 'search'],
-  });
-
-  for (const [, data] of cachedSearches) {
-    const found = data?.content.find((item) => String(item.id) === String(id));
-    if (found) return found;
-  }
-
-  return undefined;
-}
-
-export function useStaffCoordinateCommentQuery(id?: number | string) {
-  return useQuery<GetStaffCoordinateCommentResponse>({
-    queryKey: id ? QUERY_KEY.STAFF_COORDINATE_COMMENT(id) : QUERY_KEY.STAFF_COORDINATE_COMMENT(''),
-    queryFn: () => getStaffCoordinateCommentById(id as number | string),
+export function useStaffDetailQuery(id?: number | string) {
+  return useQuery<GetStaffDetailResponse>({
+    queryKey: id !== undefined && id !== null && id !== '' ? QUERY_KEY.STAFF_DETAIL(id) : QUERY_KEY.STAFF_DETAIL(''),
+    queryFn: () => getStaffDetail(id as number | string),
     enabled: id !== undefined && id !== null && id !== '',
   });
 }

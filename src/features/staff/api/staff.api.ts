@@ -1,5 +1,6 @@
 import { API_PATH, apiClient } from '@/shared/api';
 import type { GetStaffsResponse } from '@/features/staff/types/get-staffs.response';
+import type { GetStaffDetailResponse } from '@/features/staff/types/get-staff-detail.response';
 import type { SearchStaffRequest } from '@/features/staff/types/search-staff.request';
 import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-staff-by-department.request';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
@@ -12,7 +13,6 @@ import type { EditStaffCoordinateCommentProcessRequest } from '@/features/staff/
 import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff/types/edit-staff-coordinate-comment-process.response';
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
-import type { GetStaffCoordinateCommentResponse } from '@/features/staff/types/get-staff-coordinate-comment.response';
 import type { GetStaffCoordinateCommentsByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-category.request';
 import type { GetStaffCoordinateCommentsByCategoryResponse } from '@/features/staff/types/get-staff-coordinate-comments-by-category.response';
 import type { GetStaffCoordinateCommentsByStaffRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-staff.request';
@@ -42,6 +42,16 @@ export async function searchStaff(request: SearchStaffRequest): Promise<GetStaff
 
   const response = await apiClient.get<GetStaffsResponse>(
     `${API_PATH.COMMON_PORTAL.STAFF}/search?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
+export async function getStaffDetail(
+  id: number | string,
+): Promise<GetStaffDetailResponse> {
+  const response = await apiClient.get<GetStaffDetailResponse>(
+    API_PATH.COMMON_PORTAL.STAFF_DETAIL(id),
   );
 
   return response.data;
@@ -161,16 +171,6 @@ export async function removeStaffCoordinateCommentProcess(
   const response = await apiClient.post<RemoveStaffCoordinateCommentProcessResponse>(
     API_PATH.STAFF.COORDINATE_COMMENT_REMOVE_PROCESS,
     request,
-  );
-
-  return response.data;
-}
-
-export async function getStaffCoordinateCommentById(
-  id: number | string,
-): Promise<GetStaffCoordinateCommentResponse> {
-  const response = await apiClient.get<GetStaffCoordinateCommentResponse>(
-    API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENT(id),
   );
 
   return response.data;

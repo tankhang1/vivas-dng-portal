@@ -15,12 +15,11 @@ export const QUERY_KEY = {
   DIVISIONS: ['divisions'] as const,
   DIVISION: (id: number | string) => ['division', id] as const,
   STAFF: ['staff'] as const,
+  STAFF_DETAIL: (id: number | string) => ['staff', 'detail', id] as const,
   STAFF_SEARCH: (params: { key?: string; sz?: number; nu?: number }) =>
     ['staff', 'search', params] as const,
   STAFF_BY_DEPARTMENT: (departmentId: number | string, params: { sz?: number; nu?: number }) =>
     ['staff', 'department', departmentId, params] as const,
-  STAFF_COORDINATE_COMMENT: (id: number | string) =>
-    ['staff', 'coordinate-comment', id] as const,
   STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE: (
     categoryId: number | string,
     params: { sz?: number; nu?: number },

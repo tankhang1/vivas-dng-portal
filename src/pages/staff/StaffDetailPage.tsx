@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -8,32 +8,31 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "../../shared/components/ui";
+import { Spinner } from "../../shared/components/ui/spinner";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "../../shared/components/ui/avatar";
-import { mockFeedback } from "../../shared/data/mock";
 import {
-  useStaffCoordinateCommentQuery,
-  useStaffFromCache,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
+import {
+  useStaffCoordinateCommentsByStaffApproveQuery,
+  useStaffCoordinateCommentsByStaffNoneApproveQuery,
+  useStaffDetailQuery,
 } from "@/features/staff/hooks/staff.hook";
 import {
   ArrowLeft,
-  CalendarDays,
-  FileText,
+  CheckCircle2,
+  CircleDashed,
   Mail,
   MapPin,
-  MessageSquareWarning,
   Phone,
-  ShieldCheck,
   Tag,
   User2,
 } from "lucide-react";
@@ -49,12 +48,6 @@ function staffStatusLabel(status: number) {
 function staffStatusVariant(status: number) {
   return status === 1 ? "success" : "warning";
 }
-
-const APPROVAL_LABEL: Record<number, string> = {
-  0: "Xem",
-  1: "Duyệt",
-  2: "Từ chối",
-};
 
 function buildUsername(name: string, phone: string | null) {
   const base = phone || name;
@@ -72,19 +65,32 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/staff/:id");
   const id = staffId ?? params?.id;
-  const staff = useStaffFromCache(id);
-  const {
-    data: coordinateComment,
-    isLoading: isCoordinateCommentLoading,
-    isError: isCoordinateCommentError,
-  } = useStaffCoordinateCommentQuery(staff?.id);
+  const { data: staff, isLoading: isStaffLoading } = useStaffDetailQuery(id);
+  const [categoryTab, setCategoryTab] = useState<"approved" | "pending">(
+    "approved",
+  );
+  const approveQuery = useStaffCoordinateCommentsByStaffApproveQuery({
+    staffId: categoryTab === "approved" ? (staff?.id ?? "") : "",
+    sz: 200,
+    nu: 0,
+  });
+  const pendingQuery = useStaffCoordinateCommentsByStaffNoneApproveQuery({
+    staffId: categoryTab === "pending" ? (staff?.id ?? "") : "",
+    sz: 200,
+    nu: 0,
+  });
+  const approvedCategories = approveQuery.data?.content ?? [];
+  const pendingCategories = pendingQuery.data?.content ?? [];
+  const isLoadingCategories =
+    categoryTab === "approved" ? approveQuery.isLoading : pendingQuery.isLoading;
 
-  const repliedFeedbacks = useMemo(() => {
-    if (!staff) return [];
-    return mockFeedback
-      .filter((item) => item.assignedStaff === staff.name && item.reply)
-      .sort((left, right) => right.date.localeCompare(left.date));
-  }, [staff]);
+  if (isStaffLoading) {
+    return (
+      <Layout>
+        <p className="text-sm text-muted-foreground">Đang tải...</p>
+      </Layout>
+    );
+  }
 
   if (!staff) {
     return (
@@ -133,7 +139,7 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                   Chi tiết cán bộ
                 </h1>
                 <p className="text-muted-foreground">
-                  Xem thông tin tài khoản và danh sách phản ánh liên quan.
+                  Xem thông tin tài khoản và lĩnh vực điều phối phụ trách.
                 </p>
               </div>
             </div>
@@ -200,7 +206,9 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                     <MapPin className="h-4 w-4" />
                     Lĩnh vực
                   </div>
-                  <div className="text-sm font-medium">-</div>
+                  <div className="text-sm font-medium">
+                    {staff.division_name || "-"}
+                  </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -214,152 +222,81 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
           </Card>
           <Card>
             <CardHeader className="border-b border-border">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle className="text-lg">
-                  Danh sách phản hồi người dùng
-                </CardTitle>
-                <Badge variant="outline">
-                  {repliedFeedbacks.length} phản hồi
-                </Badge>
-              </div>
+              <CardTitle className="text-lg">
+                Lĩnh vực điều phối phụ trách
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Danh mục cán bộ chịu trách nhiệm xử lý, phân theo trạng thái
+                phê duyệt.
+              </p>
             </CardHeader>
             <CardContent className="pt-6">
-              {repliedFeedbacks.length > 0 ? (
-                <div
-                  className="overflow-x-auto overflow-y-auto"
-                  style={{ maxHeight: "480px" }}
+              <Tabs
+                value={categoryTab}
+                onValueChange={(value) =>
+                  setCategoryTab(value as "approved" | "pending")
+                }
+              >
+                <TabsList>
+                  <TabsTrigger value="approved" className="gap-1.5">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Đã phê duyệt
+                  </TabsTrigger>
+                  <TabsTrigger value="pending" className="gap-1.5">
+                    <CircleDashed className="h-4 w-4" />
+                    Chưa phê duyệt
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent
+                  value="approved"
+                  className="overflow-hidden rounded-lg border border-border"
                 >
-                  <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-white">
-                      <TableRow>
-                        <TableHead className="min-w-[220px]">
-                          Nội dung phản hồi
-                        </TableHead>
-                        <TableHead className="min-w-[160px]">File</TableHead>
-                        <TableHead className="min-w-[220px]">
-                          Thông tin yêu cầu
-                        </TableHead>
-                        <TableHead className="min-w-[140px]">
-                          Người yêu cầu
-                        </TableHead>
-                        <TableHead className="min-w-[160px]">
-                          Thời gian phản hồi
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {repliedFeedbacks.map((item) => {
-                        const reply = item.reply!;
-                        return (
-                          <TableRow key={item.id}>
-                            <TableCell className="max-w-[260px]">
-                              <div className="truncate">{reply.content}</div>
-                            </TableCell>
-                            <TableCell>
-                              {reply.fileUrl ? (
-                                <a
-                                  href={reply.fileUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 text-primary hover:underline"
-                                >
-                                  <FileText className="h-4 w-4 shrink-0" />
-                                  <span className="max-w-[140px] truncate">
-                                    {reply.fileName || "Tệp đính kèm"}
-                                  </span>
-                                </a>
-                              ) : (
-                                "-"
-                              )}
-                            </TableCell>
-                            <TableCell className="max-w-[240px] font-medium">
-                              <div className="truncate">{item.title}</div>
-                              <div className="truncate text-xs text-muted-foreground">
-                                {item.content}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {item.privacy === "anonymous"
-                                ? "Ẩn danh"
-                                : item.name || "-"}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {reply.date}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
-                  Cán bộ này chưa phản hồi phản ánh nào.
-                </div>
-              )}
+                  {categoryTab === "approved" && isLoadingCategories ? (
+                    <div className="flex justify-center py-8">
+                      <Spinner />
+                    </div>
+                  ) : approvedCategories.length === 0 ? (
+                    <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      Chưa được phê duyệt lĩnh vực nào.
+                    </p>
+                  ) : (
+                    approvedCategories.map((item) => (
+                      <div
+                        key={item.id}
+                        className="border-t border-border px-4 py-3 text-sm first:border-t-0"
+                      >
+                        {item.comments_category_name}
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+                <TabsContent
+                  value="pending"
+                  className="overflow-hidden rounded-lg border border-border"
+                >
+                  {categoryTab === "pending" && isLoadingCategories ? (
+                    <div className="flex justify-center py-8">
+                      <Spinner />
+                    </div>
+                  ) : pendingCategories.length === 0 ? (
+                    <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      Không có lĩnh vực đang chờ phê duyệt.
+                    </p>
+                  ) : (
+                    pendingCategories.map((item) => (
+                      <div
+                        key={item.id}
+                        className="border-t border-border px-4 py-3 text-sm first:border-t-0"
+                      >
+                        {item.comments_category_name}
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader className="border-b border-border">
-            <CardTitle className="text-lg">
-              Thông tin điều phối tiếp nhận phản ánh
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {isCoordinateCommentLoading && (
-              <p className="text-sm text-muted-foreground">Đang tải...</p>
-            )}
-            {!isCoordinateCommentLoading && isCoordinateCommentError && (
-              <p className="text-sm text-muted-foreground">
-                Không tải được thông tin điều phối tiếp nhận phản ánh.
-              </p>
-            )}
-            {!isCoordinateCommentLoading &&
-              !isCoordinateCommentError &&
-              coordinateComment && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <MessageSquareWarning className="h-4 w-4" />
-                      Nhóm phản ánh
-                    </div>
-                    <div className="text-sm font-medium">
-                      {coordinateComment.comments_category_name || "-"}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <ShieldCheck className="h-4 w-4" />
-                      Quyền xử lý
-                    </div>
-                    <div className="text-sm font-medium">
-                      {APPROVAL_LABEL[coordinateComment.approval] ?? "-"}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <CalendarDays className="h-4 w-4" />
-                      Thời gian tạo
-                    </div>
-                    <div className="text-sm font-medium">
-                      {coordinateComment.time_create || "-"}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <User2 className="h-4 w-4" />
-                      Trạng thái
-                    </div>
-                    <Badge variant={staffStatusVariant(coordinateComment.status)}>
-                      {staffStatusLabel(coordinateComment.status)}
-                    </Badge>
-                  </div>
-                </div>
-              )}
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );
