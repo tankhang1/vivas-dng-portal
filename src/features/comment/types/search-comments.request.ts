@@ -3,5 +3,6 @@ export type SearchCommentsRequest = {
   start?: number;
   end?: number;
   pageStart?: number;
+  sz?: number;
   nu?: number;
 };

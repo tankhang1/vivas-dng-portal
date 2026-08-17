@@ -11,6 +11,23 @@ import type { GetNewsResponse, NewsItem } from "@/features/news/types/get-news.r
 import type { SearchNewsRequest } from "@/features/news/types/search-news.request";
 import type { GetAllNewsRequest } from "@/features/news/types/get-all-news.request";
 
+function buildNewsIndexUrl(request: GetAllNewsRequest = {}) {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append("sz", String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append("nu", String(request.nu));
+  }
+
+  const query = params.toString();
+  return query
+    ? `${API_PATH.COMMON_PORTAL.NEWS_INDEX}?${query}`
+    : API_PATH.COMMON_PORTAL.NEWS_INDEX;
+}
+
 export async function getAllNews(
   request: GetAllNewsRequest = {},
 ): Promise<GetNewsResponse> {
@@ -110,20 +127,7 @@ export async function searchNews(
 export async function getNewsIndex(
   request: GetAllNewsRequest = {},
 ): Promise<GetNewsResponse> {
-  const params = new URLSearchParams();
-
-  if (request.sz !== undefined) {
-    params.append("sz", String(request.sz));
-  }
-
-  if (request.nu !== undefined) {
-    params.append("nu", String(request.nu));
-  }
-
-  const query = params.toString();
-  const response = await apiClient.get<GetNewsResponse>(
-    query ? `${API_PATH.COMMON_PORTAL.NEWS_INDEX}?${query}` : API_PATH.COMMON_PORTAL.NEWS_INDEX,
-  );
+  const response = await apiClient.get<GetNewsResponse>(buildNewsIndexUrl(request));
 
   return response.data;
 }

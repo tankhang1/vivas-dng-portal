@@ -1,16 +1,39 @@
 import { useMemo } from "react";
 import { Layout } from "../../shared/components/Layout";
 import { useDashboardQuery } from "@/features/dashboard/hooks/dashboard.hook";
-import { mockNews, mockRoutedItems, mockRoutingRules } from "../../shared/data/mock";
+import { mockRoutingRules } from "../../shared/data/mock";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { StatsOverviewCards } from "./components/StatsOverviewCards";
 import { StaffByFieldChart } from "./components/StaffByFieldChart";
 import { RecentNewsCard } from "./components/RecentNewsCard";
-import { RecentRoutedCard } from "./components/RecentRoutedCard";
+import { FeaturedNewsCard } from "./components/FeaturedNewsCard";
+import { LatestFeedbackCard } from "./components/LatestFeedbackCard";
+import {
+  useAllNewsQuery,
+  useNewsIndexQuery,
+} from "@/features/news/hooks/news.hook";
+import { useSearchCommentsQuery } from "@/features/comment/hooks/comment.hook";
+
+const DASHBOARD_ITEM_LIMIT = 4;
 
 export default function Dashboard() {
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardQuery();
+  const { data: recentNewsData, isLoading: isRecentNewsLoading } =
+    useAllNewsQuery({
+      sz: DASHBOARD_ITEM_LIMIT,
+      nu: 0,
+    });
+  const { data: featuredNewsData, isLoading: isFeaturedNewsLoading } =
+    useNewsIndexQuery({
+      sz: DASHBOARD_ITEM_LIMIT,
+      nu: 0,
+    });
+  const { data: commentsData, isLoading: isCommentsLoading } =
+    useSearchCommentsQuery({
+      sz: DASHBOARD_ITEM_LIMIT,
+      nu: 0,
+    });
 
   const staffByField = useMemo(() => {
     const counts = new Map<string, number>();
@@ -24,8 +47,9 @@ export default function Dashboard() {
     }));
   }, []);
 
-  const recentNews = [...mockNews].slice(-4).reverse();
-  const recentRouted = [...mockRoutedItems].slice(0, 4);
+  const recentNews = recentNewsData?.content ?? [];
+  const featuredNews = featuredNewsData?.content ?? [];
+  const latestFeedback = commentsData?.content ?? [];
 
   return (
     <Layout>
@@ -41,9 +65,16 @@ export default function Dashboard() {
           <StaffByFieldChart data={staffByField} />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RecentNewsCard items={recentNews} />
-          <RecentRoutedCard items={recentRouted} />
+        <div className="grid gap-6 xl:grid-cols-3">
+          <RecentNewsCard items={recentNews} isLoading={isRecentNewsLoading} />
+          <FeaturedNewsCard
+            items={featuredNews}
+            isLoading={isFeaturedNewsLoading}
+          />
+          <LatestFeedbackCard
+            items={latestFeedback}
+            isLoading={isCommentsLoading}
+          />
         </div>
       </div>
     </Layout>

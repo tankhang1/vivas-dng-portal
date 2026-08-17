@@ -34,6 +34,10 @@ export async function searchComments(
     params.append('start', String(request.pageStart));
   }
 
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
   if (request.nu !== undefined) {
     params.append('nu', String(request.nu));
   }
