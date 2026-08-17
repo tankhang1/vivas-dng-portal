@@ -82,7 +82,9 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
   const approvedCategories = approveQuery.data?.content ?? [];
   const pendingCategories = pendingQuery.data?.content ?? [];
   const isLoadingCategories =
-    categoryTab === "approved" ? approveQuery.isLoading : pendingQuery.isLoading;
+    categoryTab === "approved"
+      ? approveQuery.isLoading
+      : pendingQuery.isLoading;
 
   if (isStaffLoading) {
     return (
@@ -103,7 +105,9 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
             <p className="text-sm text-muted-foreground">
               Hồ sơ cán bộ bạn muốn xem không tồn tại hoặc đã bị xóa.
             </p>
-            <Button onClick={() => navigate("/staff")}>Quay lại danh sách</Button>
+            <Button onClick={() => navigate("/staff")}>
+              Quay lại danh sách
+            </Button>
           </CardContent>
         </Card>
       </Layout>
@@ -183,14 +187,18 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                     <Mail className="h-4 w-4" />
                     Email
                   </div>
-                  <div className="text-sm font-medium">{staff.email || "-"}</div>
+                  <div className="text-sm font-medium">
+                    {staff.email || "-"}
+                  </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <Phone className="h-4 w-4" />
                     Số điện thoại
                   </div>
-                  <div className="text-sm font-medium">{staff.phone || "-"}</div>
+                  <div className="text-sm font-medium">
+                    {staff.phone || "-"}
+                  </div>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -215,7 +223,9 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                     <User2 className="h-4 w-4" />
                     Chức vụ
                   </div>
-                  <div className="text-sm font-medium">{staff.potition || "-"}</div>
+                  <div className="text-sm font-medium">
+                    {staff.potition || "-"}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -226,8 +236,8 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                 Lĩnh vực điều phối phụ trách
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Danh mục cán bộ chịu trách nhiệm xử lý, phân theo trạng thái
-                phê duyệt.
+                Danh mục cán bộ chịu trách nhiệm xử lý, phân theo trạng thái phê
+                duyệt.
               </p>
             </CardHeader>
             <CardContent className="pt-6">
@@ -240,11 +250,11 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                 <TabsList>
                   <TabsTrigger value="approved" className="gap-1.5">
                     <CheckCircle2 className="h-4 w-4" />
-                    Đã phê duyệt
+                    Quyền phản hồi
                   </TabsTrigger>
                   <TabsTrigger value="pending" className="gap-1.5">
                     <CircleDashed className="h-4 w-4" />
-                    Chưa phê duyệt
+                    Quyền xem
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent

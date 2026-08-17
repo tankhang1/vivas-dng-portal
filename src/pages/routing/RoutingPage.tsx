@@ -136,7 +136,9 @@ export default function RoutingPage() {
   const removeMutation = useRemoveStaffCoordinateCommentProcessMutation();
   const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
   const isToggling =
-    createMutation.isPending || editMutation.isPending || removeMutation.isPending;
+    createMutation.isPending ||
+    editMutation.isPending ||
+    removeMutation.isPending;
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategoryId(id);
@@ -148,7 +150,11 @@ export default function RoutingPage() {
   };
 
   const handleDeleteStaffLink = async (item: StaffCoordinateCommentItem) => {
-    if (!window.confirm(`Xoá cán bộ "${item.staff_name ?? "không rõ"}" khỏi điều phối này?`)) {
+    if (
+      !window.confirm(
+        `Xoá cán bộ "${item.staff_name ?? "không rõ"}" khỏi điều phối này?`,
+      )
+    ) {
       return;
     }
 
@@ -404,7 +410,7 @@ export default function RoutingPage() {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
                         <span className="flex items-center gap-2">
                           <CircleDashed className="h-4 w-4 text-muted-foreground" />
-                          Được quyền xem
+                          Quyền xem
                           <Badge variant="outline">
                             {pendingRows.length} cán bộ
                           </Badge>

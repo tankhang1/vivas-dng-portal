@@ -69,7 +69,6 @@ export default function CategoriesPage() {
         name: editingItem?.name ?? "",
         path: editingItem?.path ?? "",
         orderNumber: editingItem?.order_number ?? 0,
-        note: editingItem?.note ?? "",
       }
     : null;
 
@@ -81,14 +80,14 @@ export default function CategoriesPage() {
             category_item: editingItem.id,
             name: values.name,
             path: values.path,
-            note: values.note,
+            note: "",
             order_number: values.orderNumber,
           });
         } else {
           await createNewsMutation.mutateAsync({
             name: values.name,
             path: values.path,
-            note: values.note,
+            note: "",
             order_number: values.orderNumber,
           });
         }
@@ -98,7 +97,7 @@ export default function CategoriesPage() {
             category_item: editingItem.id,
             name: values.name,
             path: values.path,
-            note: values.note,
+            note: "",
             order_number: values.orderNumber,
           });
         } else {
@@ -108,7 +107,7 @@ export default function CategoriesPage() {
             category_item: 0,
             name: values.name,
             path: values.path,
-            note: values.note,
+            note: "",
             order_number: values.orderNumber,
           });
         }
@@ -217,14 +216,13 @@ function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps)
           <TableRow>
             <TableHead>Tên danh mục</TableHead>
             <TableHead>Đường dẫn</TableHead>
-            <TableHead>Ghi chú</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading && (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={3} className="h-24 text-center">
                 <span className="inline-flex items-center gap-2 text-muted-foreground">
                   <Spinner className="h-4 w-4" /> Đang tải danh mục...
                 </span>
@@ -237,9 +235,6 @@ function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps)
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {item.path || "-"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {item.note || "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="inline-flex items-center gap-1">
@@ -319,14 +314,13 @@ function FeedbackCategoriesTable({
           <TableRow>
             <TableHead>Tên danh mục</TableHead>
             <TableHead>Đường dẫn</TableHead>
-            <TableHead>Ghi chú</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading && (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={3} className="h-24 text-center">
                 <span className="inline-flex items-center gap-2 text-muted-foreground">
                   <Spinner className="h-4 w-4" /> Đang tải danh mục...
                 </span>
@@ -339,9 +333,6 @@ function FeedbackCategoriesTable({
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {item.path || "-"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {item.note || "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="inline-flex items-center gap-1">

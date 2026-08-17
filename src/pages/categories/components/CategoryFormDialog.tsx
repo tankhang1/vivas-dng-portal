@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Textarea,
 } from "../../../shared/components/ui";
 import {
   Form,
@@ -26,7 +25,6 @@ const categoryFormSchema = z.object({
   orderNumber: z.coerce
     .number({ invalid_type_error: "Vui lòng nhập thứ tự hiển thị" })
     .min(1, "Vui lòng nhập thứ tự hiển thị"),
-  note: z.string().min(1, "Vui lòng nhập ghi chú"),
 });
 
 export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
@@ -35,7 +33,6 @@ const defaultValues = (): CategoryFormValues => ({
   name: "",
   path: "",
   orderNumber: 0,
-  note: "",
 });
 
 type CategoryFormDialogProps = {
@@ -109,20 +106,6 @@ export function CategoryFormDialog({
                 inputProps={{ type: "number" }}
               />
             </div>
-
-            <FormField
-              control={control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel required>Ghi chú</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Ghi chú về danh mục..." />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <DialogFooter>

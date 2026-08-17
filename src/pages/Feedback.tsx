@@ -1,9 +1,4 @@
-import {
-  type ChangeEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "../shared/components/Layout";
 import {
@@ -39,9 +34,7 @@ import {
   useEditFeedbackProcessMutation,
   useFeedbackQuery,
 } from "@/features/feedback/hooks/feedback.hook";
-import {
-  useCommentsByCategoryQuery,
-} from "@/features/comment/hooks/comment.hook";
+import { useCommentsByCategoryQuery } from "@/features/comment/hooks/comment.hook";
 import {
   useStaffCoordinateCommentsByStaffApproveQuery,
   useStaffCoordinateCommentsByStaffNoneApproveQuery,
@@ -141,10 +134,13 @@ function RoutingSidebar({
             Chọn một điều phối để lọc danh sách phản ánh bên trái.
           </p>
         </div>
-        <Tabs value={activeMode} onValueChange={(value) => onModeChange(value as FeedbackMode)}>
+        <Tabs
+          value={activeMode}
+          onValueChange={(value) => onModeChange(value as FeedbackMode)}
+        >
           <TabsList className="mt-3">
-            <TabsTrigger value="view">Được quyền xem</TabsTrigger>
-            <TabsTrigger value="approve">Được quyền duyệt</TabsTrigger>
+            <TabsTrigger value="view">Quyền xem</TabsTrigger>
+            <TabsTrigger value="approve">Quyền phản hồi</TabsTrigger>
           </TabsList>
         </Tabs>
       </CardHeader>
@@ -161,7 +157,8 @@ function RoutingSidebar({
         )}
         {!showInitialLoading &&
           activeItems.map((item) => {
-            const isSelected = item.comments_category_item === selectedCategoryId;
+            const isSelected =
+              item.comments_category_item === selectedCategoryId;
 
             return (
               <button
@@ -677,11 +674,13 @@ export default function Feedback() {
     sz: 10,
     nu: 0,
   });
-  const routingPendingQuery = useStaffCoordinateCommentsByStaffNoneApproveQuery({
-    staffId: CURRENT_STAFF.id,
-    sz: 10,
-    nu: 0,
-  });
+  const routingPendingQuery = useStaffCoordinateCommentsByStaffNoneApproveQuery(
+    {
+      staffId: CURRENT_STAFF.id,
+      sz: 10,
+      nu: 0,
+    },
+  );
   const routingApprovedItems = routingQuery.data?.content ?? [];
   const routingPendingItems = routingPendingQuery.data?.content ?? [];
 
@@ -697,15 +696,19 @@ export default function Feedback() {
     ) {
       setSelectedCategoryId(activeItems[0].comments_category_item);
     }
-  }, [activeTab, routingApprovedItems, routingPendingItems, selectedCategoryId]);
+  }, [
+    activeTab,
+    routingApprovedItems,
+    routingPendingItems,
+    selectedCategoryId,
+  ]);
 
   const selectedCategoryName = useMemo(() => {
     if (selectedCategoryId === "") return "";
     return (
       [...routingApprovedItems, ...routingPendingItems].find(
         (item) => item.comments_category_item === selectedCategoryId,
-      )
-        ?.comments_category_name ?? ""
+      )?.comments_category_name ?? ""
     );
   }, [routingApprovedItems, routingPendingItems, selectedCategoryId]);
 
@@ -739,7 +742,8 @@ export default function Feedback() {
       setReplyContent(feedbackDetail.content ?? "");
       setReplyFileUrl(feedbackDetail.url || null);
       setReplyFileName(
-        feedbackDetail.title_url || getFileNameFromUrl(feedbackDetail.url || ""),
+        feedbackDetail.title_url ||
+          getFileNameFromUrl(feedbackDetail.url || ""),
       );
     } else {
       setReplyContent("");

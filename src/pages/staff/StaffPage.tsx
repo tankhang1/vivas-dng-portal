@@ -42,7 +42,6 @@ export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
   const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isFetching, refetch } = useSearchStaffQuery({
@@ -62,10 +61,9 @@ export default function StaffPage() {
     return staffList.filter(
       (staff) =>
         (departmentFilter === "all" ||
-          String(staff.department_item) === departmentFilter) &&
-        (statusFilter === "all" || String(staff.status) === statusFilter),
+          String(staff.department_item) === departmentFilter),
     );
-  }, [staffList, departmentFilter, statusFilter]);
+  }, [staffList, departmentFilter]);
 
   const totalPages = Math.max(1, data?.page.totalPages ?? 1);
   const totalItems = data?.page.totalElements ?? 0;
@@ -145,17 +143,6 @@ export default function StaffPage() {
                     {department.name}
                   </option>
                 ))}
-              </Select>
-              <Select
-                value={statusFilter}
-                onChange={(e) =>
-                  updateFilters(() => setStatusFilter(e.target.value))
-                }
-                className="w-40"
-              >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="1">Hoạt động</option>
-                <option value="0">Tạm khóa</option>
               </Select>
             </div>
           </CardHeader>
