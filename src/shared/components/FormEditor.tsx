@@ -23,6 +23,21 @@ function execCommand(command: string, value?: string) {
   document.execCommand(command, false, value);
 }
 
+/**
+ * Some article content is a full HTML document (complete with its own
+ * <style>/<script> tags) rather than a plain body fragment. Since the
+ * editor is a contentEditable div living in the live page DOM, injecting
+ * those tags as-is would leak page-wide (e.g. a <style> rule targeting
+ * "h1" would restyle every h1 on the whole app, not just this editor).
+ * Strip them and keep only the body content.
+ */
+function sanitizeHtml(html: string): string {
+  if (typeof window === "undefined" || !html) return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style, link[rel='stylesheet']").forEach((el) => el.remove());
+  return doc.body.innerHTML;
+}
+
 export function FormEditor({
   value,
   onChange,
@@ -35,8 +50,9 @@ export function FormEditor({
     const el = editorRef.current;
     if (!el) return;
 
-    if (el.innerHTML !== value) {
-      el.innerHTML = value;
+    const safeValue = sanitizeHtml(value);
+    if (el.innerHTML !== safeValue) {
+      el.innerHTML = safeValue;
     }
   }, [value]);
 

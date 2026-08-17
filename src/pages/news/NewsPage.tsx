@@ -3,11 +3,12 @@ import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import { Button, Card, CardContent, Pagination } from "../../shared/components/ui";
 import {
+  useApprovalNewsProcessMutation,
   useRemoveNewsProcessMutation,
   useSearchNewsQuery,
 } from "@/features/news/hooks/news.hook";
 import { useNewsCategoriesQuery } from "@/features/category-news/hooks/category-news.hook";
-import { type NewsArticle } from "./types";
+import { CURRENT_STAFF, type NewsArticle } from "./types";
 import { NewsDetailDialog } from "./NewsDetailDialog";
 import { NewsToolbar } from "./components/NewsToolbar";
 import { NewsTable } from "./components/NewsTable";
@@ -34,13 +35,6 @@ export default function NewsPage() {
   });
 
   const { data: categoriesData } = useNewsCategoriesQuery({ sz: 100, nu: 0 });
-  const categoryNameById = useMemo(() => {
-    const map = new Map<number, string>();
-    categoriesData?.content.forEach((category) => {
-      map.set(category.id, category.name);
-    });
-    return map;
-  }, [categoriesData]);
 
   const items = data?.content ?? [];
   const rows = useMemo(
@@ -57,6 +51,7 @@ export default function NewsPage() {
   const showRefetchOverlay = isFetching && !showInitialLoading;
 
   const removeNewsMutation = useRemoveNewsProcessMutation();
+  const approvalNewsMutation = useApprovalNewsProcessMutation();
 
   const goToCreate = () => navigate("/news/new");
   const goToEdit = (id: string) => navigate(`/news/${id}/edit`);
@@ -69,6 +64,20 @@ export default function NewsPage() {
       refetch();
     } catch {
       window.alert("Xóa bản tin thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    if (!window.confirm("Duyệt bản tin này?")) return;
+    try {
+      await approvalNewsMutation.mutateAsync({
+        news_item: id,
+        staff_approval_item: CURRENT_STAFF.id,
+        staff_approval_name: CURRENT_STAFF.name,
+      });
+      refetch();
+    } catch {
+      window.alert("Duyệt bản tin thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -106,13 +115,13 @@ export default function NewsPage() {
           <CardContent>
             <NewsTable
               rows={rows}
-              categoryNameById={categoryNameById}
               isError={isError}
               showInitialLoading={showInitialLoading}
               showRefetchOverlay={showRefetchOverlay}
               onView={setDetailArticle}
               onEdit={goToEdit}
               onDelete={handleDelete}
+              onApprove={handleApprove}
             />
 
             <Pagination

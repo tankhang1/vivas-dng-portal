@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   Badge,
   Button,
@@ -38,6 +39,16 @@ export function NewsDetailDialog({
   onEdit,
   onDelete,
 }: NewsDetailDialogProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeHeight, setIframeHeight] = useState(360);
+
+  const handleIframeLoad = () => {
+    const doc = iframeRef.current?.contentDocument;
+    if (doc?.documentElement) {
+      setIframeHeight(doc.documentElement.scrollHeight);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange} className="!max-w-6xl !p-0">
       {article && (
@@ -103,9 +114,14 @@ export function NewsDetailDialog({
                   </p>
                 )}
 
-                <div
-                  className="prose max-w-none prose-slate prose-headings:font-semibold prose-p:leading-7 prose-li:leading-7"
-                  dangerouslySetInnerHTML={{ __html: article.contentHtml }}
+                <iframe
+                  ref={iframeRef}
+                  title={article.title || "Nội dung bản tin"}
+                  srcDoc={article.contentHtml}
+                  onLoad={handleIframeLoad}
+                  sandbox=""
+                  className="w-full rounded-2xl border border-border bg-white"
+                  style={{ height: iframeHeight }}
                 />
               </article>
             </div>

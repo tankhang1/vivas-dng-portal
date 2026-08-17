@@ -12,9 +12,12 @@ import {
   Select,
   Textarea,
 } from "../../shared/components/ui";
-import { MediaUpload, type MediaFile } from "../../shared/components/MediaUpload";
+import {
+  MediaUpload,
+  type MediaFile,
+} from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
-import { statusOptions, type NewsStatus } from "./types";
+import { CURRENT_STAFF, statusOptions, type NewsStatus } from "./types";
 import {
   usePostNewsProcessMutation,
   useEditNewsProcessMutation,
@@ -47,10 +50,6 @@ const defaultFormState = (): NewsFormState => ({
   thumbnail: [],
   status: "draft",
 });
-
-// No "get current user" endpoint exists yet, so the author identity required
-// by PostNewsProcessRequest has no real source and stays a placeholder.
-const CURRENT_STAFF = { id: 1, name: "Quản trị viên" };
 
 export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   const [, navigate] = useLocation();
@@ -85,7 +84,10 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   };
 
   const handleUploadThumbnail = async (file: File) => {
-    const url = await uploadImageMutation.mutateAsync({ file, c: "news-thumbnail" });
+    const url = await uploadImageMutation.mutateAsync({
+      file,
+      c: "news-thumbnail",
+    });
     if (!url) {
       throw new Error("Upload image response missing url");
     }
@@ -177,7 +179,10 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               >
                 Lưu nháp
               </Button>
-              <Button onClick={() => handleSave("published")} disabled={isSaving}>
+              <Button
+                onClick={() => handleSave("published")}
+                disabled={isSaving}
+              >
                 {isSaving ? "Đang lưu..." : "Xuất bản"}
               </Button>
             </div>
@@ -290,8 +295,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                   className="min-h-[260px]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
-                  lưu dưới dạng HTML.
+                  Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được lưu
+                  dưới dạng HTML.
                 </p>
               </div>
 

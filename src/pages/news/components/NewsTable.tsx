@@ -9,7 +9,14 @@ import {
   TableRow,
 } from "../../../shared/components/ui";
 import { Spinner } from "@/shared/components/ui/spinner";
-import { Edit2, Eye, ImageUp, Paperclip, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Edit2,
+  Eye,
+  ImageUp,
+  Paperclip,
+  Trash2,
+} from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { formatDate, sourceLabel, type NewsArticle } from "../types";
 import type { NewsItem } from "@/features/news/types/get-news.response";
@@ -23,31 +30,28 @@ export type NewsRow = {
 
 type NewsTableProps = {
   rows: NewsRow[];
-  categoryNameById: Map<number, string>;
   isError: boolean;
   showInitialLoading: boolean;
   showRefetchOverlay: boolean;
   onView: (article: NewsArticle) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onApprove: (id: number) => void;
 };
 
 export function NewsTable({
   rows,
-  categoryNameById,
   isError,
   showInitialLoading,
   showRefetchOverlay,
   onView,
   onEdit,
   onDelete,
+  onApprove,
 }: NewsTableProps) {
   return (
     <div className="relative">
-      <div
-        className="overflow-y-auto"
-        style={{ maxHeight: TABLE_MAX_HEIGHT }}
-      >
+      <div className="overflow-y-auto" style={{ maxHeight: TABLE_MAX_HEIGHT }}>
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-white">
             <TableRow>
@@ -119,10 +123,11 @@ export function NewsTable({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {categoryNameById.get(item.category_item) ??
-                        item.category_item}
-                    </Badge>
+                    {item.category_name ? (
+                      <Badge variant="outline">{item.category_name}</Badge>
+                    ) : (
+                      "N/A"
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {sourceLabel(article.source)}
@@ -149,6 +154,16 @@ export function NewsTable({
                       >
                         <Edit2 className="h-4 w-4 text-blue-600" />
                       </Button>
+                      {item.status !== 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onApprove(item.id)}
+                          title="Duyệt bản tin"
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
