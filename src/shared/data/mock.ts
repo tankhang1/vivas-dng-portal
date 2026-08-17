@@ -544,6 +544,7 @@ export const mockCitizenComments = [
   {
     id: 101,
     category_item: 1,
+    category_name: 'Hạ tầng đô thị',
     citizen_item: 1,
     staff_approve_item: 1,
     staff_item: 1,
@@ -576,6 +577,7 @@ export const mockCitizenComments = [
   {
     id: 102,
     category_item: 3,
+    category_name: 'Môi trường',
     citizen_item: 1,
     staff_approve_item: 0,
     staff_item: 0,
@@ -600,6 +602,7 @@ export const mockCitizenComments = [
   {
     id: 103,
     category_item: 2,
+    category_name: 'Đất đai - Xây dựng',
     citizen_item: 2,
     staff_approve_item: 1,
     staff_item: 3,
@@ -632,6 +635,7 @@ export const mockCitizenComments = [
   {
     id: 104,
     category_item: 4,
+    category_name: 'An ninh trật tự',
     citizen_item: 4,
     staff_approve_item: 0,
     staff_item: 0,
@@ -656,6 +660,7 @@ export const mockCitizenComments = [
   {
     id: 105,
     category_item: 3,
+    category_name: 'Môi trường',
     citizen_item: 6,
     staff_approve_item: 1,
     staff_item: 3,

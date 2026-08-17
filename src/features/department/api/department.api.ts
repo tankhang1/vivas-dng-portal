@@ -40,8 +40,11 @@ export async function removeDepartmentProcess(
 }
 
 export async function getDepartments(): Promise<GetDepartmentsResponse> {
+  // The backend returns a flat, paginated list of every department (root and
+  // sub alike, distinguished by department_root_item) rather than roots
+  // only, so request a large page to get the whole tree in one call.
   const response = await apiClient.get<GetDepartmentsResponse>(
-    API_PATH.COMMON.DEPARTMENTS,
+    `${API_PATH.COMMON.DEPARTMENTS}?sz=200&nu=0`,
   );
 
   return response.data;

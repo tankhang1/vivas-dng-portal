@@ -59,9 +59,9 @@ import {
   useEditDepartmentProcessMutation,
   useRemoveDepartmentProcessMutation,
 } from "@/features/department/hooks/department.hook";
+import { useSearchStaffQuery } from "@/features/staff/hooks/staff.hook";
 import type { DepartmentItem } from "@/features/department/types/get-departments.response";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { getDepartmentSubs } from "@/features/department/api/department.api";
+import { useQueryClient } from "@tanstack/react-query";
 import type { GetDepartmentsResponse } from "@/features/department/types/get-departments.response";
 import { QUERY_KEY } from "@/shared/api";
 
@@ -75,6 +75,7 @@ type DepartmentRecord = {
   description: string;
   order: number;
   manager: string;
+  managerId: number | null;
   status: DepartmentStatus;
 };
 
@@ -86,6 +87,7 @@ type DepartmentFormState = {
   description: string;
   order: number;
   manager: string;
+  managerId: number | null;
   status: DepartmentStatus;
 };
 
@@ -103,64 +105,42 @@ const buildFormState = (
   description: department?.description ?? "",
   order: department?.order ?? 0,
   manager: department?.manager ?? "",
+  managerId: department?.managerId ?? null,
   status: department?.status ?? "active",
 });
 
 const isSameText = (value: string, query: string) =>
   value.toLowerCase().includes(query.toLowerCase());
 
-function departmentItemToRecord(
-  item: DepartmentItem,
-  parentId: string | null,
-  order: number,
-): DepartmentRecord {
+function departmentItemToRecord(item: DepartmentItem): DepartmentRecord {
   return {
     id: String(item.id),
     name: item.name,
     code: "",
-    parentId,
+    parentId: item.department_root_item ? String(item.department_root_item) : null,
     description: item.note ?? "",
-    order,
+    order: item.id,
     manager: item.staff_name ?? "",
+    managerId: item.staff_item || null,
     status: "active",
   };
 }
 
 /**
- * The department API only exposes two levels: root departments and, for a
- * given id, its direct subs. There is no "get whole tree" endpoint, so this
- * fetches the root list then fetches subs for every root in parallel and
- * flattens the result into the same shape the UI already works with.
+ * The department API returns a single flat, paginated list of every
+ * department (root and sub alike), each carrying its own
+ * department_root_item as the parent reference — there is no separate
+ * "roots only" vs "subs of X" split, so the whole tree is built client-side
+ * from that one list.
  */
 function useDepartmentTree() {
-  const { data: rootData, isLoading: isRootLoading } = useDepartmentsQuery();
-  const roots = rootData?.content ?? [];
+  const { data, isLoading } = useDepartmentsQuery();
+  const items = data?.content ?? [];
 
-  const subQueries = useQueries({
-    queries: roots.map((root) => ({
-      queryKey: QUERY_KEY.DEPARTMENTS_SUB(root.id),
-      queryFn: () => getDepartmentSubs(root.id),
-      enabled: root.total_department_sub > 0,
-    })),
-  });
-
-  const isLoading =
-    isRootLoading || subQueries.some((query) => query.isLoading);
-
-  const records = useMemo(() => {
-    const list: DepartmentRecord[] = roots.map((root, index) =>
-      departmentItemToRecord(root, null, index + 1),
-    );
-
-    roots.forEach((root, index) => {
-      const subs = subQueries[index]?.data?.content ?? [];
-      subs.forEach((sub, subIndex) => {
-        list.push(departmentItemToRecord(sub, String(root.id), subIndex + 1));
-      });
-    });
-
-    return list;
-  }, [roots, subQueries]);
+  const records = useMemo(
+    () => items.map((item) => departmentItemToRecord(item)),
+    [items],
+  );
 
   return { records, isLoading };
 }
@@ -174,6 +154,8 @@ export default function Departments() {
   const removeDepartmentMutation = useRemoveDepartmentProcessMutation();
 
   const [staffList, setStaffList] = useState<StaffRecord[]>(() => getStaff());
+  const { data: managerStaffData } = useSearchStaffQuery({ sz: 200, nu: 0 });
+  const managerOptions = managerStaffData?.content ?? [];
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -300,6 +282,7 @@ export default function Departments() {
         description: "",
         order: departments.length + 1,
         manager: "",
+        managerId: null,
         status: "active",
       }),
     );
@@ -315,6 +298,13 @@ export default function Departments() {
     const name = (currentDepartment.name ?? "").trim();
     if (!name) return;
     const desc = currentDepartment.description ?? "";
+    const parentDepartment = currentDepartment.parentId
+      ? departmentsById.get(currentDepartment.parentId)
+      : null;
+    const staffItem = currentDepartment.managerId ?? 0;
+    const staffName = currentDepartment.managerId ? currentDepartment.manager : "";
+    const departmentRootItem = parentDepartment ? Number(parentDepartment.id) : 0;
+    const departmentRootName = parentDepartment ? parentDepartment.name : "";
 
     try {
       if (currentDepartment.id) {
@@ -322,6 +312,10 @@ export default function Departments() {
           item: Number(currentDepartment.id),
           name,
           note: desc,
+          staff_item: staffItem,
+          staff_name: staffName,
+          department_root_item: departmentRootItem,
+          department_root_name: departmentRootName,
         });
         const nextDepartment: DepartmentRecord = {
           ...currentDepartment,
@@ -336,24 +330,39 @@ export default function Departments() {
           current.map((d) => (d.id === nextDepartment.id ? nextDepartment : d)),
         );
       } else {
-        await createDepartmentMutation.mutateAsync({ name, note: desc });
+        await createDepartmentMutation.mutateAsync({
+          name,
+          note: desc,
+          staff_item: staffItem,
+          staff_name: staffName,
+          department_root_item: departmentRootItem,
+          department_root_name: departmentRootName,
+        });
 
         // The create response doesn't reliably carry the new id, so find it
-        // by diffing the freshly-invalidated root list against what we had.
+        // by diffing the freshly-invalidated flat list against what we had
+        // for this same parent before the call.
+        const existingIds = new Set(
+          departments
+            .filter((d) => d.parentId === currentDepartment.parentId)
+            .map((d) => d.id),
+        );
+        const parentIdNumber = currentDepartment.parentId
+          ? Number(currentDepartment.parentId)
+          : 0;
         const refreshed = queryClient.getQueryData<GetDepartmentsResponse>(
           QUERY_KEY.DEPARTMENTS,
         );
-        const existingIds = new Set(
-          departments.filter((d) => d.parentId === null).map((d) => d.id),
-        );
         const created = refreshed?.content.find(
-          (department) => !existingIds.has(String(department.id)),
+          (department) =>
+            (department.department_root_item || 0) === parentIdNumber &&
+            !existingIds.has(String(department.id)),
         );
 
         const nextDepartment: DepartmentRecord = {
           ...currentDepartment,
           id: created ? String(created.id) : `local-${Date.now()}`,
-          parentId: null,
+          parentId: currentDepartment.parentId,
           order: Number.isNaN(Number(currentDepartment.order))
             ? 0
             : Number(currentDepartment.order),
@@ -814,7 +823,7 @@ export default function Departments() {
                     <CommandList>
                       <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
                       <CommandGroup>
-                        {staffList.map((staff) => (
+                        {managerOptions.map((staff) => (
                           <CommandItem
                             key={staff.id}
                             value={staff.name}
@@ -822,6 +831,7 @@ export default function Departments() {
                               setCurrentDepartment((current) => ({
                                 ...current,
                                 manager: staff.name,
+                                managerId: staff.id,
                               }));
                               setIsManagerPickerOpen(false);
                             }}
@@ -829,7 +839,7 @@ export default function Departments() {
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                currentDepartment.manager === staff.name
+                                currentDepartment.managerId === staff.id
                                   ? "opacity-100"
                                   : "opacity-0",
                               )}

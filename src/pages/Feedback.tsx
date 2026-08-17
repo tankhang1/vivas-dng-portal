@@ -365,7 +365,7 @@ export default function Feedback() {
             </DialogHeader>
             <div className="grid gap-4 py-2 max-h-[65vh] overflow-y-auto">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{current.category_item}</Badge>
+                <Badge variant="outline">{current.category_name}</Badge>
                 <Badge
                   variant={current.annonymous === 1 ? "secondary" : "outline"}
                   className="gap-1"
