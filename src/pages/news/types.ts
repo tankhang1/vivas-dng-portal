@@ -1,9 +1,14 @@
 import type { MediaFile } from '../../shared/components/MediaUpload';
+import { getCurrentStaff } from '@/shared/api';
 
-// No "get current user" endpoint exists yet, so any staff identity required
-// by news write endpoints (author, approver) has no real source and stays
-// a shared placeholder.
-export const CURRENT_STAFF = { id: 1, name: 'Quản trị viên' };
+export const CURRENT_STAFF = {
+  get id() {
+    return getCurrentStaff().id;
+  },
+  get name() {
+    return getCurrentStaff().name;
+  },
+};
 
 export type NewsStatus = 'draft' | 'published';
 export type Audience = 'all-citizens' | 'residents' | 'staff' | 'leaders';

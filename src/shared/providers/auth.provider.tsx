@@ -2,7 +2,11 @@ import React from 'react';
 import { useLocation } from 'wouter';
 
 import { checkTokenExpired, refreshToken } from '@/features/auth/api/auth.api';
-import { clearAccessToken, getAccessToken } from '@/shared/api';
+import {
+  clearAccessToken,
+  clearCurrentStaff,
+  getAccessToken,
+} from '@/shared/api';
 
 type AuthContextValue = {
   isReady: boolean;
@@ -34,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!token) {
       clearAccessToken();
+      clearCurrentStaff();
       setIsAuthenticated(false);
       setIsReady(true);
 
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       clearAccessToken();
+      clearCurrentStaff();
       setIsAuthenticated(false);
       setIsReady(true);
 
@@ -74,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = React.useCallback(() => {
     clearAccessToken();
+    clearCurrentStaff();
     setIsAuthenticated(false);
     setLocation('/login');
   }, [setLocation]);

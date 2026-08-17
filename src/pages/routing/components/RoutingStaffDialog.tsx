@@ -28,6 +28,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
+import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
 
 const routingStaffSchema = z.object({
   staffId: z.string().min(1, "Vui lòng chọn cán bộ xử lý"),
@@ -42,6 +43,8 @@ type RoutingStaffDialogProps = {
   categoryName: string;
   staffOptions: StaffItem[];
   isSaving: boolean;
+  mode?: "create" | "edit";
+  editingItem?: StaffCoordinateCommentItem | null;
   onSubmit: (values: RoutingStaffFormValues) => Promise<void>;
 };
 
@@ -61,6 +64,8 @@ export function RoutingStaffDialog({
   categoryName,
   staffOptions,
   isSaving,
+  mode = "create",
+  editingItem,
   onSubmit,
 }: RoutingStaffDialogProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -80,10 +85,17 @@ export function RoutingStaffDialog({
 
   useEffect(() => {
     if (open) {
-      reset(defaultValues);
+      reset(
+        editingItem
+          ? {
+              staffId: String(editingItem.staff_item),
+              approval: editingItem.approval === 1,
+            }
+          : defaultValues,
+      );
       setIsPickerOpen(false);
     }
-  }, [open, reset]);
+  }, [editingItem, open, reset]);
 
   const selectedStaffId = watch("staffId");
   const selectedStaff = useMemo(
@@ -99,7 +111,9 @@ export function RoutingStaffDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <DialogHeader>
-          <DialogTitle>Thêm cán bộ vào điều phối</DialogTitle>
+          <DialogTitle>
+            {mode === "edit" ? "Cập nhật cán bộ điều phối" : "Thêm cán bộ vào điều phối"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -205,7 +219,11 @@ export function RoutingStaffDialog({
             Hủy
           </Button>
           <Button type="submit" disabled={saveDisabled}>
-            {saveDisabled ? "Đang lưu..." : "Thêm cán bộ"}
+            {saveDisabled
+              ? "Đang lưu..."
+              : mode === "edit"
+                ? "Cập nhật"
+                : "Thêm cán bộ"}
           </Button>
         </DialogFooter>
       </form>

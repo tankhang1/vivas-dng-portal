@@ -25,9 +25,9 @@ import {
   useSearchStaffQuery,
   useStaffCoordinateCommentsByCategoryApproveQuery,
   useStaffCoordinateCommentsByCategoryNoneApproveQuery,
-  useActiveStaffCoordinateCommentProcessMutation,
-  useDeactiveStaffCoordinateCommentProcessMutation,
   useCreateStaffCoordinateCommentProcessMutation,
+  useEditStaffCoordinateCommentProcessMutation,
+  useRemoveStaffCoordinateCommentProcessMutation,
 } from "@/features/staff/hooks/staff.hook";
 import { getStaffCoordinateCommentsByCategoryApprove } from "@/features/staff/api/staff.api";
 import { QUERY_KEY } from "@/shared/api";
@@ -58,6 +58,8 @@ export default function RoutingPage() {
     "approved" | "pending" | null
   >("approved");
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
+  const [editingStaffLink, setEditingStaffLink] =
+    useState<StaffCoordinateCommentItem | null>(null);
 
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useCommentCategoriesQuery({ sz: CATEGORY_LIST_SIZE, nu: 0 });
@@ -88,12 +90,12 @@ export default function RoutingPage() {
     queries: categories.map((category) => ({
       queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE(
         category.id,
-        { sz: 1, nu: 0 },
+        { sz: 200, nu: 0 },
       ),
       queryFn: () =>
         getStaffCoordinateCommentsByCategoryApprove({
           categoryId: category.id,
-          sz: 1,
+          sz: 200,
           nu: 0,
         }),
     })),
@@ -129,22 +131,37 @@ export default function RoutingPage() {
     (staff) => !assignedStaffIds.has(staff.id),
   );
 
-  const activeMutation = useActiveStaffCoordinateCommentProcessMutation();
-  const deactiveMutation = useDeactiveStaffCoordinateCommentProcessMutation();
+  const createMutation = useCreateStaffCoordinateCommentProcessMutation();
+  const editMutation = useEditStaffCoordinateCommentProcessMutation();
+  const removeMutation = useRemoveStaffCoordinateCommentProcessMutation();
   const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
-  const createStaffLinkMutation =
-    useCreateStaffCoordinateCommentProcessMutation();
-  const isToggling = activeMutation.isPending || deactiveMutation.isPending;
+  const isToggling =
+    createMutation.isPending || editMutation.isPending || removeMutation.isPending;
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategoryId(id);
   };
 
-  const handleToggleApproval = (item: StaffCoordinateCommentItem) => {
-    if (item.approval === 1) {
-      deactiveMutation.mutate({ id: item.id });
-    } else {
-      activeMutation.mutate({ id: item.id });
+  const handleOpenEditStaff = (item: StaffCoordinateCommentItem) => {
+    setEditingStaffLink(item);
+    setIsAddStaffDialogOpen(true);
+  };
+
+  const handleDeleteStaffLink = async (item: StaffCoordinateCommentItem) => {
+    if (!window.confirm(`Xoá cán bộ "${item.staff_name ?? "không rõ"}" khỏi điều phối này?`)) {
+      return;
+    }
+
+    try {
+      await removeMutation.mutateAsync({
+        id: item.id,
+        staff_item: item.staff_item,
+      });
+      if (editingStaffLink?.id === item.id) {
+        setEditingStaffLink(null);
+      }
+    } catch {
+      window.alert("Xoá cán bộ điều phối thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -161,6 +178,7 @@ export default function RoutingPage() {
   };
 
   const handleOpenAddStaffDialog = () => {
+    setEditingStaffLink(null);
     setIsAddStaffDialogOpen(true);
   };
 
@@ -173,15 +191,27 @@ export default function RoutingPage() {
     if (!staff) return;
 
     try {
-      await createStaffLinkMutation.mutateAsync({
-        id: 0,
-        staff_item: staff.id,
-        staff_name: staff.name,
-        approval: values.approval ? 1 : 0,
-        comments_category_item: activeCategory.id,
-        comments_category_name: activeCategory.name,
-      });
+      if (editingStaffLink) {
+        await editMutation.mutateAsync({
+          id: editingStaffLink.id,
+          staff_item: staff.id,
+          staff_name: staff.name,
+          approval: values.approval ? 1 : 0,
+          comments_category_item: activeCategory.id,
+          comments_category_name: activeCategory.name,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          id: 0,
+          staff_item: staff.id,
+          staff_name: staff.name,
+          approval: values.approval ? 1 : 0,
+          comments_category_item: activeCategory.id,
+          comments_category_name: activeCategory.name,
+        });
+      }
       setIsAddStaffDialogOpen(false);
+      setEditingStaffLink(null);
       setExpandedGroup(values.approval ? "approved" : "pending");
     } catch {
       window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
@@ -212,14 +242,27 @@ export default function RoutingPage() {
             )}
           </div>
         </div>
-        <Button
-          variant={item.approval === 1 ? "outline" : "default"}
-          size="sm"
-          disabled={isToggling}
-          onClick={() => handleToggleApproval(item)}
-        >
-          {item.approval === 1 ? "Bỏ duyệt" : "Phê duyệt"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isToggling}
+            onClick={() => handleOpenEditStaff(item)}
+          >
+            <Edit2 className="mr-2 h-4 w-4" />
+            Sửa
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+            disabled={isToggling}
+            onClick={() => handleDeleteStaffLink(item)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Xoá
+          </Button>
+        </div>
       </div>
     );
   };
@@ -475,10 +518,17 @@ export default function RoutingPage() {
 
       <RoutingStaffDialog
         open={isAddStaffDialogOpen}
-        onOpenChange={setIsAddStaffDialogOpen}
+        onOpenChange={(open) => {
+          setIsAddStaffDialogOpen(open);
+          if (!open) {
+            setEditingStaffLink(null);
+          }
+        }}
         categoryName={activeCategory?.name ?? ""}
         staffOptions={assignableStaff}
-        isSaving={createStaffLinkMutation.isPending}
+        isSaving={createMutation.isPending || editMutation.isPending}
+        mode={editingStaffLink ? "edit" : "create"}
+        editingItem={editingStaffLink}
         onSubmit={handleAddStaff}
       />
     </Layout>

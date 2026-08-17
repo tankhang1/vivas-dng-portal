@@ -1,4 +1,9 @@
-import { API_PATH, apiClient, setAccessToken } from "@/shared/api";
+import {
+  API_PATH,
+  apiClient,
+  setAccessToken,
+  setCurrentStaff,
+} from "@/shared/api";
 import type { AuthLoginRequest } from "@/features/auth/types/auth.request";
 import type { AuthLoginResponse } from "@/features/auth/types/auth.response";
 import type { CheckTokenExpiredRequest } from "@/features/auth/types/check-token-expired.request";
@@ -12,6 +17,7 @@ export async function login(
     request,
   );
   setAccessToken(response.data.token);
+  setCurrentStaff(response.data.staff_item, response.data.staff_name);
   return response.data;
 }
 
