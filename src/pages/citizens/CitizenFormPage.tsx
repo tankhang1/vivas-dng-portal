@@ -13,10 +13,11 @@ import {
   Select,
 } from "../../shared/components/ui";
 import {
-  useCitizenFromCache,
+  useCitizenProfileQuery,
   useEditCitizenProcessMutation,
 } from "@/features/citizen/hooks/citizen.hook";
 import { useUploadImageMutation } from "@/features/upload/hooks/upload.hook";
+import { Spinner } from "../../shared/components/ui/spinner";
 
 type CitizenFormPageProps = {
   mode: "create" | "edit";
@@ -51,7 +52,8 @@ const defaultFields = (): CitizenFormFields => ({
 
 export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
   const [, navigate] = useLocation();
-  const citizen = useCitizenFromCache(mode === "edit" ? citizenId : undefined);
+  const { data: citizen, isLoading: isCitizenLoading, isError: isCitizenError } =
+    useCitizenProfileQuery(mode === "edit" ? citizenId : undefined);
   const editMutation = useEditCitizenProcessMutation();
   const uploadImageMutation = useUploadImageMutation();
 
@@ -66,6 +68,12 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
         email: citizen.email ?? "",
         address: citizen.address ?? "",
         hamlet: citizen.hamlet ?? "",
+        gender: citizen.gender ?? 0,
+        degree: citizen.degree ?? "",
+        career: citizen.career ?? "",
+        ethnicity: citizen.ethnicity ?? "",
+        religion: citizen.religion ?? "",
+        note: citizen.note ?? "",
       });
       setAvatarFiles(
         citizen.avatar
@@ -137,19 +145,31 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
     );
   }
 
-  if (!citizen) {
+  if (isCitizenLoading) {
+    return (
+      <Layout>
+        <Card className="mx-auto max-w-lg">
+          <CardContent className="flex items-center gap-3 py-8">
+            <Spinner className="h-4 w-4" />
+            <span className="text-sm text-muted-foreground">
+              Đang tải hồ sơ công dân...
+            </span>
+          </CardContent>
+        </Card>
+      </Layout>
+    );
+  }
+
+  if (isCitizenError || !citizen) {
     return (
       <Layout>
         <Card className="mx-auto max-w-lg">
           <CardHeader>
-            <CardTitle>Không có sẵn dữ liệu công dân</CardTitle>
+            <CardTitle>Không tải được hồ sơ công dân</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              API chưa có endpoint lấy chi tiết công dân theo ID, nên trang
-              này chỉ chỉnh sửa được công dân đã có sẵn trong danh sách đã tải
-              (công dân #{citizenId}). Hãy quay lại danh sách và mở chỉnh sửa
-              từ đó.
+              Kiểm tra lại `zalo_user_id` trên đường dẫn hoặc thử tải lại trang.
             </p>
             <Button onClick={() => navigate("/citizens")}>
               Quay lại danh sách

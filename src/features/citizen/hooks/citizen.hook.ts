@@ -7,9 +7,11 @@ import {
 
 import {
   editCitizenProcess,
+  getCitizenProfile,
   getCitizens,
   searchCitizens,
 } from '@/features/citizen/api/citizen.api';
+import type { GetCitizenProfileResponse } from '@/features/citizen/types/get-citizen-profile.response';
 import type { GetCitizensResponse } from '@/features/citizen/types/get-citizens.response';
 import type { EditCitizenProcessRequest } from '@/features/citizen/types/edit-citizen-process.request';
 import type { EditCitizenProcessResponse } from '@/features/citizen/types/edit-citizen-process.response';
@@ -28,6 +30,17 @@ export function useSearchCitizensQuery(request: SearchCitizensRequest) {
     queryKey: QUERY_KEY.CITIZENS_SEARCH(request),
     queryFn: () => searchCitizens(request),
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useCitizenProfileQuery(zaloUserId?: number | string) {
+  return useQuery<GetCitizenProfileResponse>({
+    queryKey:
+      zaloUserId !== undefined && zaloUserId !== null && zaloUserId !== ''
+        ? QUERY_KEY.CITIZEN_PROFILE(zaloUserId)
+        : QUERY_KEY.CITIZEN_PROFILE(''),
+    queryFn: () => getCitizenProfile(zaloUserId as number | string),
+    enabled: zaloUserId !== undefined && zaloUserId !== null && zaloUserId !== '',
   });
 }
 
@@ -59,8 +72,11 @@ export function useEditCitizenProcessMutation() {
 
   return useMutation<EditCitizenProcessResponse, Error, EditCitizenProcessRequest>({
     mutationFn: editCitizenProcess,
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY.CITIZENS });
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEY.CITIZEN_PROFILE(variables.zalo_user_id),
+      });
     },
   });
 }

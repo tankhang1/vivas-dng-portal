@@ -37,8 +37,9 @@ import {
 } from "lucide-react";
 import { useCommentsQuery } from "@/features/comment/hooks/comment.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
+import { useCitizenProfileQuery } from "@/features/citizen/hooks/citizen.hook";
 import { mockCitizenComments } from "@/shared/data/mock";
-import { useCitizenFromCache } from "@/features/citizen/hooks/citizen.hook";
+import { Spinner } from "../../shared/components/ui/spinner";
 
 type CommentReply = {
   staffName: string;
@@ -114,7 +115,11 @@ export default function CitizenDetailPage({
     null,
   );
 
-  const citizen = useCitizenFromCache(id);
+  const {
+    data: citizen,
+    isLoading: isCitizenLoading,
+    isError: isCitizenError,
+  } = useCitizenProfileQuery(id);
 
   const { data: commentsData } = useCommentsQuery();
 
@@ -128,19 +133,31 @@ export default function CitizenDetailPage({
     return mockCitizenComments.filter((item) => item.phone === citizen.phone);
   }, [commentsData, citizen?.phone]);
 
-  if (!citizen) {
+  if (isCitizenLoading) {
+    return (
+      <Layout>
+        <Card className="mx-auto max-w-lg">
+          <CardContent className="flex items-center gap-3 py-8">
+            <Spinner className="h-4 w-4" />
+            <span className="text-sm text-muted-foreground">
+              Đang tải hồ sơ công dân...
+            </span>
+          </CardContent>
+        </Card>
+      </Layout>
+    );
+  }
+
+  if (isCitizenError || !citizen) {
     return (
       <Layout>
         <Card className="mx-auto max-w-lg">
           <CardHeader>
-            <CardTitle>Không có sẵn dữ liệu công dân</CardTitle>
+            <CardTitle>Không tải được hồ sơ công dân</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              API chưa có endpoint lấy chi tiết công dân theo ID, nên trang
-              này chỉ hiển thị được khi mở từ danh sách Công dân đã tải sẵn
-              dòng tương ứng (công dân #{id}). Hãy quay lại danh sách và mở
-              chi tiết từ đó.
+              Kiểm tra lại `zalo_user_id` trên đường dẫn hoặc thử tải lại trang.
             </p>
             <Button onClick={() => navigate("/citizens")}>
               Quay lại danh sách

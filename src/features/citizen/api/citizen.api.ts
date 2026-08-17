@@ -1,4 +1,5 @@
 import { API_PATH, apiClient } from '@/shared/api';
+import type { GetCitizenProfileResponse } from '@/features/citizen/types/get-citizen-profile.response';
 import type { GetCitizensResponse } from '@/features/citizen/types/get-citizens.response';
 import type { EditCitizenProcessRequest } from '@/features/citizen/types/edit-citizen-process.request';
 import type { EditCitizenProcessResponse } from '@/features/citizen/types/edit-citizen-process.response';
@@ -42,6 +43,16 @@ export async function searchCitizens(
     query
       ? `${API_PATH.COMMON_PORTAL.CITIZEN}/search?${query}`
       : `${API_PATH.COMMON_PORTAL.CITIZEN}/search`,
+  );
+
+  return response.data;
+}
+
+export async function getCitizenProfile(
+  zaloUserId: number | string,
+): Promise<GetCitizenProfileResponse> {
+  const response = await apiClient.get<GetCitizenProfileResponse>(
+    API_PATH.COMMON_PORTAL.CITIZEN_PROFILE(zaloUserId),
   );
 
   return response.data;

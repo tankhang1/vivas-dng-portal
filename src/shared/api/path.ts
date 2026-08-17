@@ -93,6 +93,7 @@ export const API_PATH = {
     COMMENTS: '/common-portal/comments',
     COMMENT: (cUuid: string) => `/common-portal/comments/get/${cUuid}`,
     CITIZEN: '/common-portal/citizen',
+    CITIZEN_PROFILE: (zaloUserId: number | string) => `/common-portal/profile/${zaloUserId}`,
     STAFF: '/common-portal/staff',
     STAFF_DETAIL: (id: number | string) => `/common-portal/staff/detail/${id}`,
     STAFF_BY_DEPARTMENT: (departmentId: number | string) =>

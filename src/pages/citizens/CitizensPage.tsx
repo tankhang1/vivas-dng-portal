@@ -106,7 +106,7 @@ export default function CitizensPage() {
                     <TableRow
                       key={citizen.id}
                       className="cursor-pointer"
-                      onClick={() => navigate(`/citizens/${citizen.id}`)}
+                      onClick={() => navigate(`/citizens/${citizen.zalo_user_id}`)}
                     >
                       <TableCell className="font-semibold text-slate-900">
                         {citizen.name}
@@ -133,7 +133,7 @@ export default function CitizensPage() {
                             title="Xem chi tiết"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/citizens/${citizen.id}`);
+                              navigate(`/citizens/${citizen.zalo_user_id}`);
                             }}
                           >
                             <Eye className="h-4 w-4 text-slate-700" />
@@ -144,7 +144,7 @@ export default function CitizensPage() {
                             title="Chỉnh sửa"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/citizens/${citizen.id}/edit`);
+                              navigate(`/citizens/${citizen.zalo_user_id}/edit`);
                             }}
                           >
                             <Edit2 className="h-4 w-4 text-blue-600" />

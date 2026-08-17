@@ -58,6 +58,7 @@ export const QUERY_KEY = {
     sz?: number;
     nu?: number;
   }) => ['citizens', 'search', params] as const,
+  CITIZEN_PROFILE: (zaloUserId: number | string) => ['citizens', 'profile', zaloUserId] as const,
   NEWS_SEARCH: (params: {
     key?: string;
     category_item?: number;
