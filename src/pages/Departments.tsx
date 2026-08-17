@@ -607,10 +607,6 @@ export default function Departments() {
                     <div className="rounded-xl border bg-white p-4">
                       <div className="space-y-3 text-sm">
                         <InfoRow
-                          label="Thứ tự hiển thị"
-                          value={selectedDepartment.order}
-                        />
-                        <InfoRow
                           label="Trạng thái"
                           value={
                             selectedDepartment.status === "active"
@@ -732,6 +728,38 @@ export default function Departments() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2 md:col-span-2">
+              <Label htmlFor="department-code">Mã (tùy chọn)</Label>
+              <Input
+                id="department-code"
+                value={currentDepartment.code}
+                onChange={(event) =>
+                  setCurrentDepartment((current) => ({
+                    ...current,
+                    code: event.target.value,
+                  }))
+                }
+                placeholder="IT"
+              />
+            </div>
+
+            <div className="grid gap-2 md:col-span-2">
+              <Label htmlFor="department-name">
+                Tên phòng ban <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="department-name"
+                value={currentDepartment.name}
+                onChange={(event) =>
+                  setCurrentDepartment((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                placeholder="Phòng Công nghệ thông tin"
+              />
+            </div>
+
+            <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="department-parent">Phòng ban cha</Label>
               <Select
                 id="department-parent"
@@ -757,38 +785,6 @@ export default function Departments() {
               <p className="text-xs text-muted-foreground">
                 Để trống nếu là phòng ban cấp cao nhất.
               </p>
-            </div>
-
-            <div className="grid gap-2 md:col-span-2">
-              <Label htmlFor="department-name">
-                Tên phòng ban <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="department-name"
-                value={currentDepartment.name}
-                onChange={(event) =>
-                  setCurrentDepartment((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Phòng Công nghệ thông tin"
-              />
-            </div>
-
-            <div className="grid gap-2 md:col-span-2">
-              <Label htmlFor="department-code">Mã (tùy chọn)</Label>
-              <Input
-                id="department-code"
-                value={currentDepartment.code}
-                onChange={(event) =>
-                  setCurrentDepartment((current) => ({
-                    ...current,
-                    code: event.target.value,
-                  }))
-                }
-                placeholder="IT"
-              />
             </div>
 
             <div className="grid gap-2 md:col-span-2">
