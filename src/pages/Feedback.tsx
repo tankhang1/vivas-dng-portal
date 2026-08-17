@@ -76,7 +76,9 @@ export default function Feedback() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "approved"
+  >("all");
   const [page, setPage] = useState(1);
   const [current, setCurrent] = useState<CommentItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -219,7 +221,9 @@ export default function Feedback() {
               className="w-full md:w-48"
               value={statusFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value as "all" | "pending" | "approved");
+                setStatusFilter(
+                  e.target.value as "all" | "pending" | "approved",
+                );
                 setPage(1);
               }}
             >
@@ -231,10 +235,7 @@ export default function Feedback() {
           </CardHeader>
           <CardContent>
             <div className="relative">
-              <div
-                className="overflow-y-auto"
-                style={{ maxHeight: "480px" }}
-              >
+              <div className="overflow-y-auto" style={{ maxHeight: "480px" }}>
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-white">
                     <TableRow>
@@ -293,9 +294,13 @@ export default function Feedback() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">
-                                {item.category_item}
-                              </Badge>
+                              {item.category_name ? (
+                                <Badge variant="outline">
+                                  {item.category_name}
+                                </Badge>
+                              ) : (
+                                "N/A"
+                              )}
                             </TableCell>
                             <TableCell>
                               {formatDateTime(item.time_create)}
@@ -320,16 +325,18 @@ export default function Feedback() {
                           </TableRow>
                         );
                       })}
-                    {!showInitialLoading && !isError && filteredItems.length === 0 && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          className="h-24 text-center text-muted-foreground"
-                        >
-                          Không tìm thấy phản ánh nào.
-                        </TableCell>
-                      </TableRow>
-                    )}
+                    {!showInitialLoading &&
+                      !isError &&
+                      filteredItems.length === 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            className="h-24 text-center text-muted-foreground"
+                          >
+                            Không tìm thấy phản ánh nào.
+                          </TableCell>
+                        </TableRow>
+                      )}
                   </TableBody>
                 </Table>
               </div>
@@ -360,9 +367,7 @@ export default function Feedback() {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">{current.category_item}</Badge>
                 <Badge
-                  variant={
-                    current.annonymous === 1 ? "secondary" : "outline"
-                  }
+                  variant={current.annonymous === 1 ? "secondary" : "outline"}
                   className="gap-1"
                 >
                   {current.annonymous === 1 ? (
@@ -412,9 +417,7 @@ export default function Feedback() {
 
               {attachmentUrls.length > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Đính kèm
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">Đính kèm</p>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                     {attachmentUrls.map((url) =>
                       /\.(png|jpe?g|gif|webp)$/i.test(url) ? (

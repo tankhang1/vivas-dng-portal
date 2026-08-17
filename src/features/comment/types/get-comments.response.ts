@@ -1,6 +1,7 @@
 export type CommentItem = {
   id: number;
   category_item: number;
+  category_name: string;
   citizen_item: number;
   staff_approve_item: number;
   staff_item: number;
