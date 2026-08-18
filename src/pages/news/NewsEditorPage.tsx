@@ -29,6 +29,7 @@ import {
   type MediaFile,
 } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
+import { Spinner } from "../../shared/components/ui/spinner";
 import { CURRENT_STAFF } from "./types";
 import {
   usePostNewsProcessMutation,
@@ -76,6 +77,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   const uploadImageMutation = useUploadImageMutation();
 
   const [thumbnail, setThumbnailState] = useState<MediaFile[]>([]);
+  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
 
   const form = useForm<NewsFormValues>({
     resolver: zodResolver(newsFormSchema),
@@ -107,14 +109,19 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   }, [mode, article, reset]);
 
   const handleUploadThumbnail = async (file: File) => {
-    const url = await uploadImageMutation.mutateAsync({
-      file,
-      c: file.name,
-    });
-    if (!url) {
-      throw new Error("Upload image response missing url");
+    setIsThumbnailUploading(true);
+    try {
+      const url = await uploadImageMutation.mutateAsync({
+        file,
+        c: file.name,
+      });
+      if (!url) {
+        throw new Error("Upload image response missing url");
+      }
+      return url;
+    } finally {
+      setIsThumbnailUploading(false);
     }
-    return url;
   };
 
   const isSaving = postNewsMutation.isPending || editNewsMutation.isPending;
@@ -208,7 +215,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" disabled={isSaving || isThumbnailUploading}>
                 {isSaving ? "Đang lưu..." : "Lưu"}
               </Button>
             </div>
@@ -245,12 +252,17 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 )}
               </div>
               {thumbnail[0]?.url ? (
-                <div className="overflow-hidden rounded-lg border bg-slate-100">
+                <div className="relative overflow-hidden rounded-lg border bg-slate-100">
                   <img
                     src={thumbnail[0].url}
                     alt={watch("title") || "Ảnh bìa"}
                     className="h-48 w-full object-cover"
                   />
+                  {isThumbnailUploading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <Spinner className="h-6 w-6 text-white" />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <MediaUpload
@@ -284,11 +296,9 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                           <Select
                             value={field.value ? String(field.value) : ""}
                             onChange={(e) =>
-                              setValue(
-                                "categoryItem",
-                                Number(e.target.value),
-                                { shouldValidate: true },
-                              )
+                              setValue("categoryItem", Number(e.target.value), {
+                                shouldValidate: true,
+                              })
                             }
                           >
                             <option value="">Chọn...</option>
@@ -347,8 +357,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                       />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ
-                      được lưu dưới dạng HTML.
+                      Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
+                      lưu dưới dạng HTML.
                     </p>
                     <FormMessage />
                   </FormItem>
