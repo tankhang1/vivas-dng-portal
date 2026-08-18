@@ -4,6 +4,9 @@ import {
   Button,
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   Table,
   TableBody,
   TableCell,
@@ -12,7 +15,7 @@ import {
   TableRow,
 } from "../../../shared/components/ui";
 import { Spinner } from "../../../shared/components/ui/spinner";
-import { Plus, Trash2 } from "lucide-react";
+import { Info, Plus, Trash2 } from "lucide-react";
 import {
   useCreateHotlineProcessMutation,
   useHotlineQuery,
@@ -72,6 +75,26 @@ export default function HotlinePage() {
             Thêm hotline
           </Button>
         </div>
+
+        <Card className="border-primary/15 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Info className="h-5 w-5 text-primary" />
+              Hướng dẫn nhanh
+            </CardTitle>
+            <CardDescription>
+              Mỗi dòng hotline là một cán bộ hoặc đầu mối liên hệ sẽ được hiển thị
+              trên mini app.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+              <li>Thêm đầy đủ họ tên, số điện thoại, chức vụ và đơn vị trước khi lưu.</li>
+              <li>Email là trường không bắt buộc, có thể để trống nếu chưa có.</li>
+              <li>Xóa hotline là thao tác ngay lập tức, hệ thống sẽ hỏi xác nhận trước khi thực hiện.</li>
+            </ul>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="pt-6">

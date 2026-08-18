@@ -100,13 +100,6 @@ export default function RoutingPage() {
         }),
     })),
   });
-  const approvedCountByCategory = useMemo(() => {
-    const map = new Map<number, number>();
-    categories.forEach((category, index) => {
-      map.set(category.id, countQueries[index]?.data?.page.totalElements ?? 0);
-    });
-    return map;
-  }, [categories, countQueries]);
 
   const approveQuery = useStaffCoordinateCommentsByCategoryApproveQuery({
     categoryId: activeCategoryId,
@@ -310,11 +303,6 @@ export default function RoutingPage() {
                           <CardTitle className="text-lg">
                             {activeCategory.name}
                           </CardTitle>
-                          <Badge variant="secondary">
-                            {approvedCountByCategory.get(activeCategory.id) ??
-                              0}{" "}
-                            cán bộ
-                          </Badge>
                         </div>
                         <p className="mt-2 text-sm text-muted-foreground">
                           {activeCategory.note || "Chưa có mô tả."}
@@ -485,9 +473,6 @@ export default function RoutingPage() {
                         ].join(" ")}
                       >
                         {category.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {approvedCountByCategory.get(category.id) ?? 0} cán bộ
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center">

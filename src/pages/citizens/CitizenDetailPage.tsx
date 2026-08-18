@@ -38,29 +38,22 @@ import {
 import { useCitizenCommentsQuery } from "@/features/comment/hooks/comment.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import { useCitizenProfileQuery } from "@/features/citizen/hooks/citizen.hook";
+import { useFeedbackQuery } from "@/features/feedback/hooks/feedback.hook";
 import { Spinner } from "../../shared/components/ui/spinner";
 
-type CommentReply = {
-  staffName: string;
-  content: string;
-  date: string;
-  fileName?: string;
-  fileUrl?: string;
-};
-
-type CitizenComment = CommentItem & { reply?: CommentReply };
+type CitizenComment = CommentItem;
 
 const commentStatusMeta = {
   pending: { label: "Chưa duyệt", variant: "secondary" as const, icon: Clock },
   approved: {
-    label: "Đã phản hồi",
+    label: "Đã duyệt",
     variant: "success" as const,
     icon: CheckCircle2,
   },
 };
 
 function commentStatus(item: CitizenComment) {
-  return item.staff_approve_item > 0
+  return item.status === 1
     ? commentStatusMeta.approved
     : commentStatusMeta.pending;
 }
@@ -113,6 +106,11 @@ export default function CitizenDetailPage({
   const [selectedComment, setSelectedComment] = useState<CitizenComment | null>(
     null,
   );
+
+  const feedbackQuery = useFeedbackQuery(selectedComment?.c_uuid);
+  const feedbackDetail = feedbackQuery.data;
+  const isFeedbackLoading = feedbackQuery.isLoading;
+  const isFeedbackFetching = feedbackQuery.isFetching;
 
   const {
     data: citizen,
@@ -367,33 +365,56 @@ export default function CitizenDetailPage({
                 </p>
               </div>
 
-              {selectedComment.reply && (
-                <div className="rounded-lg border border-border bg-muted/30 p-3">
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-medium">Thông tin phản hồi</p>
-                    <span className="text-xs text-muted-foreground">
-                      {selectedComment.reply.staffName} ·{" "}
-                      {formatDateTime(selectedComment.reply.date)}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed">
-                    {selectedComment.reply.content}
-                  </p>
-                  {selectedComment.reply.fileUrl && (
-                    <a
-                      href={selectedComment.reply.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm text-primary hover:underline"
-                    >
-                      <FileText className="h-4 w-4 shrink-0" />
-                      <span className="truncate">
-                        {selectedComment.reply.fileName || "Tệp đính kèm"}
-                      </span>
-                    </a>
-                  )}
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium">Thông tin phản hồi</p>
+                  {isFeedbackFetching && <Spinner className="h-4 w-4" />}
                 </div>
-              )}
+                {isFeedbackLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Spinner className="h-4 w-4" />
+                    Đang tải chi tiết phản hồi...
+                  </div>
+                ) : !feedbackDetail ? (
+                  <p className="text-sm text-muted-foreground">
+                    Chưa có phản hồi cho phản ánh này.
+                  </p>
+                ) : (
+                  <div className="grid gap-3 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-medium">
+                        {feedbackDetail.staff_name || "-"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {feedbackDetail.time_create
+                          ? formatDateTime(feedbackDetail.time_create)
+                          : "-"}
+                      </span>
+                    </div>
+                    <p className="leading-relaxed">
+                      {feedbackDetail.content || "-"}
+                    </p>
+                    {feedbackDetail.staff_approve_name && (
+                      <p className="text-xs text-muted-foreground">
+                        Duyệt bởi {feedbackDetail.staff_approve_name}
+                      </p>
+                    )}
+                    {feedbackDetail.url && (
+                      <a
+                        href={feedbackDetail.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm text-primary hover:underline"
+                      >
+                        <FileText className="h-4 w-4 shrink-0" />
+                        <span className="truncate">
+                          {feedbackDetail.title_url || "Tệp đính kèm"}
+                        </span>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
