@@ -93,7 +93,7 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
   const handleUploadAvatar = async (file: File) => {
     const url = await uploadImageMutation.mutateAsync({
       file,
-      c: file.name.replace(/\.[^/.]+$/, ""),
+      c: file.name,
     });
     if (!url) {
       throw new Error("Upload image response missing url");

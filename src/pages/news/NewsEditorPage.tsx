@@ -109,7 +109,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
   const handleUploadThumbnail = async (file: File) => {
     const url = await uploadImageMutation.mutateAsync({
       file,
-      c: file.name.replace(/\.[^/.]+$/, ""),
+      c: file.name,
     });
     if (!url) {
       throw new Error("Upload image response missing url");
