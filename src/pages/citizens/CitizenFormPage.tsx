@@ -219,9 +219,9 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
                 value={avatarFiles}
                 onChange={setAvatarFiles}
                 onUpload={handleUploadAvatar}
-                accept="image/*"
+                accept="image/jpeg"
                 multiple={false}
-                hint="Khuyến nghị: vuông hoặc gần vuông."
+                hint="Chọn ảnh JPG. Khuyến nghị: vuông hoặc gần vuông."
               />
             </div>
 

@@ -257,9 +257,9 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                   value={thumbnail}
                   onChange={setThumbnail}
                   onUpload={handleUploadThumbnail}
-                  accept="image/*"
+                  accept="image/jpeg"
                   multiple={false}
-                  hint="Chọn 1 ảnh bìa cho bản tin."
+                  hint="Chọn 1 ảnh bìa cho bản tin (định dạng JPG)."
                 />
               )}
 

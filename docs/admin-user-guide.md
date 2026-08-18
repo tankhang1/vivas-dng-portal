@@ -1,51 +1,60 @@
-# Hướng dẫn sử dụng Admin Portal
+# Tài liệu hướng dẫn sử dụng Admin Portal
 
-## 1. Thông tin chung
+## 1. Thông tin tài liệu
 
-**Tên hệ thống:** Admin Portal  
-**Mục đích:** Cung cấp giao diện quản trị phục vụ cán bộ, công chức và bộ phận vận hành trong việc quản lý nội dung, nhân sự, phòng ban, điều phối, phản ánh, hồ sơ công dân và các số liệu tổng quan của hệ thống.
+| Nội dung | Chi tiết |
+|---|---|
+| Tên hệ thống | Admin Portal |
+| Loại tài liệu | Hướng dẫn sử dụng hệ thống |
+| Phạm vi áp dụng | Các chức năng quản trị hiện có trong ứng dụng |
+| Đối tượng sử dụng | Cán bộ quản trị, cán bộ vận hành, cán bộ xử lý nghiệp vụ |
 
-### 1.1. Phạm vi tài liệu
+### 1.1. Mục đích
 
-Tài liệu này mô tả các phân hệ hiện đang có trong ứng dụng:
-- Dashboard tổng quan
-- Quản lý cán bộ
-- Quản lý phòng ban
-- Quản lý lĩnh vực chuyên trách
-- Quản lý danh mục
-- Quản lý điều phối chuyên trách
-- Quản lý tin tức và thông báo
-- Quản lý phản ánh kiến nghị
-- Quản lý hồ sơ công dân
-- Quản lý lượt bốc số
-- Cấu hình thông tin chung
+Tài liệu này được biên soạn nhằm hướng dẫn người sử dụng khai thác các phân hệ chức năng của Admin Portal một cách thống nhất, bảo đảm thuận tiện trong quá trình vận hành, quản lý và xử lý nghiệp vụ.
 
-### 1.2. Nguyên tắc biên soạn
+### 1.2. Phạm vi
 
-Nội dung tài liệu được biên soạn theo nguyên tắc:
-- Bám sát đúng chức năng hiện có trong mã nguồn.
-- Trình bày theo phong cách hành chính, phù hợp sử dụng trong môi trường cơ quan nhà nước.
-- Mô tả theo hướng thao tác nghiệp vụ, tránh diễn đạt cảm tính hoặc quảng bá.
-- Phân biệt rõ các tính năng chính thức và các màn hình mô phỏng.
+Tài liệu mô tả các chức năng đang được triển khai trong hệ thống, bao gồm:
+- Dashboard tổng quan.
+- Quản lý cán bộ.
+- Quản lý phòng ban.
+- Quản lý lĩnh vực chuyên trách.
+- Quản lý danh mục.
+- Quản lý điều phối chuyên trách.
+- Quản lý tin tức và thông báo.
+- Quản lý phản ánh kiến nghị.
+- Quản lý hồ sơ công dân.
+- Quản lý lượt bốc số.
+- Cấu hình thông tin chung.
 
-### 1.3. Lưu ý triển khai
+### 1.3. Nguyên tắc biên soạn
 
-- Một số màn hình đang sử dụng dữ liệu mô phỏng hoặc luồng minh họa, ví dụ: đăng nhập và bốc số.
-- Một số phân hệ chỉ cho phép xem và chỉnh sửa, không hỗ trợ tạo mới, ví dụ hồ sơ công dân.
-- Trong môi trường triển khai thực tế, cần kết nối với dịch vụ xác thực, phân quyền và API nghiệp vụ tương ứng.
+- Nội dung được trình bày theo ngôn ngữ hành chính, rõ ràng, chính xác và phù hợp môi trường cơ quan nhà nước.
+- Mô tả bám sát chức năng thực tế đang tồn tại trong hệ thống.
+- Các thao tác được diễn giải theo trình tự nghiệp vụ, bảo đảm người sử dụng có thể thực hiện trực tiếp trên giao diện.
+- Những màn hình đang ở trạng thái mô phỏng hoặc minh họa được ghi chú riêng để tránh nhầm lẫn với nghiệp vụ chính thức.
+
+### 1.4. Lưu ý
+
+- Một số phân hệ đang sử dụng dữ liệu mô phỏng hoặc dữ liệu mẫu.
+- Một số chức năng chỉ cho phép xem và chỉnh sửa, chưa hỗ trợ tạo mới hoặc xóa dữ liệu.
+- Khi triển khai thực tế, hệ thống cần kết nối với API nghiệp vụ, dịch vụ xác thực và cơ chế phân quyền tương ứng.
 
 ---
 
-## 2. Tổng quan kiến trúc sử dụng
+## 2. Tổng quan hệ thống
 
-### 2.1. Luồng truy cập
+Admin Portal là giao diện quản trị phục vụ quản lý các hoạt động điều hành, bao gồm nội dung công khai, nhân sự, cơ cấu tổ chức, điều phối xử lý phản ánh, hồ sơ công dân, lượt bốc số và các chỉ số tổng quan của đơn vị.
 
-Sau khi truy cập ứng dụng:
-- Đường dẫn gốc `/` tự động chuyển tới `/dashboard`.
+### 2.1. Cấu trúc điều hướng
+
+Sau khi truy cập hệ thống:
+- Trang gốc `/` tự động chuyển tới `/dashboard`.
 - Trang đăng nhập tại `/login`.
 - Các phân hệ được truy cập thông qua menu điều hướng của bố cục hệ thống.
 
-### 2.2. Danh sách đường dẫn chính
+### 2.2. Các đường dẫn chính
 
 | Đường dẫn | Chức năng |
 |---|---|
@@ -53,50 +62,53 @@ Sau khi truy cập ứng dụng:
 | `/staff` | Quản lý cán bộ |
 | `/departments` | Quản lý phòng ban |
 | `/divisions` | Quản lý lĩnh vực chuyên trách |
-| `/news` | Quản lý tin tức và thông báo |
 | `/categories` | Quản lý danh mục |
 | `/routing` | Quản lý điều phối chuyên trách |
+| `/news` | Quản lý tin tức và thông báo |
 | `/feedback` | Quản lý phản ánh kiến nghị |
 | `/citizens` | Danh bạ công dân |
 | `/appointments` | Quản lý lượt bốc số |
 | `/settings/general` | Cấu hình thông tin chung |
 
-### 2.3. Quy ước giao diện dùng chung
+### 2.3. Quy ước giao diện chung
 
-Hệ thống sử dụng các thành phần giao diện nhất quán:
-- Ô tìm kiếm để tra cứu theo từ khóa.
-- Bộ lọc dạng `Select` hoặc `Tabs`.
-- Phân trang để duyệt dữ liệu theo trang.
-- Hộp thoại xác nhận cho các thao tác có tính chất cập nhật hoặc xóa.
-- Trạng thái tải dữ liệu hiển thị bằng chỉ báo chờ.
+Trong toàn bộ hệ thống, các thành phần giao diện được sử dụng nhất quán:
+- Ô tìm kiếm dùng để tra cứu dữ liệu theo từ khóa.
+- Bộ lọc dạng `Select` hoặc `Tabs` dùng để phân loại dữ liệu.
+- Phân trang dùng để xem dữ liệu theo từng trang.
+- Hộp thoại xác nhận dùng cho các thao tác có tính chất thay đổi trạng thái hoặc xóa dữ liệu.
+- Trạng thái tải dữ liệu được thể hiện bằng chỉ báo chờ.
 
 ---
 
-## 3. Trang tổng quan
+## 3. Dashboard tổng quan
 
 **Đường dẫn:** `/dashboard`
 
 ### 3.1. Mục đích
 
-Trang tổng quan phục vụ theo dõi nhanh:
-- Số liệu tổng hợp của hệ thống.
-- Tin tức mới nhất.
-- Tin nổi bật.
-- Phản ánh mới gần đây.
+Trang dashboard cung cấp thông tin tổng hợp phục vụ theo dõi nhanh tình hình hoạt động của hệ thống.
 
 ### 3.2. Nội dung hiển thị
 
-Trang tổng quan hiện gồm các khối chính:
-- Thông tin số liệu tổng quan.
+Trang tổng quan hiện bao gồm:
+- Các chỉ số thống kê tổng hợp.
 - Danh sách tin tức gần đây.
 - Danh sách tin nổi bật.
 - Danh sách phản ánh mới nhất.
 
 ### 3.3. Cách sử dụng
 
-1. Truy cập `/dashboard`.
-2. Theo dõi các chỉ số tổng quan.
-3. Kiểm tra các khối nội dung phía dưới để nắm tình hình hoạt động.
+1. Truy cập trang `/dashboard`.
+2. Quan sát các chỉ số tổng quan.
+3. Theo dõi các khối thông tin phía dưới để nắm tình hình hoạt động, nội dung truyền thông và phản ánh mới.
+
+### 3.4. Giá trị sử dụng
+
+Trang dashboard hỗ trợ lãnh đạo và cán bộ vận hành:
+- Nắm bắt nhanh số liệu tổng quan.
+- Kiểm tra nội dung mới phát sinh.
+- Theo dõi tình trạng tiếp nhận phản ánh.
 
 ---
 
@@ -106,14 +118,11 @@ Trang tổng quan hiện gồm các khối chính:
 
 ### 4.1. Mục đích
 
-Phân hệ này phục vụ quản lý:
-- Thông tin cán bộ, công chức.
-- Trạng thái hoạt động tài khoản.
-- Thông tin phân công theo phòng ban, lĩnh vực và chức vụ.
+Phân hệ này phục vụ quản lý thông tin và trạng thái tài khoản của cán bộ, công chức trong hệ thống.
 
-### 4.2. Chức năng trên danh sách
+### 4.2. Danh sách cán bộ
 
-Bảng danh sách cán bộ bao gồm các cột:
+Bảng danh sách hiển thị các thông tin:
 - Họ tên
 - Email
 - Điện thoại
@@ -123,11 +132,10 @@ Bảng danh sách cán bộ bao gồm các cột:
 - Thao tác
 
 Người sử dụng có thể:
-- Tìm kiếm theo tên.
+- Tìm kiếm theo tên cán bộ.
 - Lọc theo phòng ban.
-- Chuyển trang danh sách.
-- Xem chi tiết.
-- Chỉnh sửa.
+- Xem chi tiết hồ sơ cán bộ.
+- Chỉnh sửa thông tin.
 - Khóa hoặc mở khóa tài khoản.
 
 ### 4.3. Tìm kiếm và lọc
@@ -135,55 +143,55 @@ Người sử dụng có thể:
 #### Tìm kiếm theo tên
 
 1. Nhập từ khóa vào ô tìm kiếm.
-2. Hệ thống tự cập nhật danh sách tương ứng.
+2. Hệ thống tự động truy vấn và cập nhật danh sách tương ứng.
 
 #### Lọc theo phòng ban
 
-1. Chọn phòng ban từ danh sách thả xuống.
-2. Bảng dữ liệu chỉ hiển thị cán bộ thuộc phòng ban đã chọn.
+1. Chọn phòng ban cần xem từ danh sách thả xuống.
+2. Danh sách chỉ hiển thị cán bộ thuộc phòng ban đã chọn.
 3. Chọn `Tất cả phòng ban` để bỏ điều kiện lọc.
 
 ### 4.4. Xem chi tiết cán bộ
 
-Tại từng dòng dữ liệu, bấm nút xem chi tiết để mở màn hình thông tin cán bộ. Nội dung hiển thị gồm:
-- Ảnh đại diện
-- Họ và tên
-- Tên đăng nhập hiển thị
-- Email
-- Số điện thoại
-- Phòng ban
-- Lĩnh vực
-- Chức vụ
-- Trạng thái
-- Danh sách điều phối phụ trách
+Màn hình chi tiết cán bộ hiển thị:
+- Ảnh đại diện.
+- Họ tên.
+- Tên hiển thị hệ thống.
+- Email.
+- Số điện thoại.
+- Phòng ban.
+- Lĩnh vực.
+- Chức vụ.
+- Trạng thái hoạt động.
+- Danh sách điều phối phụ trách.
 
 ### 4.5. Khóa hoặc mở khóa tài khoản
 
 1. Chọn biểu tượng khóa hoặc mở khóa tại dòng dữ liệu.
 2. Hệ thống hiển thị hộp thoại xác nhận.
-3. Người sử dụng xác nhận để thực hiện cập nhật trạng thái.
+3. Xác nhận thao tác để cập nhật trạng thái tài khoản.
 
 ### 4.6. Thêm cán bộ mới
 
 **Đường dẫn:** `/staff/new`
 
-Các thông tin cần khai báo:
-- Họ và tên
-- Email
-- Số điện thoại
-- Phòng ban
-- Lĩnh vực
-- Chức vụ
-- Trạng thái
-- Ảnh đại diện
-- Mật khẩu
+Các thông tin cần khai báo gồm:
+- Họ và tên.
+- Email.
+- Số điện thoại.
+- Phòng ban.
+- Lĩnh vực.
+- Chức vụ.
+- Trạng thái.
+- Ảnh đại diện.
+- Mật khẩu.
 
-#### Quy tắc nhập liệu
+#### Quy định nhập liệu
 
 - Họ và tên: bắt buộc.
-- Email: không bắt buộc, nhưng nếu nhập phải đúng định dạng.
-- Số điện thoại: bắt buộc, phải là số hợp lệ theo quy ước Việt Nam.
-- Phòng ban: bắt buộc chọn.
+- Email: không bắt buộc, nhưng nếu có thì phải đúng định dạng.
+- Số điện thoại: bắt buộc và phải hợp lệ theo định dạng Việt Nam.
+- Phòng ban: bắt buộc lựa chọn.
 - Lĩnh vực: có thể để trống.
 - Chức vụ: bắt buộc.
 - Trạng thái: lựa chọn giữa `Hoạt động` và `Tạm khóa`.
@@ -193,8 +201,8 @@ Các thông tin cần khai báo:
 #### Trình tự thực hiện
 
 1. Truy cập `/staff/new`.
-2. Nhập đầy đủ thông tin cần thiết.
-3. Kiểm tra ảnh đại diện và các trường bắt buộc.
+2. Điền đầy đủ thông tin.
+3. Kiểm tra các trường bắt buộc và ảnh đại diện.
 4. Chọn `Lưu` để hoàn tất.
 
 ### 4.7. Chỉnh sửa cán bộ
@@ -202,8 +210,8 @@ Các thông tin cần khai báo:
 **Đường dẫn:** `/staff/:id/edit`
 
 Khi truy cập màn hình chỉnh sửa:
-- Dữ liệu hiện tại được tải sẵn vào biểu mẫu.
-- Có thể cập nhật thông tin cá nhân, phòng ban, lĩnh vực, chức vụ, trạng thái và ảnh đại diện.
+- Dữ liệu hiện có được nạp sẵn vào biểu mẫu.
+- Có thể cập nhật thông tin nhân sự, phòng ban, lĩnh vực, chức vụ, trạng thái và ảnh đại diện.
 - Trường mật khẩu không bắt buộc trong chế độ chỉnh sửa.
 
 ---
@@ -214,73 +222,69 @@ Khi truy cập màn hình chỉnh sửa:
 
 ### 5.1. Mục đích
 
-Phân hệ này phục vụ:
-- Quản lý cấu trúc phòng ban theo dạng cây.
-- Theo dõi quan hệ cha - con giữa các phòng ban.
-- Xem danh sách cán bộ theo từng phòng ban.
+Phân hệ này phục vụ quản lý cơ cấu tổ chức theo dạng cây phòng ban, đồng thời hỗ trợ xem danh sách cán bộ theo từng nhánh tổ chức.
 
 ### 5.2. Bố cục màn hình
 
-Màn hình được chia thành 2 khu vực:
-- Cột bên trái: cây phòng ban.
-- Cột bên phải: thông tin phòng ban và danh sách nhân sự.
+Màn hình được chia thành hai khu vực:
+- Khu vực bên trái: cây phòng ban.
+- Khu vực bên phải: thông tin phòng ban và danh sách nhân sự.
 
 ### 5.3. Tìm kiếm cây phòng ban
 
 Người sử dụng có thể tìm theo:
-- Tên phòng ban
-- Mã phòng ban
-- Trưởng bộ phận
+- Tên phòng ban.
+- Mã phòng ban.
+- Trưởng bộ phận.
 
-Khi có kết quả phù hợp:
-- Hệ thống vẫn giữ lại nhánh cha để bảo đảm khả năng quan sát cấu trúc tổ chức.
+Khi có kết quả phù hợp, hệ thống vẫn giữ cấu trúc nhánh cha để thuận tiện quan sát toàn bộ cây tổ chức.
 
 ### 5.4. Thông tin phòng ban
 
 Khi chọn một phòng ban, hệ thống hiển thị:
-- Tên phòng ban
-- Mã phòng ban
-- Phòng ban cha
-- Trưởng bộ phận
-- Trạng thái
-- Số nhân sự
-- Số phòng ban con
-- Mô tả
+- Tên phòng ban.
+- Mã phòng ban.
+- Phòng ban cha.
+- Trưởng bộ phận.
+- Trạng thái.
+- Số nhân sự.
+- Số phòng ban con.
+- Mô tả.
 
-Các thao tác hỗ trợ:
-- Thêm phòng ban con
-- Chỉnh sửa
-- Xóa
+Các thao tác khả dụng:
+- Thêm phòng ban con.
+- Chỉnh sửa.
+- Xóa.
 
 ### 5.5. Thêm hoặc chỉnh sửa phòng ban
 
 Biểu mẫu phòng ban bao gồm:
-- Mã phòng ban
-- Tên phòng ban
-- Phòng ban cha
-- Trưởng bộ phận
-- Mô tả
+- Mã phòng ban.
+- Tên phòng ban.
+- Phòng ban cha.
+- Trưởng bộ phận.
+- Mô tả.
 
 #### Quy tắc nghiệp vụ
 
-- Có thể để trống phòng ban cha nếu đây là phòng ban cấp cao nhất.
-- Khi chỉnh sửa, hệ thống không cho phép chọn chính phòng ban hiện tại làm phòng ban cha.
+- Phòng ban cha có thể để trống nếu đây là phòng ban cấp cao nhất.
+- Khi chỉnh sửa, không được chọn chính phòng ban hiện tại làm phòng ban cha.
 
 ### 5.6. Xóa phòng ban
 
 1. Chọn phòng ban cần xóa.
-2. Bấm `Xóa`.
+2. Chọn `Xóa`.
 3. Xác nhận thao tác.
-4. Nếu phòng ban có phòng ban con, toàn bộ nhánh liên quan sẽ bị loại khỏi cây hiển thị tương ứng.
+4. Nếu phòng ban có phòng ban con, hệ thống sẽ loại bỏ toàn bộ nhánh tương ứng khỏi cấu trúc hiển thị.
 
-### 5.7. Danh sách nhân sự của phòng ban
+### 5.7. Danh sách nhân sự theo phòng ban
 
 Bảng nhân sự hiển thị:
-- Họ tên
-- Chức vụ
-- Điện thoại
-- Trạng thái
-- Thao tác xem chi tiết
+- Họ tên.
+- Chức vụ.
+- Điện thoại.
+- Trạng thái.
+- Thao tác xem chi tiết.
 
 ---
 
@@ -290,7 +294,7 @@ Bảng nhân sự hiển thị:
 
 ### 6.1. Mục đích
 
-Phân hệ này dùng để quản lý danh sách lĩnh vực chuyên trách phục vụ việc phân công cán bộ xử lý nghiệp vụ.
+Phân hệ này dùng để quản lý các lĩnh vực chuyên trách phục vụ phân công cán bộ xử lý theo từng mảng nghiệp vụ.
 
 ### 6.2. Chức năng
 
@@ -300,11 +304,11 @@ Người sử dụng có thể:
 - Chỉnh sửa.
 - Xóa.
 
-### 6.3. Thông tin của lĩnh vực
+### 6.3. Dữ liệu quản lý
 
-Mỗi lĩnh vực gồm:
-- Tên lĩnh vực
-- Ghi chú
+Mỗi lĩnh vực chuyên trách gồm:
+- Tên lĩnh vực.
+- Ghi chú.
 
 ### 6.4. Trình tự thao tác
 
@@ -315,13 +319,13 @@ Mỗi lĩnh vực gồm:
 
 #### Chỉnh sửa
 1. Chọn biểu tượng chỉnh sửa.
-2. Cập nhật nội dung cần thay đổi.
+2. Cập nhật thông tin.
 3. Chọn `Lưu`.
 
 #### Xóa
 1. Chọn biểu tượng xóa.
 2. Xác nhận thao tác.
-3. Lĩnh vực bị loại khỏi danh sách.
+3. Lĩnh vực được loại khỏi danh sách.
 
 ---
 
@@ -331,47 +335,48 @@ Mỗi lĩnh vực gồm:
 
 ### 7.1. Mục đích
 
-Phân hệ danh mục phục vụ đồng thời cho:
-- Tin tức
-- Phản ánh kiến nghị
+Phân hệ danh mục phục vụ quản lý các nhóm nội dung dùng cho:
+- Tin tức.
+- Phản ánh kiến nghị.
 
 ### 7.2. Phân loại danh mục
 
-Màn hình sử dụng tab để chuyển giữa hai nhóm:
+Hệ thống sử dụng tab để chuyển giữa hai nhóm:
 - `Phản ánh`
 - `Tin tức`
 
 Khi chuyển tab:
-- Danh sách, phân trang và thao tác sẽ tương ứng với nhóm danh mục đang chọn.
+- Danh sách dữ liệu thay đổi tương ứng.
+- Phân trang và thao tác áp dụng cho nhóm danh mục đang chọn.
 
 ### 7.3. Danh mục tin tức
 
-Các trường hiển thị:
-- Tên danh mục
-- Đường dẫn
-- Thao tác
+Các trường thể hiện:
+- Tên danh mục.
+- Đường dẫn.
+- Thao tác.
 
-Cho phép:
-- Chỉnh sửa
-- Xóa
+Các chức năng:
+- Chỉnh sửa.
+- Xóa.
 
 ### 7.4. Danh mục phản ánh
 
-Các trường hiển thị tương tự:
-- Tên danh mục
-- Đường dẫn
-- Thao tác
+Các trường thể hiện tương tự:
+- Tên danh mục.
+- Đường dẫn.
+- Thao tác.
 
 Lưu ý:
-- Giao diện hiện tại chưa có lựa chọn danh mục cha trong biểu mẫu tạo mới.
-- Danh mục phản ánh mới được tạo ở cấp cao nhất.
+- Giao diện hiện tại chưa hỗ trợ chọn danh mục cha trong biểu mẫu tạo mới.
+- Danh mục phản ánh mới được tạo tại cấp cao nhất.
 
 ### 7.5. Biểu mẫu danh mục
 
-Thông tin cần khai báo:
-- Tên danh mục
-- Đường dẫn
-- Thứ tự hiển thị
+Các thông tin cần khai báo:
+- Tên danh mục.
+- Đường dẫn.
+- Thứ tự hiển thị.
 
 ### 7.6. Trình tự thao tác
 
@@ -398,55 +403,50 @@ Thông tin cần khai báo:
 
 ### 8.1. Mục đích
 
-Phân hệ này phục vụ:
-- Gán cán bộ cho từng điều phối.
-- Phân biệt quyền xem và quyền phản hồi.
-- Theo dõi cán bộ phụ trách theo từng nhóm phản ánh.
+Phân hệ này phục vụ gán cán bộ vào từng điều phối, xác định cán bộ có quyền xem hoặc quyền phản hồi, đồng thời hỗ trợ theo dõi tình trạng phân công.
 
 ### 8.2. Khái niệm nghiệp vụ
 
 - `Điều phối` là nhóm danh mục phản ánh được gán cho cán bộ phụ trách.
 - Mỗi điều phối có thể có nhiều cán bộ.
-- Mỗi cán bộ trong điều phối có thể thuộc một trong hai nhóm quyền:
-  - Quyền xem
-  - Quyền phản hồi
+- Mỗi cán bộ trong điều phối có thể thuộc một trong hai nhóm:
+  - Quyền xem.
+  - Quyền phản hồi.
 
 ### 8.3. Danh sách điều phối
 
 Khu vực bên phải hiển thị:
-- Danh sách điều phối chuyên trách
-- Ô tìm kiếm điều phối
-- Số lượng cán bộ đã gán
+- Danh sách điều phối chuyên trách.
+- Ô tìm kiếm điều phối.
+- Số lượng cán bộ đã gán.
 
 ### 8.4. Xem chi tiết điều phối
 
 Khi chọn một điều phối, hệ thống hiển thị:
-- Tên điều phối
-- Mô tả
-- Số lượng cán bộ phụ trách
-- Danh sách cán bộ được gán theo từng nhóm quyền
+- Tên điều phối.
+- Mô tả.
+- Số lượng cán bộ phụ trách.
+- Danh sách cán bộ theo từng nhóm quyền.
 
-### 8.5. Phân nhóm cán bộ trong điều phối
+### 8.5. Phân nhóm cán bộ
 
 Danh sách cán bộ được chia thành 2 nhóm:
-- Được quyền phê duyệt
-- Quyền xem
+- Được quyền phê duyệt.
+- Quyền xem.
 
 Mỗi dòng dữ liệu thể hiện:
-- Họ tên cán bộ
-- Số điện thoại
-- Chức vụ
-- Trạng thái quyền
+- Họ tên cán bộ.
+- Số điện thoại.
+- Chức vụ.
+- Trạng thái quyền.
 
 ### 8.6. Thêm cán bộ vào điều phối
 
 1. Chọn một điều phối.
 2. Chọn `Thêm cán bộ`.
 3. Chọn cán bộ cần phân công.
-4. Chọn trạng thái quyền:
-   - Bật nếu cho phép phê duyệt.
-   - Tắt nếu chỉ cho phép xem.
-5. Chọn `Thêm cán bộ`.
+4. Chọn trạng thái quyền.
+5. Chọn `Thêm cán bộ` để hoàn tất.
 
 ### 8.7. Chỉnh sửa hoặc xóa cán bộ khỏi điều phối
 
@@ -454,14 +454,14 @@ Người sử dụng có thể:
 - Chỉnh sửa cán bộ đang được gán.
 - Xóa cán bộ khỏi điều phối.
 
-Khi xóa:
-- Hệ thống yêu cầu xác nhận trước khi thực hiện.
+Khi thực hiện xóa, hệ thống luôn yêu cầu xác nhận trước.
 
 ### 8.8. Tạo hoặc chỉnh sửa điều phối
 
-Trong khu vực quản lý điều phối:
-- Có thể thêm điều phối mới.
-- Có thể chỉnh sửa hoặc xóa điều phối hiện có.
+Phân hệ cũng hỗ trợ:
+- Thêm điều phối mới.
+- Chỉnh sửa điều phối hiện có.
+- Xóa điều phối không còn sử dụng.
 
 ---
 
@@ -471,35 +471,32 @@ Trong khu vực quản lý điều phối:
 
 ### 9.1. Mục đích
 
-Phân hệ này phục vụ quản lý:
-- Bài viết
-- Thông báo
-- Nội dung hiển thị trên cổng thông tin điện tử
+Phân hệ này phục vụ quản lý bài viết, thông báo và nội dung công khai hiển thị trên cổng thông tin điện tử.
 
 ### 9.2. Danh sách bài viết
 
-Bảng dữ liệu bao gồm:
-- Ảnh
-- Tiêu đề
-- Danh mục
-- Nguồn tin
-- Ngày đăng
-- Trạng thái
-- Thao tác
+Bảng dữ liệu hiển thị:
+- Ảnh.
+- Tiêu đề.
+- Danh mục.
+- Nguồn tin.
+- Ngày đăng.
+- Trạng thái.
+- Thao tác.
 
 ### 9.3. Tìm kiếm và lọc
 
-Trên thanh công cụ có:
-- Ô tìm kiếm theo tiêu đề bài viết
-- Bộ lọc theo danh mục
+Người sử dụng có thể:
+- Tìm kiếm theo tiêu đề bài viết.
+- Lọc theo danh mục.
 
 Khi thay đổi điều kiện lọc:
-- Danh sách được tải lại.
-- Trang hiện tại được đưa về trang 1.
+- Danh sách dữ liệu được cập nhật tương ứng.
+- Trang hiện tại được đưa về trang đầu.
 
 ### 9.4. Trạng thái bài viết
 
-Hệ thống sử dụng hai trạng thái chính:
+Hệ thống sử dụng hai trạng thái:
 - `draft`
 - `published`
 
@@ -511,63 +508,57 @@ Quy ước:
 
 **Đường dẫn:** `/news/new`
 
-Biểu mẫu gồm:
-- Ảnh bìa
-- Tiêu đề
-- Danh mục
-- Mô tả ngắn
-- URL liên kết
-- Nội dung HTML
+Biểu mẫu bài viết gồm:
+- Ảnh bìa.
+- Tiêu đề.
+- Danh mục.
+- Mô tả ngắn.
+- URL liên kết.
+- Nội dung HTML.
 
-#### Quy tắc đối với ảnh bìa
+#### Quy định đối với ảnh bìa
 
 Người sử dụng có thể:
-- Nhập trực tiếp đường dẫn ảnh.
+- Nhập trực tiếp URL ảnh.
 - Tải ảnh lên bằng chức năng tải tệp.
 
 Ảnh bìa là trường bắt buộc.
 
-#### Quy tắc đối với nội dung
+#### Quy định đối với nội dung
 
 - Nội dung bài viết được soạn bằng trình soạn thảo tích hợp.
-- Dữ liệu được lưu theo định dạng HTML.
+- Dữ liệu được lưu dưới dạng HTML.
 
 ### 9.6. Chỉnh sửa bài viết
 
 **Đường dẫn:** `/news/:id/edit`
 
 Khi mở màn hình chỉnh sửa:
-- Dữ liệu hiện có được nạp sẵn.
-- Có thể điều chỉnh:
-  - Ảnh bìa
-  - Tiêu đề
-  - Danh mục
-  - Mô tả ngắn
-  - URL liên kết
-  - Nội dung
+- Dữ liệu hiện tại được nạp sẵn.
+- Có thể cập nhật ảnh bìa, tiêu đề, danh mục, mô tả ngắn, URL liên kết và nội dung.
 
 ### 9.7. Xem chi tiết bài viết
 
-Tại danh sách, chọn biểu tượng xem chi tiết để mở hộp thoại thông tin. Nội dung hiển thị gồm:
-- Ảnh bìa kích thước lớn
-- Danh mục
-- Trạng thái
-- Tiêu đề
-- Nguồn tin
-- Ngày đăng
-- Đối tượng hiển thị
-- Mô tả ngắn
-- Nội dung HTML
-- Liên kết đính kèm
-- Tệp media đi kèm
+Tại danh sách bài viết, người sử dụng có thể mở hộp thoại chi tiết để xem:
+- Ảnh bìa.
+- Danh mục.
+- Trạng thái.
+- Tiêu đề.
+- Nguồn tin.
+- Ngày đăng.
+- Đối tượng hiển thị.
+- Mô tả ngắn.
+- Nội dung HTML.
+- Liên kết đính kèm.
+- Tệp media đi kèm.
 
 ### 9.8. Kích hoạt hoặc vô hiệu hóa bài viết
 
 Tại danh sách hoặc trong hộp thoại chi tiết:
-- Nếu bài viết đang ở trạng thái hiển thị, có thể chọn vô hiệu hóa.
-- Nếu bài viết đang ở trạng thái chưa hiển thị, có thể chọn kích hoạt.
+- Nếu bài viết đang hiển thị, có thể thực hiện vô hiệu hóa.
+- Nếu bài viết chưa hiển thị, có thể thực hiện kích hoạt.
 
-Thao tác luôn có bước xác nhận trước khi cập nhật.
+Mọi thao tác đều có bước xác nhận trước khi cập nhật.
 
 ---
 
@@ -577,15 +568,11 @@ Thao tác luôn có bước xác nhận trước khi cập nhật.
 
 ### 10.1. Mục đích
 
-Phân hệ này phục vụ:
-- Xem phản ánh theo đúng điều phối.
-- Đọc chi tiết phản ánh.
-- Gửi phản hồi cho công dân.
-- Duyệt phản ánh theo thẩm quyền.
+Phân hệ này phục vụ theo dõi, xử lý và phản hồi các phản ánh kiến nghị của công dân theo từng điều phối được phân công.
 
 ### 10.2. Bố cục màn hình
 
-Màn hình được chia thành 2 phần:
+Màn hình gồm hai khu vực chính:
 - Khung bên trái: danh sách phản ánh.
 - Khung bên phải: danh sách điều phối theo quyền của cán bộ.
 
@@ -596,45 +583,45 @@ Khung điều phối hỗ trợ hai tab:
 - `Quyền phản hồi`
 
 Khi chuyển tab:
-- Danh sách điều phối thay đổi tương ứng.
+- Danh sách điều phối thay đổi theo quyền.
 - Danh sách phản ánh bên trái được lọc theo điều phối đang chọn.
 
 ### 10.4. Danh sách phản ánh
 
-Bảng hiển thị:
-- Tiêu đề
-- Người gửi
-- Danh mục
-- Ngày gửi
-- Trạng thái
-- Thao tác
+Bảng phản ánh hiển thị:
+- Tiêu đề.
+- Người gửi.
+- Danh mục.
+- Ngày gửi.
+- Trạng thái.
+- Thao tác.
 
 ### 10.5. Trạng thái phản ánh
 
-Hệ thống thể hiện các trạng thái nghiệp vụ:
+Hệ thống sử dụng các trạng thái:
 - `Chưa duyệt`
 - `Đã duyệt`
 
 Đối với người gửi:
-- Nếu công dân gửi ẩn danh thì hiển thị `Ẩn danh`.
-- Nếu không ẩn danh thì hiển thị họ tên người gửi.
+- Nếu gửi ẩn danh, hệ thống hiển thị `Ẩn danh`.
+- Nếu không ẩn danh, hệ thống hiển thị họ tên người gửi.
 
 ### 10.6. Xem chi tiết phản ánh
 
 1. Chọn một dòng dữ liệu hoặc biểu tượng xem chi tiết.
 2. Hộp thoại chi tiết mở ra.
-3. Thông tin hiển thị gồm:
-   - Tiêu đề
-   - Danh mục
-   - Trạng thái ẩn danh hoặc công khai
-   - Trạng thái phản ánh
-   - Thời gian gửi
-   - Người gửi
-   - Số điện thoại
-   - Địa chỉ
-   - Nội dung phản ánh
-   - Tệp đính kèm
-   - Thông tin phản hồi của cán bộ
+3. Nội dung thể hiện gồm:
+   - Tiêu đề.
+   - Danh mục.
+   - Trạng thái ẩn danh hoặc công khai.
+   - Trạng thái phản ánh.
+   - Thời gian gửi.
+   - Người gửi.
+   - Số điện thoại.
+   - Địa chỉ.
+   - Nội dung phản ánh.
+   - Tệp đính kèm.
+   - Thông tin phản hồi của cán bộ.
 
 ### 10.7. Gửi hoặc cập nhật phản hồi
 
@@ -649,7 +636,7 @@ Nếu cán bộ có quyền phản hồi:
 
 - Chỉ hỗ trợ tệp PDF trong luồng phản hồi.
 - Tệp được tải lên trước khi gửi nội dung.
-- Nếu tải tệp không thành công, hệ thống sẽ thông báo để người sử dụng thực hiện lại.
+- Nếu tải tệp không thành công, hệ thống hiển thị thông báo để thực hiện lại.
 
 ### 10.8. Duyệt phản ánh
 
@@ -666,26 +653,23 @@ Nếu cán bộ có quyền phản hồi:
 
 ### 11.1. Mục đích
 
-Phân hệ này phục vụ:
-- Tra cứu hồ sơ công dân đã đồng bộ.
-- Xem chi tiết thông tin công dân.
-- Chỉnh sửa các trường hồ sơ cho phép cập nhật.
+Phân hệ này phục vụ tra cứu và cập nhật hồ sơ công dân đã được đồng bộ vào hệ thống.
 
 ### 11.2. Danh sách công dân
 
 Bảng dữ liệu gồm:
-- Họ và tên
-- Căn cước
-- Điện thoại
-- Thôn/Ấp
-- Trạng thái
-- Thao tác
+- Họ và tên.
+- Căn cước.
+- Điện thoại.
+- Thôn/Ấp.
+- Trạng thái.
+- Thao tác.
 
 ### 11.3. Tìm kiếm
 
 Người sử dụng có thể tìm công dân theo:
-- Họ tên
-- Số điện thoại
+- Họ tên.
+- Số điện thoại.
 
 ### 11.4. Trạng thái công dân
 
@@ -696,40 +680,40 @@ Hệ thống sử dụng hai trạng thái:
 ### 11.5. Xem chi tiết công dân
 
 Màn hình chi tiết công dân hiển thị:
-- Ảnh đại diện
-- Họ tên
-- Số điện thoại
-- Email
-- Căn cước
-- Địa chỉ
-- Thôn/xóm
-- Phường/xã
-- Tỉnh/thành
-- Tình trạng theo dõi Zalo OA
-- Ngày tạo
-- Danh sách phản ánh liên quan
+- Ảnh đại diện.
+- Họ tên.
+- Số điện thoại.
+- Email.
+- Căn cước.
+- Địa chỉ.
+- Thôn/xóm.
+- Phường/xã.
+- Tỉnh/thành.
+- Tình trạng theo dõi Zalo OA.
+- Ngày tạo.
+- Danh sách phản ánh liên quan.
 
 ### 11.6. Chỉnh sửa hồ sơ công dân
 
 **Đường dẫn:** `/citizens/:id/edit`
 
 Các trường có thể cập nhật:
-- Ảnh đại diện
-- Họ và tên
-- Số CCCD/CMND
-- Giới tính
-- Trình độ học vấn
-- Nghề nghiệp
-- Dân tộc
-- Tôn giáo
-- Ghi chú
-- Email
-- Địa chỉ
-- Thôn/xóm
+- Ảnh đại diện.
+- Họ và tên.
+- Số CCCD/CMND.
+- Giới tính.
+- Trình độ học vấn.
+- Nghề nghiệp.
+- Dân tộc.
+- Tôn giáo.
+- Ghi chú.
+- Email.
+- Địa chỉ.
+- Thôn/xóm.
 
 #### Lưu ý nghiệp vụ
 
-- Số điện thoại không cho phép chỉnh sửa trong màn hình này.
+- Số điện thoại không được chỉnh sửa trong màn hình này.
 - Chức năng tạo mới hồ sơ công dân hiện không triển khai trong hệ thống quản trị.
 
 ---
@@ -740,13 +724,13 @@ Các trường có thể cập nhật:
 
 ### 12.1. Mục đích
 
-Phân hệ này phục vụ quản lý lượt bốc số làm việc do công dân đăng ký thông qua ứng dụng.
+Phân hệ này phục vụ quản lý lượt bốc số làm việc do công dân đăng ký qua ứng dụng.
 
 ### 12.2. Phạm vi hiện tại
 
-Phân hệ này hiện đang là màn hình mô phỏng nghiệp vụ, phục vụ trình diễn giao diện và luồng thao tác cơ bản.
+Phân hệ này đang ở trạng thái mô phỏng nghiệp vụ, phục vụ trình diễn giao diện và thao tác quản lý cơ bản.
 
-### 12.3. Chức năng chính
+### 12.3. Chức năng
 
 Người sử dụng có thể:
 - Tìm kiếm theo tên hoặc số điện thoại.
@@ -768,8 +752,8 @@ Hệ thống sử dụng các trạng thái:
 ### 12.5. Xem và chỉnh sửa chi tiết
 
 Trong hộp thoại chi tiết, người sử dụng có thể cập nhật:
-- Trạng thái
-- Cán bộ tiếp nhận
+- Trạng thái.
+- Cán bộ tiếp nhận.
 
 Sau đó chọn `Lưu thay đổi` để ghi nhận cập nhật.
 
@@ -787,86 +771,131 @@ Sau đó chọn `Lưu thay đổi` để ghi nhận cập nhật.
 
 ### 13.1. Mục đích
 
-Phân hệ này phục vụ cập nhật các chỉ số tổng quan hiển thị trên trang dashboard.
+Phân hệ này phục vụ cập nhật các chỉ số tổng quan hiển thị trên dashboard.
 
 ### 13.2. Các trường dữ liệu
 
-Biểu mẫu gồm 4 trường:
-- Tổng diện tích
-- Chỉ số hài lòng
-- Dịch vụ công
-- Tổng công dân
+Biểu mẫu gồm bốn trường:
+- Tổng diện tích.
+- Chỉ số hài lòng.
+- Dịch vụ công.
+- Tổng công dân.
 
 ### 13.3. Quy tắc nhập liệu
 
-- Tất cả trường đều là dữ liệu số.
+- Tất cả các trường là kiểu số.
 - Không chấp nhận giá trị âm.
-- Nếu nhập sai kiểu dữ liệu, hệ thống sẽ hiển thị lỗi kiểm tra dữ liệu.
+- Nếu nhập sai kiểu dữ liệu, hệ thống sẽ hiển thị thông báo lỗi kiểm tra dữ liệu.
 
 ### 13.4. Trình tự cập nhật
 
 1. Truy cập `/settings/general`.
 2. Chờ dữ liệu hiện tại được tải.
-3. Cập nhật các chỉ số cần thay đổi.
+3. Cập nhật các chỉ số cần điều chỉnh.
 4. Chọn `Lưu thông tin`.
 
 ---
 
-## 14. Trạng thái nghiệp vụ dùng chung
+## 14. Quản lý hotline
 
-### 14.1. Cán bộ
+**Đường dẫn:** `/settings/hotline`
 
-- Hoạt động
-- Tạm khóa
+### 14.1. Mục đích
 
-### 14.2. Công dân
+Phân hệ này phục vụ quản lý danh sách số hotline hiển thị trên mini app, giúp người dân dễ dàng tra cứu đầu mối liên hệ của cơ quan.
 
-- Đang hoạt động
-- Tạm ẩn
+### 14.2. Dữ liệu quản lý
 
-### 14.3. Tin tức
+Mỗi dòng hotline bao gồm:
+- Họ tên.
+- Chức vụ.
+- Đơn vị.
+- Số điện thoại.
+- Email.
 
-- Draft
-- Published
+### 14.3. Quy tắc nhập liệu
 
-### 14.4. Phản ánh
+- Họ tên là bắt buộc.
+- Số điện thoại là bắt buộc.
+- Chức vụ là bắt buộc.
+- Đơn vị là bắt buộc.
+- Email không bắt buộc, nhưng nếu có thì phải đúng định dạng.
 
-- Chưa duyệt
-- Đã duyệt
+### 14.4. Trình tự thực hiện
 
-### 14.5. Bốc số
+#### Thêm hotline
+1. Truy cập `/settings/hotline`.
+2. Chọn `Thêm hotline`.
+3. Nhập đầy đủ thông tin cần thiết.
+4. Chọn `Lưu hotline` để hoàn tất.
 
-- Chờ xác nhận
-- Đã xác nhận
-- Hoàn thành
-- Đã hủy
+#### Xóa hotline
+1. Tại dòng dữ liệu cần xóa, chọn biểu tượng thùng rác.
+2. Kiểm tra hộp thoại xác nhận.
+3. Chọn `Đồng ý` để xóa số hotline khỏi danh sách.
+
+### 14.5. Lưu ý vận hành
+
+- Danh sách hotline được hiển thị trực tiếp trên mini app sau khi cập nhật thành công.
+- Nên bảo đảm mỗi đầu mối liên hệ được khai báo thống nhất về họ tên, chức vụ và đơn vị để người dân dễ tra cứu.
 
 ---
 
-## 15. Quy trình vận hành khuyến nghị
+## 15. Trạng thái nghiệp vụ dùng chung
 
-### 15.1. Khi cần phân công xử lý phản ánh
+### 15.1. Trạng thái cán bộ
+
+- Hoạt động.
+- Tạm khóa.
+
+### 15.2. Trạng thái công dân
+
+- Đang hoạt động.
+- Tạm ẩn.
+
+### 15.3. Trạng thái tin tức
+
+- Draft.
+- Published.
+
+### 15.4. Trạng thái phản ánh
+
+- Chưa duyệt.
+- Đã duyệt.
+
+### 15.5. Trạng thái bốc số
+
+- Chờ xác nhận.
+- Đã xác nhận.
+- Hoàn thành.
+- Đã hủy.
+
+---
+
+## 16. Quy trình vận hành khuyến nghị
+
+### 16.1. Khi cần phân công xử lý phản ánh
 
 1. Kiểm tra danh mục phản ánh tại `/categories`.
 2. Gán cán bộ vào điều phối tại `/routing`.
 3. Tiếp nhận và xử lý phản ánh tại `/feedback`.
-4. Gửi phản hồi và duyệt phản ánh khi đã hoàn thành nghiệp vụ.
+4. Gửi phản hồi và duyệt phản ánh khi hoàn tất nghiệp vụ.
 
-### 15.2. Khi cần đăng tải tin tức
+### 16.2. Khi cần đăng tải tin tức
 
 1. Truy cập `/news`.
 2. Chọn tạo mới.
 3. Nhập đầy đủ ảnh bìa, danh mục, tiêu đề, mô tả và nội dung.
 4. Lưu nháp hoặc xuất bản theo yêu cầu nghiệp vụ.
 
-### 15.3. Khi cần cập nhật cán bộ
+### 16.3. Khi cần cập nhật cán bộ
 
 1. Truy cập `/staff`.
 2. Tra cứu cán bộ cần cập nhật.
 3. Chỉnh sửa thông tin nhân sự, trạng thái hoặc phân công.
 4. Kiểm tra lại ở màn hình chi tiết nếu cần đối soát.
 
-### 15.4. Khi cần điều chỉnh cơ cấu phòng ban
+### 16.4. Khi cần điều chỉnh cơ cấu phòng ban
 
 1. Truy cập `/departments`.
 2. Kiểm tra cấu trúc cây phòng ban.
@@ -875,9 +904,8 @@ Biểu mẫu gồm 4 trường:
 
 ---
 
-## 16. Giới hạn hiện tại
+## 16. Kết luận
 
-- Một số phân hệ đang sử dụng dữ liệu mô phỏng, do đó kết quả thao tác chỉ phản ánh trong phạm vi giao diện hiện tại.
-- Chưa phải toàn bộ nghiệp vụ được triển khai đầy đủ như hệ thống vận hành chính thức.
-- Tài liệu này phản ánh đúng tình trạng của mã nguồn tại thời điểm biên soạn.
+Admin Portal là hệ thống phục vụ quản trị tập trung các nghiệp vụ cốt lõi của đơn vị. Việc sử dụng đúng quy trình và đúng phân hệ sẽ góp phần nâng cao hiệu quả vận hành, bảo đảm tính thống nhất trong quản lý, điều phối và xử lý thông tin.
 
+Tài liệu này phản ánh các chức năng hiện có trong hệ thống tại thời điểm biên soạn. Khi hệ thống được mở rộng hoặc thay đổi, tài liệu cần được cập nhật tương ứng để bảo đảm tính chính xác và đồng bộ.

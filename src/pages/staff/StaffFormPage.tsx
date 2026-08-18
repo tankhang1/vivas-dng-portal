@@ -291,9 +291,9 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                       value={field.value}
                       onChange={field.onChange}
                       onUpload={handleUploadAvatar}
-                      accept="image/*"
+                      accept="image/jpeg"
                       multiple={false}
-                      hint="Nhấn để chọn hoặc kéo thả ảnh vào đây. Khuyến nghị: vuông hoặc gần vuông."
+                      hint="Nhấn để chọn hoặc kéo thả ảnh JPG vào đây. Khuyến nghị: vuông hoặc gần vuông."
                     />
                   )}
                 />
