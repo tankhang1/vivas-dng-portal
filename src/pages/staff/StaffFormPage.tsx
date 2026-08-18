@@ -154,7 +154,10 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   }, [mode, staff, departmentsData, reset, setValue]);
 
   const handleUploadAvatar = async (file: File) => {
-    const url = await uploadImageMutation.mutateAsync({ file, c: "staff-avatar" });
+    const url = await uploadImageMutation.mutateAsync({
+      file,
+      c: file.name.replace(/\.[^/.]+$/, ""),
+    });
     if (!url) {
       throw new Error("Upload image response missing url");
     }

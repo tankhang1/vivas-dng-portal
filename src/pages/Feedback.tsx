@@ -801,7 +801,7 @@ export default function Feedback() {
     try {
       const link = await uploadPdfMutation.mutateAsync({
         file,
-        c: "feedback",
+        c: file.name.replace(/\.[^/.]+$/, ""),
       });
       setReplyFileUrl(link);
     } catch {
