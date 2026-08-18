@@ -80,6 +80,7 @@ VITE_API_BASE_URL=https://your-api-host.example.com
 
 - The login page is mocked and routes directly into the portal.
 - The dashboard and management screens use local mock data in `src/data/mock.ts`.
+- Detailed Vietnamese user guide: [`docs/admin-user-guide.md`](./docs/admin-user-guide.md)
 - Main routes include:
   - `/dashboard`
   - `/staff`

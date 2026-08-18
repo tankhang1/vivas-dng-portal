@@ -19,6 +19,7 @@ import CitizensEdit from "@/pages/citizens/Edit";
 import Feedback from "@/pages/Feedback";
 import QueueTickets from "@/pages/QueueTickets";
 import GeneralSettingsPage from "@/pages/settings/GeneralSettingsPage";
+import HotlinePage from "@/pages/settings/hotline/HotlinePage";
 import { AuthProvider, QueryClientProviderRoot } from "@/shared/providers";
 
 function NotFound() {
@@ -70,6 +71,7 @@ function Router() {
       <Route path="/feedback" component={Feedback} />
       <Route path="/appointments" component={QueueTickets} />
       <Route path="/settings/general" component={GeneralSettingsPage} />
+      <Route path="/settings/hotline" component={HotlinePage} />
       <Route path="/settings">
         <Redirect to="/settings/general" />
       </Route>

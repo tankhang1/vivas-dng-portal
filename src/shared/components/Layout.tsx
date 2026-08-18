@@ -15,6 +15,7 @@ import {
   Tag,
   Settings,
   Info,
+  Phone,
 } from 'lucide-react';
 import { cn } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -54,6 +55,7 @@ const navItems = [
     icon: Settings,
     children: [
       { name: 'Thông tin chung', href: '/settings/general', icon: Info },
+      { name: 'Hotline', href: '/settings/hotline', icon: Phone },
     ],
   },
 ];

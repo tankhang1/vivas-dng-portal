@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
@@ -9,7 +9,6 @@ import {
   CardHeader,
   Input,
   Pagination,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -23,7 +22,6 @@ import {
   useDeactiveStaffProcessMutation,
   useSearchStaffQuery,
 } from "@/features/staff/hooks/staff.hook";
-import { useDepartmentsQuery } from "@/features/department/hooks/department.hook";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 import { Edit2, Eye, Lock, Plus, Search, Unlock } from "lucide-react";
 
@@ -41,7 +39,6 @@ export default function StaffPage() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
-  const [departmentFilter, setDepartmentFilter] = useState("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isFetching, refetch } = useSearchStaffQuery({
@@ -49,21 +46,13 @@ export default function StaffPage() {
     sz: PAGE_SIZE,
     nu: page - 1,
   });
-  const { data: departmentsData, isLoading: isDepartmentsLoading } =
-    useDepartmentsQuery();
   const activeStaffMutation = useActiveStaffProcessMutation();
   const deactiveStaffMutation = useDeactiveStaffProcessMutation();
 
   const staffList = data?.content ?? [];
   const showInitialLoading = isLoading && staffList.length === 0;
   const showRefetchOverlay = isFetching && !showInitialLoading;
-  const filteredStaff = useMemo(() => {
-    return staffList.filter(
-      (staff) =>
-        (departmentFilter === "all" ||
-          String(staff.department_item) === departmentFilter),
-    );
-  }, [staffList, departmentFilter]);
+  const filteredStaff = staffList;
 
   const totalPages = Math.max(1, data?.page.totalPages ?? 1);
   const totalItems = data?.page.totalElements ?? 0;
@@ -127,23 +116,6 @@ export default function StaffPage() {
               {showRefetchOverlay && (
                 <Spinner className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-                value={departmentFilter}
-                onChange={(e) =>
-                  updateFilters(() => setDepartmentFilter(e.target.value))
-                }
-                className="w-52"
-                disabled={isDepartmentsLoading}
-              >
-                <option value="all">Tất cả phòng ban</option>
-                {departmentsData?.content.map((department) => (
-                  <option key={department.id} value={String(department.id)}>
-                    {department.name}
-                  </option>
-                ))}
-              </Select>
             </div>
           </CardHeader>
 

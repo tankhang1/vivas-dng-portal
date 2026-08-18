@@ -66,6 +66,8 @@ const staffFormBaseSchema = z.object({
 });
 
 const staffCreateSchema = staffFormBaseSchema.extend({
+  field: z.string().min(1, "Vui lòng chọn lĩnh vực"),
+  avatar: z.array(mediaFileSchema).min(1, "Vui lòng chọn ảnh đại diện"),
   password: z.string().trim().min(1, "Vui lòng nhập mật khẩu"),
 });
 
@@ -274,7 +276,10 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
           <Card>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-3">
-                <Label>Ảnh đại diện</Label>
+                <Label>
+                  Ảnh đại diện{" "}
+                  {mode === "create" && <span className="text-red-500">*</span>}
+                </Label>
                 <Controller
                   control={control}
                   name="avatar"
@@ -289,6 +294,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     />
                   )}
                 />
+                <FieldError message={errors.avatar?.message} />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -372,7 +378,10 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="staff-field">Lĩnh vực</Label>
+                  <Label htmlFor="staff-field">
+                    Lĩnh vực{" "}
+                    {mode === "create" && <span className="text-red-500">*</span>}
+                  </Label>
                   <Controller
                     control={control}
                     name="field"
@@ -387,6 +396,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                       </Select>
                     )}
                   />
+                  <FieldError message={errors.field?.message} />
                 </div>
 
                 <div className="grid gap-2">
