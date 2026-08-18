@@ -9,6 +9,7 @@ import {
   Link2,
   Quote,
   RemoveFormatting,
+  FileUp,
 } from "lucide-react";
 
 type FormEditorProps = {
@@ -45,6 +46,7 @@ export function FormEditor({
   className,
 }: FormEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = editorRef.current;
@@ -71,6 +73,24 @@ export function FormEditor({
     }
     editorRef.current?.focus();
     handleInput();
+  };
+
+  const handleInsertHtmlFileClick = () => fileInputRef.current?.click();
+
+  const handleInsertHtmlFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = typeof reader.result === "string" ? reader.result : "";
+      const safeHtml = sanitizeHtml(raw);
+      editorRef.current?.focus();
+      execCommand("insertHTML", safeHtml);
+      handleInput();
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -123,6 +143,19 @@ export function FormEditor({
         >
           <RemoveFormatting className="h-4 w-4" />
         </ToolbarButton>
+        <ToolbarButton
+          label="Chèn tệp HTML"
+          onClick={handleInsertHtmlFileClick}
+        >
+          <FileUp className="h-4 w-4" />
+        </ToolbarButton>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".html,text/html"
+          className="hidden"
+          onChange={handleInsertHtmlFile}
+        />
       </div>
       <div
         ref={editorRef}
