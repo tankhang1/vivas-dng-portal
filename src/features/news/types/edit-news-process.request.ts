@@ -5,6 +5,7 @@ export type EditNewsProcessRequest = {
   thumbnail: string;
   title: string;
   path: string;
+  url: string;
   short_describe: string;
   content: string;
 };

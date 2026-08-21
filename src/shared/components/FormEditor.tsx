@@ -10,6 +10,8 @@ import {
   Quote,
   RemoveFormatting,
   FileUp,
+  ImagePlus,
+  Loader2,
 } from "lucide-react";
 
 type FormEditorProps = {
@@ -17,6 +19,7 @@ type FormEditorProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  onUploadImage?: (file: File) => Promise<string>;
 };
 
 function execCommand(command: string, value?: string) {
@@ -44,9 +47,12 @@ export function FormEditor({
   onChange,
   placeholder = "Nhập nội dung...",
   className,
+  onUploadImage,
 }: FormEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
 
   useEffect(() => {
     const el = editorRef.current;
@@ -76,6 +82,24 @@ export function FormEditor({
   };
 
   const handleInsertHtmlFileClick = () => fileInputRef.current?.click();
+
+  const handleInsertImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !onUploadImage) return;
+
+    setIsUploadingImage(true);
+    try {
+      const imageUrl = await onUploadImage(file);
+      editorRef.current?.focus();
+      execCommand("insertImage", imageUrl);
+      handleInput();
+    } catch {
+      window.alert(`Tải lên "${file.name}" thất bại. Vui lòng thử lại.`);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleInsertHtmlFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -144,6 +168,17 @@ export function FormEditor({
           <RemoveFormatting className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
+          label="Chèn ảnh"
+          onClick={() => imageInputRef.current?.click()}
+          disabled={isUploadingImage}
+        >
+          {isUploadingImage ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ImagePlus className="h-4 w-4" />
+          )}
+        </ToolbarButton>
+        <ToolbarButton
           label="Chèn tệp HTML"
           onClick={handleInsertHtmlFileClick}
         >
@@ -155,6 +190,13 @@ export function FormEditor({
           accept=".html,text/html"
           className="hidden"
           onChange={handleInsertHtmlFile}
+        />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleInsertImage}
         />
       </div>
       <div
@@ -176,10 +218,12 @@ export function FormEditor({
 function ToolbarButton({
   label,
   onClick,
+  disabled,
   children,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -187,6 +231,7 @@ function ToolbarButton({
       type="button"
       title={label}
       aria-label={label}
+      disabled={disabled}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"

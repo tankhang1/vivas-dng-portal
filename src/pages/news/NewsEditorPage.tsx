@@ -29,6 +29,7 @@ import {
   type MediaFile,
 } from "../../shared/components/MediaUpload";
 import { FormEditor } from "../../shared/components/FormEditor";
+import { Switch } from "../../shared/components/ui/switch";
 import { Spinner } from "../../shared/components/ui/spinner";
 import { CURRENT_STAFF } from "./types";
 import {
@@ -44,6 +45,12 @@ type NewsEditorPageProps = {
   articleId?: string;
 };
 
+const hasArticleContent = (content: string) =>
+  content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .trim().length > 0;
+
 const newsFormSchema = z.object({
   title: z.string().min(1, "Vui lòng nhập tiêu đề"),
   categoryItem: z.coerce
@@ -51,8 +58,27 @@ const newsFormSchema = z.object({
     .min(1, "Vui lòng chọn danh mục"),
   thumbnail: z.string().min(1, "Vui lòng chọn ảnh bìa"),
   shortDescription: z.string().min(1, "Vui lòng nhập mô tả ngắn"),
-  path: z.string().min(1, "Vui lòng nhập URL liên kết"),
-  contentHtml: z.string().min(1, "Vui lòng nhập nội dung"),
+  path: z.string(),
+  url: z.string(),
+  contentHtml: z.string(),
+  inputMode: z.enum(["url", "content"]),
+}).superRefine((values, context) => {
+  const isEmpty =
+    values.inputMode === "url"
+      ? !values.url.trim()
+      : !hasArticleContent(values.contentHtml);
+
+  if (isEmpty) {
+    const message =
+      values.inputMode === "url"
+        ? "Vui lòng nhập đường dẫn bài viết"
+        : "Vui lòng nhập nội dung";
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [values.inputMode === "url" ? "url" : "contentHtml"],
+      message,
+    });
+  }
 });
 
 type NewsFormValues = z.infer<typeof newsFormSchema>;
@@ -63,7 +89,9 @@ const defaultValues = (): NewsFormValues => ({
   thumbnail: "",
   shortDescription: "",
   path: "",
+  url: "",
   contentHtml: "",
+  inputMode: "url",
 });
 
 export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
@@ -84,6 +112,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
     defaultValues: defaultValues(),
   });
   const { control, handleSubmit, reset, watch, setValue } = form;
+  const inputMode = watch("inputMode");
 
   const setThumbnail = (files: MediaFile[]) => {
     setThumbnailState(files);
@@ -98,7 +127,9 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
         thumbnail: article.thumbnail ?? "",
         shortDescription: article.short_describe ?? "",
         path: article.path ?? "",
+        url: article.url ?? "",
         contentHtml: article.content ?? "",
+        inputMode: article.url?.trim() ? "url" : "content",
       });
       setThumbnailState(
         article.thumbnail
@@ -124,6 +155,12 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
     }
   };
 
+  const handleUploadContentImage = (file: File) =>
+    uploadImageMutation.mutateAsync({
+      file,
+      c: file.name,
+    });
+
   const isSaving = postNewsMutation.isPending || editNewsMutation.isPending;
 
   const handleSave = async (values: NewsFormValues) => {
@@ -141,7 +178,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           category_name: categoryName,
           thumbnail: thumbnailUrl,
           title: values.title,
-          path: values.path,
+          path: "",
+          url: values.url,
           short_describe: values.shortDescription,
           content: values.contentHtml,
         });
@@ -151,7 +189,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           category_name: categoryName,
           thumbnail: thumbnailUrl,
           title: values.title,
-          path: values.path,
+          path: "",
+          url: values.url,
           short_describe: values.shortDescription,
           content: values.contentHtml,
           staff_item: CURRENT_STAFF.id,
@@ -334,36 +373,60 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                 )}
               />
 
-              <FormInputField
-                control={control}
-                name="path"
-                label="URL liên kết"
-                required
-                inputProps={{ placeholder: "https://..." }}
-              />
+              <div className="flex items-center gap-3 rounded-md border bg-muted/20 px-4 py-3">
+                <Switch
+                  id="article-input-mode"
+                  checked={inputMode === "content"}
+                  onCheckedChange={(checked) => {
+                    const nextMode = checked ? "content" : "url";
+                    setValue("inputMode", nextMode, {
+                      shouldValidate: true,
+                    });
+                    setValue(nextMode === "content" ? "url" : "contentHtml", "", {
+                      shouldValidate: true,
+                    });
+                  }}
+                />
+                  <Label htmlFor="article-input-mode" className="cursor-pointer">
+                    {inputMode === "content"
+                    ? "Nhập nội dung trực tiếp"
+                    : "Nhập đường dẫn bài viết"}
+                  </Label>
+              </div>
 
-              <FormField
-                control={control}
-                name="contentHtml"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel required>Nội dung</FormLabel>
-                    <FormControl>
-                      <FormEditor
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Nhập nội dung thông báo..."
-                        className="min-h-65"
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
-                      lưu dưới dạng HTML.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {inputMode === "url" ? (
+                <FormInputField
+                  control={control}
+                  name="url"
+                  label="Đường dẫn bài viết"
+                  required
+                  inputProps={{ placeholder: "https://..." }}
+                />
+              ) : (
+                <FormField
+                  control={control}
+                  name="contentHtml"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>Nội dung</FormLabel>
+                      <FormControl>
+                        <FormEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          onUploadImage={handleUploadContentImage}
+                          placeholder="Nhập nội dung thông báo..."
+                          className="min-h-65"
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
+                        lưu dưới dạng HTML.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </CardContent>
           </Card>
         </form>

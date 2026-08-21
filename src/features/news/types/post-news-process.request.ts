@@ -4,6 +4,7 @@ export type PostNewsProcessRequest = {
   thumbnail: string;
   title: string;
   path: string;
+  url: string;
   short_describe: string;
   content: string;
   staff_item: number;
