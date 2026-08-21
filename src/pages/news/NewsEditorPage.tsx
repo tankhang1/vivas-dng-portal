@@ -51,35 +51,37 @@ const hasArticleContent = (content: string) =>
     .replace(/&nbsp;/gi, " ")
     .trim().length > 0;
 
-const newsFormSchema = z.object({
-  title: z.string().min(1, "Vui lòng nhập tiêu đề"),
-  categoryItem: z.coerce
-    .number({ invalid_type_error: "Vui lòng chọn danh mục" })
-    .min(1, "Vui lòng chọn danh mục"),
-  thumbnail: z.string().min(1, "Vui lòng chọn ảnh bìa"),
-  shortDescription: z.string().min(1, "Vui lòng nhập mô tả ngắn"),
-  path: z.string(),
-  url: z.string(),
-  contentHtml: z.string(),
-  inputMode: z.enum(["url", "content"]),
-}).superRefine((values, context) => {
-  const isEmpty =
-    values.inputMode === "url"
-      ? !values.url.trim()
-      : !hasArticleContent(values.contentHtml);
-
-  if (isEmpty) {
-    const message =
+const newsFormSchema = z
+  .object({
+    title: z.string().min(1, "Vui lòng nhập tiêu đề"),
+    categoryItem: z.coerce
+      .number({ invalid_type_error: "Vui lòng chọn danh mục" })
+      .min(1, "Vui lòng chọn danh mục"),
+    thumbnail: z.string().min(1, "Vui lòng chọn ảnh bìa"),
+    shortDescription: z.string().min(1, "Vui lòng nhập mô tả ngắn"),
+    path: z.string(),
+    url: z.string(),
+    contentHtml: z.string(),
+    inputMode: z.enum(["url", "content"]),
+  })
+  .superRefine((values, context) => {
+    const isEmpty =
       values.inputMode === "url"
-        ? "Vui lòng nhập đường dẫn bài viết"
-        : "Vui lòng nhập nội dung";
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: [values.inputMode === "url" ? "url" : "contentHtml"],
-      message,
-    });
-  }
-});
+        ? !values.url.trim()
+        : !hasArticleContent(values.contentHtml);
+
+    if (isEmpty) {
+      const message =
+        values.inputMode === "url"
+          ? "Vui lòng nhập đường dẫn bài viết"
+          : "Vui lòng nhập nội dung";
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [values.inputMode === "url" ? "url" : "contentHtml"],
+        message,
+      });
+    }
+  });
 
 type NewsFormValues = z.infer<typeof newsFormSchema>;
 
@@ -292,11 +294,13 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               </div>
               {thumbnail[0]?.url ? (
                 <div className="relative overflow-hidden rounded-lg border bg-slate-100">
-                  <img
-                    src={thumbnail[0].url}
-                    alt={watch("title") || "Ảnh bìa"}
-                    className="h-48 w-full object-cover"
-                  />
+                  <div className="flex max-h-[400px] min-h-48 w-full items-center justify-center">
+                    <img
+                      src={thumbnail[0].url}
+                      alt={watch("title") || "Ảnh bìa"}
+                      className="block max-h-[400px] max-w-full object-contain"
+                    />
+                  </div>
                   {isThumbnailUploading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                       <Spinner className="h-6 w-6 text-white" />
@@ -382,16 +386,20 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                     setValue("inputMode", nextMode, {
                       shouldValidate: true,
                     });
-                    setValue(nextMode === "content" ? "url" : "contentHtml", "", {
-                      shouldValidate: true,
-                    });
+                    setValue(
+                      nextMode === "content" ? "url" : "contentHtml",
+                      "",
+                      {
+                        shouldValidate: true,
+                      },
+                    );
                   }}
                 />
-                  <Label htmlFor="article-input-mode" className="cursor-pointer">
-                    {inputMode === "content"
+                <Label htmlFor="article-input-mode" className="cursor-pointer">
+                  {inputMode === "content"
                     ? "Nhập nội dung trực tiếp"
                     : "Nhập đường dẫn bài viết"}
-                  </Label>
+                </Label>
               </div>
 
               {inputMode === "url" ? (
@@ -419,8 +427,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                         />
                       </FormControl>
                       <p className="text-xs text-muted-foreground">
-                        Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ được
-                        lưu dưới dạng HTML.
+                        Soạn nội dung trực tiếp bằng form editor. Nội dung sẽ
+                        được lưu dưới dạng HTML.
                       </p>
                       <FormMessage />
                     </FormItem>

@@ -106,7 +106,7 @@ export function MediaUpload({ value, onChange, accept = 'image/*,video/*', multi
                 {isVideo ? (
                   <video src={file.url} className="h-full w-full object-cover" muted />
                 ) : (
-                  <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
+                  <img src={file.url} alt={file.name} className="h-full w-full object-contain" />
                 )}
                 {uploadingIds.has(file.id) && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
