@@ -4,6 +4,7 @@ export type EditNewsProcessRequest = {
   category_name: string;
   thumbnail: string;
   title: string;
+  star_index: number;
   path: string;
   url: string;
   short_describe: string;

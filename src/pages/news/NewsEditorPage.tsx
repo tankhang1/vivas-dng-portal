@@ -54,6 +54,7 @@ const hasArticleContent = (content: string) =>
 const newsFormSchema = z
   .object({
     title: z.string().min(1, "Vui lòng nhập tiêu đề"),
+    starIndex: z.coerce.number().int().min(0).max(1),
     categoryItem: z.coerce
       .number({ invalid_type_error: "Vui lòng chọn danh mục" })
       .min(1, "Vui lòng chọn danh mục"),
@@ -87,6 +88,7 @@ type NewsFormValues = z.infer<typeof newsFormSchema>;
 
 const defaultValues = (): NewsFormValues => ({
   title: "",
+  starIndex: 0,
   categoryItem: 0,
   thumbnail: "",
   shortDescription: "",
@@ -125,6 +127,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
     if (mode === "edit" && article) {
       reset({
         title: article.title,
+        starIndex: article.star_index === 1 ? 1 : 0,
         categoryItem: article.category_item,
         thumbnail: article.thumbnail ?? "",
         shortDescription: article.short_describe ?? "",
@@ -180,6 +183,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           category_name: categoryName,
           thumbnail: thumbnailUrl,
           title: values.title,
+          star_index: values.starIndex,
           path: "",
           url: values.url,
           short_describe: values.shortDescription,
@@ -191,6 +195,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           category_name: categoryName,
           thumbnail: thumbnailUrl,
           title: values.title,
+          star_index: values.starIndex,
           path: "",
           url: values.url,
           short_describe: values.shortDescription,
@@ -319,7 +324,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
               )}
 
               <div className="grid gap-4 md:grid-cols-10">
-                <div className="md:col-span-7">
+                <div className="md:col-span-6">
                   <FormInputField
                     control={control}
                     name="title"
@@ -328,7 +333,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                     inputProps={{ placeholder: "Tiêu đề thông báo..." }}
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="md:col-span-2">
                   <FormField
                     control={control}
                     name="categoryItem"
@@ -351,6 +356,37 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
                               </option>
                             ))}
                           </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <FormField
+                    control={control}
+                    name="starIndex"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sự kiện nổi bật</FormLabel>
+                        <FormControl>
+                          <div className="flex h-10 items-center gap-3">
+                            <Switch
+                              id="article-featured"
+                              checked={field.value === 1}
+                              onCheckedChange={(checked) =>
+                                setValue("starIndex", checked ? 1 : 0, {
+                                  shouldValidate: true,
+                                })
+                              }
+                            />
+                            <Label
+                              htmlFor="article-featured"
+                              className="cursor-pointer text-sm font-normal"
+                            >
+                              Đánh dấu sự kiện nổi bật
+                            </Label>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
