@@ -1,7 +1,16 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
-import { Button, Card, CardContent, Pagination } from "../../shared/components/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Pagination,
+} from "../../shared/components/ui";
 import {
   useApprovalNewsProcessMutation,
   useRemoveNewsProcessMutation,
@@ -26,6 +35,11 @@ export default function NewsPage() {
   );
   const [page, setPage] = useState(1);
   const [detailArticle, setDetailArticle] = useState<NewsArticle | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    type: "approve" | "deactivate";
+    id: number;
+    title: string;
+  } | null>(null);
 
   const { data, isLoading, isFetching, isError, refetch } = useSearchNewsQuery({
     key: debouncedSearch || undefined,
@@ -56,19 +70,19 @@ export default function NewsPage() {
   const goToCreate = () => navigate("/news/new");
   const goToEdit = (id: string) => navigate(`/news/${id}/edit`);
 
-  const handleDeactivate = async (id: string) => {
-    if (!window.confirm("Vô hiệu hóa bản tin này?")) return;
+  const executeDeactivate = async (id: number) => {
     try {
-      await removeNewsMutation.mutateAsync({ news_item: Number(id) });
-      setDetailArticle((current) => (current?.id === id ? null : current));
+      await removeNewsMutation.mutateAsync({ news_item: id });
+      setDetailArticle((current) => (current?.id === String(id) ? null : current));
       refetch();
     } catch {
       window.alert("Vô hiệu hóa bản tin thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingAction(null);
     }
   };
 
-  const handleApprove = async (id: number) => {
-    if (!window.confirm("Duyệt bản tin này?")) return;
+  const executeApprove = async (id: number) => {
     try {
       await approvalNewsMutation.mutateAsync({
         news_item: id,
@@ -78,7 +92,27 @@ export default function NewsPage() {
       refetch();
     } catch {
       window.alert("Duyệt bản tin thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingAction(null);
     }
+  };
+
+  const handleDeactivate = (id: string, title?: string) => {
+    const row = rows.find(({ article }) => article.id === id);
+    setPendingAction({
+      type: "deactivate",
+      id: Number(id),
+      title: title ?? row?.article.title ?? "bản tin này",
+    });
+  };
+
+  const handleApprove = (id: number, title?: string) => {
+    const row = rows.find(({ item }) => item.id === id);
+    setPendingAction({
+      type: "approve",
+      id,
+      title: title ?? row?.article.title ?? "bản tin này",
+    });
   };
 
   return (
@@ -143,8 +177,67 @@ export default function NewsPage() {
         }}
         onEdit={(id) => navigate(`/news/${id}/edit`)}
         onDeactivate={handleDeactivate}
-        onApprove={(id) => handleApprove(Number(id))}
+        onApprove={(id) =>
+          handleApprove(Number(id), detailArticle?.title)
+        }
       />
+
+      <Dialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => {
+          if (
+            !open &&
+            !removeNewsMutation.isPending &&
+            !approvalNewsMutation.isPending
+          ) {
+            setPendingAction(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {pendingAction?.type === "approve"
+              ? "Xác nhận duyệt bản tin?"
+              : "Xác nhận vô hiệu hóa bản tin?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {pendingAction?.type === "approve"
+            ? `Bạn có chắc muốn duyệt bản tin "${pendingAction?.title ?? ""}" không?`
+            : `Bạn có chắc muốn vô hiệu hóa bản tin "${pendingAction?.title ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingAction(null)}
+            disabled={
+              removeNewsMutation.isPending || approvalNewsMutation.isPending
+            }
+          >
+            Hủy
+          </Button>
+          <Button
+            variant={
+              pendingAction?.type === "approve" ? "default" : "destructive"
+            }
+            onClick={async () => {
+              if (!pendingAction) return;
+              if (pendingAction.type === "approve") {
+                await executeApprove(pendingAction.id);
+              } else {
+                await executeDeactivate(pendingAction.id);
+              }
+            }}
+            disabled={
+              removeNewsMutation.isPending || approvalNewsMutation.isPending
+            }
+          >
+            {removeNewsMutation.isPending || approvalNewsMutation.isPending
+              ? "Đang xử lý..."
+              : "Xác nhận"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

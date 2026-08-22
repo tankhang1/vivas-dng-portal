@@ -91,6 +91,21 @@ function feedbackStatus(item: CommentItem) {
 
 type FeedbackMode = "view" | "approve";
 
+type PendingFeedbackAction =
+  | {
+      type: "reply";
+      commentId: number;
+      uuid?: string;
+      content: string;
+      titleUrl: string;
+      url: string;
+    }
+  | {
+      type: "approve";
+      commentId: number;
+      title: string;
+    };
+
 type FeedbackTableProps = {
   items: CommentItem[];
   isLoading: boolean;
@@ -668,6 +683,8 @@ export default function Feedback() {
   const [replyFile, setReplyFile] = useState<File | null>(null);
   const [replyFileUrl, setReplyFileUrl] = useState<string | null>(null);
   const [replyFileName, setReplyFileName] = useState("");
+  const [pendingAction, setPendingAction] =
+    useState<PendingFeedbackAction | null>(null);
 
   const routingQuery = useStaffCoordinateCommentsByStaffApproveQuery({
     staffId: CURRENT_STAFF.id,
@@ -818,15 +835,13 @@ export default function Feedback() {
     setReplyFileName("");
   };
 
-  const handleSendReply = async () => {
-    if (!current || !replyContent.trim()) return;
-
+  const executeSendReply = async (action: Extract<PendingFeedbackAction, { type: "reply" }>) => {
     try {
       const payload = {
-        comment_item: current.id,
-        content: replyContent.trim(),
-        title_url: replyFileName,
-        url: replyFileUrl ?? "",
+        comment_item: action.commentId,
+        content: action.content,
+        title_url: action.titleUrl,
+        url: action.url,
         staff_item: CURRENT_STAFF.id,
         staff_name: CURRENT_STAFF.name,
       };
@@ -837,9 +852,9 @@ export default function Feedback() {
         await replyMutation.mutateAsync(payload);
       }
 
-      if (current?.c_uuid) {
+      if (action.uuid) {
         await queryClient.invalidateQueries({
-          queryKey: QUERY_KEY.FEEDBACK(current.c_uuid),
+          queryKey: QUERY_KEY.FEEDBACK(action.uuid),
         });
       }
 
@@ -849,15 +864,27 @@ export default function Feedback() {
       invalidateComments();
     } catch {
       window.alert("Lưu phản hồi thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingAction(null);
     }
   };
 
-  const handleApprove = async () => {
-    if (!current) return;
+  const handleSendReply = () => {
+    if (!current || !replyContent.trim()) return;
+    setPendingAction({
+      type: "reply",
+      commentId: current.id,
+      uuid: current.c_uuid,
+      content: replyContent.trim(),
+      titleUrl: replyFileName,
+      url: replyFileUrl ?? "",
+    });
+  };
 
+  const executeApprove = async (action: Extract<PendingFeedbackAction, { type: "approve" }>) => {
     try {
       await approveMutation.mutateAsync({
-        comment_item: current.id,
+        comment_item: action.commentId,
         staff_item: CURRENT_STAFF.id,
         staff_name: CURRENT_STAFF.name,
       });
@@ -867,7 +894,18 @@ export default function Feedback() {
       invalidateComments();
     } catch {
       window.alert("Duyệt phản ánh thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingAction(null);
     }
+  };
+
+  const handleApprove = () => {
+    if (!current || current.status === 1) return;
+    setPendingAction({
+      type: "approve",
+      commentId: current.id,
+      title: current.title,
+    });
   };
 
   return (
@@ -958,6 +996,67 @@ export default function Feedback() {
         isFeedbackLoading={feedbackQuery.isLoading}
         isFeedbackFetching={feedbackQuery.isFetching}
       />
+
+      <Dialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => {
+          if (
+            !open &&
+            !replyMutation.isPending &&
+            !editReplyMutation.isPending &&
+            !approveMutation.isPending
+          ) {
+            setPendingAction(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {pendingAction?.type === "approve"
+              ? "Xác nhận duyệt phản ánh?"
+              : "Xác nhận lưu phản hồi?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {pendingAction?.type === "approve"
+            ? `Bạn có chắc muốn duyệt phản ánh "${pendingAction.title}" không?`
+            : "Bạn có chắc muốn gửi nội dung phản hồi này cho công dân không?"}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingAction(null)}
+            disabled={
+              replyMutation.isPending ||
+              editReplyMutation.isPending ||
+              approveMutation.isPending
+            }
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingAction) return;
+              if (pendingAction.type === "approve") {
+                await executeApprove(pendingAction);
+              } else {
+                await executeSendReply(pendingAction);
+              }
+            }}
+            disabled={
+              replyMutation.isPending ||
+              editReplyMutation.isPending ||
+              approveMutation.isPending
+            }
+          >
+            {replyMutation.isPending ||
+            editReplyMutation.isPending ||
+            approveMutation.isPending
+              ? "Đang xử lý..."
+              : "Xác nhận"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

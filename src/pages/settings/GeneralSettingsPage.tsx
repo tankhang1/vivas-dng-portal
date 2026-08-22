@@ -1,9 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Layout } from "../../shared/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle, Button } from "../../shared/components/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../shared/components/ui";
 import { Form } from "../../shared/components/ui/form";
 import { FormInputField } from "../../shared/components/FormInputField";
 import {
@@ -33,6 +43,8 @@ export default function GeneralSettingsPage() {
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardQuery();
   const editDashboardMutation = useEditDashboardProcessMutation();
+  const [pendingValues, setPendingValues] =
+    useState<GeneralInfoFormValues | null>(null);
 
   const form = useForm<GeneralInfoFormValues>({
     resolver: zodResolver(generalInfoSchema),
@@ -55,13 +67,17 @@ export default function GeneralSettingsPage() {
     });
   }, [dashboardData, reset]);
 
-  const handleSaveGeneralInfo = async (values: GeneralInfoFormValues) => {
+  const executeSaveGeneralInfo = async (values: GeneralInfoFormValues) => {
     try {
       await editDashboardMutation.mutateAsync(values);
       window.alert("Cập nhật thông tin chung thành công.");
     } catch {
       window.alert("Cập nhật thông tin chung thất bại. Vui lòng thử lại.");
     }
+  };
+
+  const handleSaveGeneralInfo = (values: GeneralInfoFormValues) => {
+    setPendingValues(values);
   };
 
   return (
@@ -131,6 +147,42 @@ export default function GeneralSettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={pendingValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !editDashboardMutation.isPending) {
+            setPendingValues(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận cập nhật thông tin chung?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn lưu các số liệu tổng quan mới không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingValues(null)}
+            disabled={editDashboardMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingValues) return;
+              const values = pendingValues;
+              setPendingValues(null);
+              await executeSaveGeneralInfo(values);
+            }}
+            disabled={editDashboardMutation.isPending}
+          >
+            {editDashboardMutation.isPending ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

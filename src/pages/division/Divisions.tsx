@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { Layout } from "../../shared/components/Layout";
-import { Button } from "../../shared/components/ui";
+import {
+  Button,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../shared/components/ui";
 import {
   useCreateDivisionProcessMutation,
   useDivisionsQuery,
@@ -32,6 +38,10 @@ export default function Divisions() {
   const [editingDivisionId, setEditingDivisionId] = useState<number | null>(
     null,
   );
+  const [pendingSaveValues, setPendingSaveValues] =
+    useState<DivisionFormValues | null>(null);
+  const [pendingDeleteDivision, setPendingDeleteDivision] =
+    useState<DivisionItem | null>(null);
 
   const divisions = divisionsData?.content ?? [];
   const filtered = useMemo(
@@ -58,7 +68,7 @@ export default function Divisions() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (values: DivisionFormValues) => {
+  const executeSave = async (values: DivisionFormValues) => {
     const name = values.name.trim();
     if (!name) return;
     const note = values.note;
@@ -79,14 +89,24 @@ export default function Divisions() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa lĩnh vực này?")) return;
+  const handleSubmit = (values: DivisionFormValues) => {
+    setPendingSaveValues(values);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       await removeDivisionMutation.mutateAsync({ item: id });
       refetch();
     } catch {
       window.alert("Xóa lĩnh vực thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingDeleteDivision(null);
     }
+  };
+
+  const handleDelete = (id: number) => {
+    const division = divisions.find((item) => item.id === id);
+    if (division) setPendingDeleteDivision(division);
   };
 
   return (
@@ -128,6 +148,82 @@ export default function Divisions() {
         isSaving={isSavingDivision}
         onSubmit={handleSubmit}
       />
+
+      <Dialog
+        open={pendingSaveValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !isSavingDivision) setPendingSaveValues(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {editingDivisionId
+              ? "Xác nhận lưu thay đổi?"
+              : "Xác nhận thêm lĩnh vực?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {editingDivisionId
+            ? `Bạn có chắc muốn lưu thay đổi cho lĩnh vực "${pendingSaveValues?.name ?? ""}" không?`
+            : `Bạn có chắc muốn thêm lĩnh vực "${pendingSaveValues?.name ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSaveValues(null)}
+            disabled={isSavingDivision}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSaveValues) return;
+              const values = pendingSaveValues;
+              setPendingSaveValues(null);
+              await executeSave(values);
+            }}
+            disabled={isSavingDivision}
+          >
+            {isSavingDivision ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={pendingDeleteDivision !== null}
+        onOpenChange={(open) => {
+          if (!open && !removeDivisionMutation.isPending) {
+            setPendingDeleteDivision(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa lĩnh vực?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn xóa lĩnh vực "{pendingDeleteDivision?.name ?? ""}"
+          không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingDeleteDivision(null)}
+            disabled={removeDivisionMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!pendingDeleteDivision) return;
+              await executeDelete(pendingDeleteDivision.id);
+            }}
+            disabled={removeDivisionMutation.isPending}
+          >
+            {removeDivisionMutation.isPending ? "Đang xóa..." : "Xác nhận xóa"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

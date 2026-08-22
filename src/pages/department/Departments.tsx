@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Layout } from "../../shared/components/Layout";
-import { Button } from "../../shared/components/ui";
+import {
+  Button,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../shared/components/ui";
 import { Plus } from "lucide-react";
 import {
   useCreateDepartmentProcessMutation,
@@ -82,6 +88,10 @@ export default function Departments() {
   );
   const [dialogParentId, setDialogParentId] = useState<string | null>(null);
   const [currentStaff, setCurrentStaff] = useState<StaffItem | null>(null);
+  const [pendingSaveValues, setPendingSaveValues] =
+    useState<DepartmentFormValues | null>(null);
+  const [pendingDeleteDepartment, setPendingDeleteDepartment] =
+    useState<DepartmentRecord | null>(null);
 
   const [departments, setDepartments] = useState<DepartmentRecord[]>([]);
   const hasSeededDepartments = useRef(false);
@@ -189,7 +199,7 @@ export default function Departments() {
       }
     : null;
 
-  const handleSubmit = async (values: DepartmentFormValues) => {
+  const executeSave = async (values: DepartmentFormValues) => {
     const name = values.name.trim();
     const desc = values.description ?? "";
     const parent = values.parentId
@@ -283,9 +293,11 @@ export default function Departments() {
     }
   };
 
-  const handleDeleteDepartment = async (department: DepartmentRecord) => {
-    if (!window.confirm(`Xóa phòng ban "${department.name}"?`)) return;
+  const handleSubmit = (values: DepartmentFormValues) => {
+    setPendingSaveValues(values);
+  };
 
+  const executeDeleteDepartment = async (department: DepartmentRecord) => {
     try {
       await removeDepartmentMutation.mutateAsync({
         item: Number(department.id),
@@ -306,7 +318,13 @@ export default function Departments() {
       }
     } catch {
       window.alert("Xóa phòng ban thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingDeleteDepartment(null);
     }
+  };
+
+  const handleDeleteDepartment = (department: DepartmentRecord) => {
+    setPendingDeleteDepartment(department);
   };
 
   const departmentScopeLabel = selectedDepartment
@@ -377,6 +395,82 @@ export default function Departments() {
         isSaving={isSaving}
         onSubmit={handleSubmit}
       />
+
+      <Dialog
+        open={pendingSaveValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !isSaving) setPendingSaveValues(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {editingDepartmentId
+              ? "Xác nhận lưu thay đổi?"
+              : "Xác nhận thêm phòng ban?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {editingDepartmentId
+            ? `Bạn có chắc muốn lưu thay đổi cho phòng ban "${pendingSaveValues?.name ?? ""}" không?`
+            : `Bạn có chắc muốn thêm phòng ban "${pendingSaveValues?.name ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSaveValues(null)}
+            disabled={isSaving}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSaveValues) return;
+              const values = pendingSaveValues;
+              setPendingSaveValues(null);
+              await executeSave(values);
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={pendingDeleteDepartment !== null}
+        onOpenChange={(open) => {
+          if (!open && !removeDepartmentMutation.isPending) {
+            setPendingDeleteDepartment(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa phòng ban?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Phòng ban con cũng sẽ bị xóa khỏi cây. Bạn có chắc muốn xóa phòng ban
+          "{pendingDeleteDepartment?.name ?? ""}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingDeleteDepartment(null)}
+            disabled={removeDepartmentMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!pendingDeleteDepartment) return;
+              await executeDeleteDepartment(pendingDeleteDepartment);
+            }}
+            disabled={removeDepartmentMutation.isPending}
+          >
+            {removeDepartmentMutation.isPending ? "Đang xóa..." : "Xác nhận xóa"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
 
       <StaffDetailDialog
         staff={currentStaff}

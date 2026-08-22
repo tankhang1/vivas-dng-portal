@@ -8,6 +8,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
   Label,
   Select,
@@ -61,6 +65,10 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
 
   const [fields, setFields] = useState<CitizenFormFields>(defaultFields());
   const [avatarFiles, setAvatarFiles] = useState<MediaFile[]>([]);
+  const [pendingSave, setPendingSave] = useState<{
+    fields: CitizenFormFields;
+    avatarFiles: MediaFile[];
+  } | null>(null);
 
   useEffect(() => {
     if (mode === "edit" && citizen) {
@@ -101,35 +109,47 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
     return url;
   };
 
-  const handleSave = async () => {
+  const executeSave = async (values: {
+    fields: CitizenFormFields;
+    avatarFiles: MediaFile[];
+  }) => {
     if (!citizen) return;
+    const name = values.fields.name.trim();
+
+    try {
+      await editMutation.mutateAsync({
+        id: citizen.id,
+        zalo_user_id: citizen.zalo_user_id,
+        citizen_number: values.fields.citizen_number.trim(),
+        name,
+        avatar: values.avatarFiles[0]?.url ?? "",
+        email: values.fields.email,
+        address: values.fields.address,
+        hamlet: values.fields.hamlet,
+        gender: values.fields.gender,
+        degree: values.fields.degree,
+        career: values.fields.career,
+        ethnicity: values.fields.ethnicity,
+        religion: values.fields.religion,
+        note: values.fields.note,
+      });
+      navigate("/citizens");
+    } catch {
+      window.alert("Lưu hồ sơ công dân thất bại. Vui lòng thử lại.");
+    }
+  };
+
+  const handleSave = () => {
     const name = fields.name.trim();
     if (!name) {
       window.alert("Vui lòng nhập họ và tên.");
       return;
     }
 
-    try {
-      await editMutation.mutateAsync({
-        id: citizen.id,
-        zalo_user_id: citizen.zalo_user_id,
-        citizen_number: fields.citizen_number.trim(),
-        name,
-        avatar: avatarFiles[0]?.url ?? "",
-        email: fields.email,
-        address: fields.address,
-        hamlet: fields.hamlet,
-        gender: fields.gender,
-        degree: fields.degree,
-        career: fields.career,
-        ethnicity: fields.ethnicity,
-        religion: fields.religion,
-        note: fields.note,
-      });
-      navigate("/citizens");
-    } catch {
-      window.alert("Lưu hồ sơ công dân thất bại. Vui lòng thử lại.");
-    }
+    setPendingSave({
+      fields: { ...fields, name },
+      avatarFiles: [...avatarFiles],
+    });
   };
 
   if (mode === "create") {
@@ -353,6 +373,41 @@ export function CitizenFormPage({ mode, citizenId }: CitizenFormPageProps) {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={pendingSave !== null}
+        onOpenChange={(open) => {
+          if (!open && !editMutation.isPending) setPendingSave(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận lưu thay đổi?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn lưu thay đổi cho hồ sơ công dân
+          "{pendingSave?.fields.name ?? ""}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSave(null)}
+            disabled={editMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSave) return;
+              const values = pendingSave;
+              setPendingSave(null);
+              await executeSave(values);
+            }}
+            disabled={editMutation.isPending}
+          >
+            {editMutation.isPending ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

@@ -10,6 +10,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
   Label,
   Select,
@@ -110,6 +114,8 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
 
   const [thumbnail, setThumbnailState] = useState<MediaFile[]>([]);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [pendingSaveValues, setPendingSaveValues] =
+    useState<NewsFormValues | null>(null);
 
   const form = useForm<NewsFormValues>({
     resolver: zodResolver(newsFormSchema),
@@ -168,7 +174,7 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
 
   const isSaving = postNewsMutation.isPending || editNewsMutation.isPending;
 
-  const handleSave = async (values: NewsFormValues) => {
+  const executeSave = async (values: NewsFormValues) => {
     const thumbnailUrl = values.thumbnail;
     const category = categoriesData?.content.find(
       (item) => item.id === values.categoryItem,
@@ -208,6 +214,10 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
     } catch {
       window.alert("Lưu bản tin thất bại. Vui lòng thử lại.");
     }
+  };
+
+  const handleSave = (values: NewsFormValues) => {
+    setPendingSaveValues(values);
   };
 
   const title = mode === "create" ? "Tạo mới bản tin" : "Chỉnh sửa bản tin";
@@ -475,6 +485,46 @@ export function NewsEditorPage({ mode, articleId }: NewsEditorPageProps) {
           </Card>
         </form>
       </Form>
+
+      <Dialog
+        open={pendingSaveValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !isSaving) setPendingSaveValues(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {mode === "create"
+              ? "Xác nhận tạo bản tin?"
+              : "Xác nhận lưu thay đổi?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {mode === "create"
+            ? `Bạn có chắc muốn tạo bản tin "${pendingSaveValues?.title ?? ""}" không?`
+            : `Bạn có chắc muốn lưu thay đổi cho bản tin "${pendingSaveValues?.title ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSaveValues(null)}
+            disabled={isSaving}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSaveValues) return;
+              const values = pendingSaveValues;
+              setPendingSaveValues(null);
+              await executeSave(values);
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

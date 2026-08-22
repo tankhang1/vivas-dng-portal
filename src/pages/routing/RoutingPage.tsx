@@ -9,6 +9,10 @@ import {
   CardTitle,
   Badge,
   Button,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
@@ -19,7 +23,6 @@ import {
 } from "@/shared/components/ui/collapsible";
 import {
   useCommentCategoriesQuery,
-  useRemoveCategoryCommentProcessMutation,
 } from "@/features/category-comment/hooks/category-comment.hook";
 import {
   useSearchStaffQuery,
@@ -59,6 +62,16 @@ export default function RoutingPage() {
   >("approved");
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
   const [editingStaffLink, setEditingStaffLink] =
+    useState<StaffCoordinateCommentItem | null>(null);
+  const [pendingStaffSave, setPendingStaffSave] = useState<{
+    staffId: string;
+    approval: boolean;
+    editingItem: StaffCoordinateCommentItem | null;
+    categoryId: number;
+    categoryName: string;
+    staffName: string;
+  } | null>(null);
+  const [pendingStaffDelete, setPendingStaffDelete] =
     useState<StaffCoordinateCommentItem | null>(null);
 
   const { data: categoriesData, isLoading: isCategoriesLoading } =
@@ -127,7 +140,6 @@ export default function RoutingPage() {
   const createMutation = useCreateStaffCoordinateCommentProcessMutation();
   const editMutation = useEditStaffCoordinateCommentProcessMutation();
   const removeMutation = useRemoveStaffCoordinateCommentProcessMutation();
-  const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
   const isToggling =
     createMutation.isPending ||
     editMutation.isPending ||
@@ -142,15 +154,7 @@ export default function RoutingPage() {
     setIsAddStaffDialogOpen(true);
   };
 
-  const handleDeleteStaffLink = async (item: StaffCoordinateCommentItem) => {
-    if (
-      !window.confirm(
-        `Xoá cán bộ "${item.staff_name ?? "không rõ"}" khỏi điều phối này?`,
-      )
-    ) {
-      return;
-    }
-
+  const executeDeleteStaffLink = async (item: StaffCoordinateCommentItem) => {
     try {
       await removeMutation.mutateAsync({
         id: item.id,
@@ -161,24 +165,58 @@ export default function RoutingPage() {
       }
     } catch {
       window.alert("Xoá cán bộ điều phối thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingStaffDelete(null);
     }
   };
 
-  const handleDeleteCategory = async (id: number, name: string) => {
-    if (!window.confirm(`Xóa điều phối "${name}"?`)) return;
-    try {
-      await removeCategoryMutation.mutateAsync({ category_item: id });
-      if (activeCategoryId === id) {
-        setSelectedCategoryId("");
-      }
-    } catch {
-      window.alert("Xóa điều phối thất bại. Vui lòng thử lại.");
-    }
+  const handleDeleteStaffLink = (item: StaffCoordinateCommentItem) => {
+    setPendingStaffDelete(item);
   };
 
   const handleOpenAddStaffDialog = () => {
     setEditingStaffLink(null);
     setIsAddStaffDialogOpen(true);
+  };
+
+  const executeAddStaff = async (pending: {
+    staffId: string;
+    approval: boolean;
+    editingItem: StaffCoordinateCommentItem | null;
+    categoryId: number;
+    categoryName: string;
+  }) => {
+    const staff = staffById.get(Number(pending.staffId));
+    if (!staff) return;
+
+    try {
+      if (pending.editingItem) {
+        await editMutation.mutateAsync({
+          id: pending.editingItem.id,
+          staff_item: staff.id,
+          staff_name: staff.name,
+          approval: pending.approval ? 1 : 0,
+          comments_category_item: pending.categoryId,
+          comments_category_name: pending.categoryName,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          id: 0,
+          staff_item: staff.id,
+          staff_name: staff.name,
+          approval: pending.approval ? 1 : 0,
+          comments_category_item: pending.categoryId,
+          comments_category_name: pending.categoryName,
+        });
+      }
+      setIsAddStaffDialogOpen(false);
+      setEditingStaffLink(null);
+      setExpandedGroup(pending.approval ? "approved" : "pending");
+    } catch {
+      window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingStaffSave(null);
+    }
   };
 
   const handleAddStaff = async (values: {
@@ -188,33 +226,13 @@ export default function RoutingPage() {
     if (!activeCategory || values.staffId === "") return;
     const staff = staffById.get(Number(values.staffId));
     if (!staff) return;
-
-    try {
-      if (editingStaffLink) {
-        await editMutation.mutateAsync({
-          id: editingStaffLink.id,
-          staff_item: staff.id,
-          staff_name: staff.name,
-          approval: values.approval ? 1 : 0,
-          comments_category_item: activeCategory.id,
-          comments_category_name: activeCategory.name,
-        });
-      } else {
-        await createMutation.mutateAsync({
-          id: 0,
-          staff_item: staff.id,
-          staff_name: staff.name,
-          approval: values.approval ? 1 : 0,
-          comments_category_item: activeCategory.id,
-          comments_category_name: activeCategory.name,
-        });
-      }
-      setIsAddStaffDialogOpen(false);
-      setEditingStaffLink(null);
-      setExpandedGroup(values.approval ? "approved" : "pending");
-    } catch {
-      window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
-    }
+    setPendingStaffSave({
+      ...values,
+      editingItem: editingStaffLink,
+      categoryId: activeCategory.id,
+      categoryName: activeCategory.name,
+      staffName: staff.name,
+    });
   };
 
   const renderStaffRow = (item: StaffCoordinateCommentItem) => {
@@ -475,30 +493,6 @@ export default function RoutingPage() {
                         {category.name}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(
-                            `/categories/${category.id}/edit?type=feedback`,
-                          );
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4 text-blue-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCategory(category.id, category.name);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
                   </div>
                 );
               })}
@@ -522,6 +516,79 @@ export default function RoutingPage() {
         editingItem={editingStaffLink}
         onSubmit={handleAddStaff}
       />
+
+      <Dialog
+        open={pendingStaffSave !== null}
+        onOpenChange={(open) => {
+          if (!open && !isToggling) setPendingStaffSave(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {pendingStaffSave?.editingItem
+              ? "Xác nhận cập nhật phân công?"
+              : "Xác nhận thêm cán bộ?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {pendingStaffSave?.editingItem
+            ? `Bạn có chắc muốn cập nhật quyền của cán bộ "${pendingStaffSave?.staffName ?? ""}" không?`
+            : `Bạn có chắc muốn thêm cán bộ "${pendingStaffSave?.staffName ?? ""}" vào điều phối này không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingStaffSave(null)}
+            disabled={isToggling}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingStaffSave) return;
+              await executeAddStaff(pendingStaffSave);
+            }}
+            disabled={isToggling}
+          >
+            {isToggling ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={pendingStaffDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !removeMutation.isPending) setPendingStaffDelete(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa phân công?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn xóa cán bộ "{pendingStaffDelete?.staff_name ?? ""}"
+          khỏi điều phối này không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingStaffDelete(null)}
+            disabled={removeMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!pendingStaffDelete) return;
+              await executeDeleteStaffLink(pendingStaffDelete);
+            }}
+            disabled={removeMutation.isPending}
+          >
+            {removeMutation.isPending ? "Đang xóa..." : "Xác nhận xóa"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
     </Layout>
   );
 }

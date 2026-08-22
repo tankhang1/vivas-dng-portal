@@ -7,6 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Table,
   TableBody,
   TableCell,
@@ -28,6 +32,12 @@ import {
 
 export default function HotlinePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingValues, setPendingValues] =
+    useState<HotlineFormValues | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const { data, isLoading, refetch } = useHotlineQuery();
   const createHotlineMutation = useCreateHotlineProcessMutation();
@@ -35,7 +45,7 @@ export default function HotlinePage() {
 
   const items = data ?? [];
 
-  const handleSubmit = async (values: HotlineFormValues) => {
+  const executeCreate = async (values: HotlineFormValues) => {
     try {
       await createHotlineMutation.mutateAsync({
         ...values,
@@ -47,14 +57,23 @@ export default function HotlinePage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa số hotline này?")) return;
+  const handleSubmit = (values: HotlineFormValues) => {
+    setPendingValues(values);
+  };
+
+  const executeDelete = async (id: number) => {
     try {
       await removeHotlineMutation.mutateAsync({ id });
       refetch();
     } catch {
       window.alert("Xóa hotline thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingDelete(null);
     }
+  };
+
+  const handleDelete = (id: number, name: string) => {
+    setPendingDelete({ id, name });
   };
 
   return (
@@ -134,7 +153,7 @@ export default function HotlinePage() {
                           variant="ghost"
                           size="icon"
                           title="Xóa"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleDelete(item.id, item.name)}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
@@ -163,6 +182,77 @@ export default function HotlinePage() {
         isSaving={createHotlineMutation.isPending}
         onSubmit={handleSubmit}
       />
+
+      <Dialog
+        open={pendingValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !createHotlineMutation.isPending) {
+            setPendingValues(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận thêm hotline?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn thêm hotline cho "{pendingValues?.name ?? ""}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingValues(null)}
+            disabled={createHotlineMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingValues) return;
+              const values = pendingValues;
+              setPendingValues(null);
+              await executeCreate(values);
+            }}
+            disabled={createHotlineMutation.isPending}
+          >
+            {createHotlineMutation.isPending ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !removeHotlineMutation.isPending) {
+            setPendingDelete(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa hotline?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn xóa số hotline của "{pendingDelete?.name ?? ""}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingDelete(null)}
+            disabled={removeHotlineMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!pendingDelete) return;
+              await executeDelete(pendingDelete.id);
+            }}
+            disabled={removeHotlineMutation.isPending}
+          >
+            {removeHotlineMutation.isPending ? "Đang xóa..." : "Xác nhận xóa"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

@@ -4,6 +4,10 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Pagination,
   Table,
   TableBody,
@@ -42,11 +46,17 @@ export default function CategoriesPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CategoryItem | null>(null);
+  const [pendingSaveValues, setPendingSaveValues] =
+    useState<CategoryFormValues | null>(null);
+  const [pendingDeleteItem, setPendingDeleteItem] =
+    useState<CategoryItem | null>(null);
 
   const createNewsMutation = useCreateCategoryNewsProcessMutation();
   const editNewsMutation = useEditCategoryNewsProcessMutation();
   const createCommentMutation = useCreateCategoryCommentProcessMutation();
   const editCommentMutation = useEditCategoryCommentProcessMutation();
+  const removeNewsMutation = useRemoveCategoryNewsProcessMutation();
+  const removeCommentMutation = useRemoveCategoryCommentProcessMutation();
 
   const isSaving =
     createNewsMutation.isPending ||
@@ -72,7 +82,7 @@ export default function CategoriesPage() {
       }
     : null;
 
-  const handleSubmit = async (values: CategoryFormValues) => {
+  const executeSave = async (values: CategoryFormValues) => {
     try {
       if (activeType === "news") {
         if (editingItem) {
@@ -118,6 +128,31 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleSubmit = (values: CategoryFormValues) => {
+    setPendingSaveValues(values);
+  };
+
+  const isDeleting =
+    removeNewsMutation.isPending || removeCommentMutation.isPending;
+
+  const executeDelete = async (item: CategoryItem) => {
+    try {
+      if (activeType === "news") {
+        await removeNewsMutation.mutateAsync({ category_item: item.id });
+      } else {
+        await removeCommentMutation.mutateAsync({ category_item: item.id });
+      }
+    } catch {
+      window.alert("Xóa danh mục thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingDeleteItem(null);
+    }
+  };
+
+  const handleDelete = (item: CategoryItem) => {
+    setPendingDeleteItem(item);
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-6">
@@ -157,12 +192,14 @@ export default function CategoriesPage() {
                 page={page}
                 onPageChange={setPage}
                 onEdit={openEditDialog}
+                onDelete={handleDelete}
               />
             ) : (
               <FeedbackCategoriesTable
                 page={page}
                 onPageChange={setPage}
                 onEdit={openEditDialog}
+                onDelete={handleDelete}
               />
             )}
           </CardContent>
@@ -178,6 +215,79 @@ export default function CategoriesPage() {
         isSaving={isSaving}
         onSubmit={handleSubmit}
       />
+
+      <Dialog
+        open={pendingSaveValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !isSaving) setPendingSaveValues(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {editingItem
+              ? "Xác nhận lưu thay đổi?"
+              : "Xác nhận thêm danh mục?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {editingItem
+            ? `Bạn có chắc muốn lưu thay đổi cho danh mục "${pendingSaveValues?.name ?? ""}" không?`
+            : `Bạn có chắc muốn thêm danh mục "${pendingSaveValues?.name ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSaveValues(null)}
+            disabled={isSaving}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSaveValues) return;
+              const values = pendingSaveValues;
+              setPendingSaveValues(null);
+              await executeSave(values);
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={pendingDeleteItem !== null}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setPendingDeleteItem(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa danh mục?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn xóa danh mục "{pendingDeleteItem?.name ?? ""}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingDeleteItem(null)}
+            disabled={isDeleting}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              if (!pendingDeleteItem) return;
+              await executeDelete(pendingDeleteItem);
+            }}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Đang xóa..." : "Xác nhận xóa"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }
@@ -186,28 +296,18 @@ type CategoryTableProps = {
   page: number;
   onPageChange: (page: number) => void;
   onEdit: (item: CategoryItem) => void;
+  onDelete: (item: CategoryItem) => void;
 };
 
-function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps) {
-  const { data, isLoading, refetch } = useNewsCategoriesQuery({
+function NewsCategoriesTable({ page, onPageChange, onEdit, onDelete }: CategoryTableProps) {
+  const { data, isLoading } = useNewsCategoriesQuery({
     sz: PAGE_SIZE,
     nu: page - 1,
   });
-  const removeCategoryMutation = useRemoveCategoryNewsProcessMutation();
 
   const items = data?.content ?? [];
   const totalPages = Math.max(1, data?.page.totalPages ?? 1);
   const totalItems = data?.page.totalElements ?? 0;
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
-    try {
-      await removeCategoryMutation.mutateAsync({ category_item: id });
-      refetch();
-    } catch {
-      window.alert("Xóa danh mục thất bại. Vui lòng thử lại.");
-    }
-  };
 
   return (
     <>
@@ -250,7 +350,7 @@ function NewsCategoriesTable({ page, onPageChange, onEdit }: CategoryTableProps)
                       variant="ghost"
                       size="icon"
                       title="Xóa"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => onDelete(item)}
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
@@ -286,26 +386,16 @@ function FeedbackCategoriesTable({
   page,
   onPageChange,
   onEdit,
+  onDelete,
 }: CategoryTableProps) {
-  const { data, isLoading, refetch } = useCommentCategoriesQuery({
+  const { data, isLoading } = useCommentCategoriesQuery({
     sz: PAGE_SIZE,
     nu: page - 1,
   });
-  const removeCategoryMutation = useRemoveCategoryCommentProcessMutation();
 
   const items = data?.content ?? [];
   const totalPages = Math.max(1, data?.page.totalPages ?? 1);
   const totalItems = data?.page.totalElements ?? 0;
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
-    try {
-      await removeCategoryMutation.mutateAsync({ category_item: id });
-      refetch();
-    } catch {
-      window.alert("Xóa danh mục thất bại. Vui lòng thử lại.");
-    }
-  };
 
   return (
     <>
@@ -348,7 +438,7 @@ function FeedbackCategoriesTable({
                       variant="ghost"
                       size="icon"
                       title="Xóa"
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => onDelete(item)}
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
