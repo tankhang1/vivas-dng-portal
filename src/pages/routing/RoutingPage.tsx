@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { useQueries } from "@tanstack/react-query";
 import { Layout } from "../../shared/components/Layout";
 import {
   Card,
@@ -16,12 +15,8 @@ import {
   Input,
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/components/ui/collapsible";
-import { useCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import {
   useSearchStaffQuery,
   useStaffCoordinateCommentsByCategoryApproveQuery,
@@ -30,34 +25,26 @@ import {
   useEditStaffCoordinateCommentProcessMutation,
   useRemoveStaffCoordinateCommentProcessMutation,
 } from "@/features/staff/hooks/staff.hook";
-import { getStaffCoordinateCommentsByCategoryApprove } from "@/features/staff/api/staff.api";
-import { QUERY_KEY } from "@/shared/api";
 import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
 import { RoutingStaffDialog } from "./components/RoutingStaffDialog";
 import {
-  CheckCircle2,
-  ChevronDown,
-  CircleDashed,
   Edit2,
   Phone,
   Plus,
   Search,
   Shield,
   Trash2,
-  Users,
   Waypoints,
 } from "lucide-react";
 
-const CATEGORY_LIST_SIZE = 100;
+const CATEGORY_LIST_SIZE = 10;
 const STAFF_LIST_SIZE = 200;
 
 export default function RoutingPage() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
-  const [expandedGroup, setExpandedGroup] = useState<
-    "approved" | "pending" | null
-  >("approved");
+  const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
   const [editingStaffLink, setEditingStaffLink] =
     useState<StaffCoordinateCommentItem | null>(null);
@@ -71,16 +58,41 @@ export default function RoutingPage() {
   } | null>(null);
   const [pendingStaffDelete, setPendingStaffDelete] =
     useState<StaffCoordinateCommentItem | null>(null);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const categoryLoadMoreRef = useRef<HTMLDivElement>(null);
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } =
-    useCommentCategoriesQuery({ sz: CATEGORY_LIST_SIZE, nu: 0 });
-  const categories = categoriesData?.content ?? [];
+  const categoriesQuery = useInfiniteCommentCategoriesQuery({
+    sz: CATEGORY_LIST_SIZE,
+  });
+  const categories = useMemo(
+    () => categoriesQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [categoriesQuery.data?.pages],
+  );
 
   const filteredCategories = useMemo(() => {
     if (!searchTerm.trim()) return categories;
     const query = searchTerm.trim().toLowerCase();
     return categories.filter((c) => c.name.toLowerCase().includes(query));
   }, [categories, searchTerm]);
+
+  useEffect(() => {
+    const target = categoryLoadMoreRef.current;
+    if (!target || !categoriesQuery.hasNextPage || categoriesQuery.isFetchingNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void categoriesQuery.fetchNextPage();
+        }
+      },
+      { root: categoryScrollRef.current, rootMargin: "160px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [categoriesQuery.fetchNextPage, categoriesQuery.hasNextPage, categoriesQuery.isFetchingNextPage]);
 
   const activeCategoryId =
     selectedCategoryId !== "" ? selectedCategoryId : (categories[0]?.id ?? "");
@@ -96,21 +108,6 @@ export default function RoutingPage() {
     staffList.forEach((staff) => map.set(staff.id, staff));
     return map;
   }, [staffList]);
-
-  const countQueries = useQueries({
-    queries: categories.map((category) => ({
-      queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE(
-        category.id,
-        { sz: 200, nu: 0 },
-      ),
-      queryFn: () =>
-        getStaffCoordinateCommentsByCategoryApprove({
-          categoryId: category.id,
-          sz: 200,
-          nu: 0,
-        }),
-    })),
-  });
 
   const approveQuery = useStaffCoordinateCommentsByCategoryApproveQuery({
     categoryId: activeCategoryId,
@@ -209,7 +206,7 @@ export default function RoutingPage() {
       }
       setIsAddStaffDialogOpen(false);
       setEditingStaffLink(null);
-      setExpandedGroup(pending.approval ? "approved" : "pending");
+      setActiveTab(pending.approval ? "approved" : "pending");
     } catch {
       window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
     } finally {
@@ -304,43 +301,63 @@ export default function RoutingPage() {
           </Button>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-5">
-            <Card>
-              <CardHeader className="border-b border-border">
-                {activeCategory ? (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Shield className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <CardTitle className="text-lg">
-                            {activeCategory.name}
-                          </CardTitle>
-                        </div>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {activeCategory.note || "Chưa có mô tả."}
-                        </p>
-                      </div>
-                    </div>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]">
+          <Card className="h-fit order-first">
+            <CardHeader className="border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Waypoints className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">
+                  Danh mục phản ánh kiến nghị
+                </CardTitle>
+              </div>
+              <div className="relative mt-3">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm kiếm danh mục..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div ref={categoryScrollRef} className="max-h-[620px] space-y-2 overflow-y-auto">
+                {categoriesQuery.isLoading && (
+                  <div className="flex justify-center py-8">
+                    <Spinner />
                   </div>
-                ) : (
-                  <CardTitle className="text-lg">Chưa chọn điều phối</CardTitle>
                 )}
-              </CardHeader>
-              {activeCategory && (
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    {approveQuery.data?.page.totalElements ?? 0} người dùng đang
-                    giữ điều phối này
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+                {!categoriesQuery.isLoading && filteredCategories.length === 0 && (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    Không tìm thấy danh mục nào.
+                  </p>
+                )}
+                {filteredCategories.map((category) => {
+                  const isSelected = category.id === activeCategoryId;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => handleSelectCategory(category.id)}
+                      className={[
+                        "w-full rounded-lg border px-3 py-3 text-left text-sm transition-colors",
+                        isSelected
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-transparent hover:border-border hover:bg-slate-50",
+                      ].join(" ")}
+                    >
+                      <span className="font-medium">{category.name}</span>
+                    </button>
+                  );
+                })}
+                <div ref={categoryLoadMoreRef} className="flex min-h-10 items-center justify-center">
+                  {categoriesQuery.isFetchingNextPage && <Spinner className="h-4 w-4" />}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
+          <div className="order-last space-y-5">
             <Card>
               <CardHeader className="flex flex-col gap-3 border-b border-border sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -373,129 +390,41 @@ export default function RoutingPage() {
                   </div>
                 )}
                 {activeCategory && !isLoadingRows && (
-                  <>
-                    <Collapsible
-                      open={expandedGroup === "approved"}
-                      onOpenChange={(open) =>
-                        setExpandedGroup(open ? "approved" : null)
-                      }
-                      className="overflow-hidden rounded-lg border border-border"
-                    >
-                      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
-                        <span className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-primary" />
-                          Được quyền phê duyệt
-                          <Badge variant="warning">
-                            {approvedRows.length} cán bộ
-                          </Badge>
-                        </span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${expandedGroup === "approved" ? "rotate-180" : ""}`}
-                        />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        {approvedRows.length === 0 ? (
-                          <p className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={(value) => setActiveTab(value as "approved" | "pending")}
+                  >
+                    <TabsList className="w-full">
+                      <TabsTrigger value="approved" className="flex-1">
+                        Quyền phê duyệt ({approvedRows.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="pending" className="flex-1">
+                        Quyền xem ({pendingRows.length})
+                      </TabsTrigger>
+                    </TabsList>
+                    <div className="mt-3 overflow-hidden rounded-lg border border-border">
+                      {activeTab === "approved" ? (
+                        approvedRows.length === 0 ? (
+                          <p className="px-4 py-6 text-center text-sm text-muted-foreground">
                             Chưa có cán bộ nào được quyền phê duyệt.
                           </p>
                         ) : (
                           approvedRows.map(renderStaffRow)
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    <Collapsible
-                      open={expandedGroup === "pending"}
-                      onOpenChange={(open) =>
-                        setExpandedGroup(open ? "pending" : null)
-                      }
-                      className="overflow-hidden rounded-lg border border-border"
-                    >
-                      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
-                        <span className="flex items-center gap-2">
-                          <CircleDashed className="h-4 w-4 text-muted-foreground" />
-                          Quyền xử lý
-                          <Badge variant="outline">
-                            {pendingRows.length} cán bộ
-                          </Badge>
-                        </span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${expandedGroup === "pending" ? "rotate-180" : ""}`}
-                        />
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        {pendingRows.length === 0 ? (
-                          <p className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                            Không có cán bộ được quyền xử lý.
-                          </p>
-                        ) : (
-                          pendingRows.map(renderStaffRow)
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </>
+                        )
+                      ) : pendingRows.length === 0 ? (
+                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                          Chưa có cán bộ được quyền xem.
+                        </p>
+                      ) : (
+                        pendingRows.map(renderStaffRow)
+                      )}
+                    </div>
+                  </Tabs>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          <Card className="h-fit">
-            <CardHeader className="border-b border-border pb-3">
-              <div className="flex items-center gap-2">
-                <Waypoints className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">
-                  Danh mục phản ánh kiến nghị
-                </CardTitle>
-              </div>
-              <div className="relative mt-3">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm kiếm điều phối..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2 pt-4">
-              {isCategoriesLoading && (
-                <div className="flex justify-center py-8">
-                  <Spinner />
-                </div>
-              )}
-              {!isCategoriesLoading && filteredCategories.length === 0 && (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  Không tìm thấy điều phối nào.
-                </p>
-              )}
-              {filteredCategories.map((category) => {
-                const isSelected = category.id === activeCategoryId;
-                return (
-                  <div
-                    key={category.id}
-                    onClick={() => handleSelectCategory(category.id)}
-                    className={[
-                      "flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-transparent hover:border-border hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={[
-                          "truncate font-medium",
-                          isSelected ? "text-primary" : "text-foreground",
-                        ].join(" ")}
-                      >
-                        {category.name}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
         </div>
       </div>
 
