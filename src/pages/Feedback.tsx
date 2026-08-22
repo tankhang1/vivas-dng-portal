@@ -34,6 +34,7 @@ import {
   useEditFeedbackProcessMutation,
   useFeedbackQuery,
 } from "@/features/feedback/hooks/feedback.hook";
+import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import { useInfiniteCommentsByCategoryQuery } from "@/features/comment/hooks/comment.hook";
 import { useInfiniteStaffCoordinateCommentsByStaffQuery } from "@/features/staff/hooks/staff.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
@@ -679,7 +680,7 @@ function FeedbackDetailDialog({
 }
 
 export default function Feedback() {
-  const { isStaffRole: canManageFeedback } = useAuth();
+  const { isStaffRole: canManageFeedback, isAdminRole } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<FeedbackListTab>("pending");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
@@ -692,25 +693,38 @@ export default function Feedback() {
   const [pendingAction, setPendingAction] =
     useState<PendingFeedbackAction | null>(null);
 
-  const categoriesQuery = useInfiniteStaffCoordinateCommentsByStaffQuery({
-    staffId: CURRENT_STAFF.id,
-    sz: PAGE_SIZE,
-  });
+  const adminCategoriesQuery = useInfiniteCommentCategoriesQuery(
+    { sz: PAGE_SIZE },
+    isAdminRole,
+  );
+  const staffCategoriesQuery = useInfiniteStaffCoordinateCommentsByStaffQuery(
+    { staffId: CURRENT_STAFF.id, sz: PAGE_SIZE },
+    canManageFeedback,
+  );
+  const categoriesQuery = isAdminRole ? adminCategoriesQuery : staffCategoriesQuery;
   const categories = useMemo(
     () => {
       const unique = new Map<number, Pick<CategoryItem, "id" | "name"> & { approval: number }>();
-      categoriesQuery.data?.pages.forEach((pageData) => {
-        pageData.content.forEach((item) => {
-          unique.set(item.comments_category_item, {
-            id: item.comments_category_item,
-            name: item.comments_category_name ?? "Không rõ danh mục",
-            approval: item.approval,
+      if (isAdminRole) {
+        adminCategoriesQuery.data?.pages.forEach((pageData) => {
+          pageData.content.forEach((item) => {
+            unique.set(item.id, { id: item.id, name: item.name, approval: 0 });
           });
         });
-      });
+      } else {
+        staffCategoriesQuery.data?.pages.forEach((pageData) => {
+          pageData.content.forEach((item) => {
+            unique.set(item.comments_category_item, {
+              id: item.comments_category_item,
+              name: item.comments_category_name ?? "Không rõ danh mục",
+              approval: item.approval,
+            });
+          });
+        });
+      }
       return Array.from(unique.values());
     },
-    [categoriesQuery.data?.pages],
+    [adminCategoriesQuery.data?.pages, isAdminRole, staffCategoriesQuery.data?.pages],
   );
 
   useEffect(() => {

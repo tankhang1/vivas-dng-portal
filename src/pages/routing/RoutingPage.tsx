@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "wouter";
 import { Layout } from "../../shared/components/Layout";
 import {
   Card,
@@ -41,7 +40,6 @@ const CATEGORY_LIST_SIZE = 10;
 const STAFF_LIST_SIZE = 200;
 
 export default function RoutingPage() {
-  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
@@ -292,13 +290,6 @@ export default function RoutingPage() {
               tương ứng.
             </p>
           </div>
-          <Button
-            onClick={() => navigate("/categories/new?type=feedback")}
-            className="gap-2 self-start"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm điều phối
-          </Button>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]">
