@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   activeStaffCoordinateCommentProcess,
@@ -117,6 +117,28 @@ export function useStaffCoordinateCommentsByStaffApproveQuery(
     queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_STAFF_APPROVE(staffId, { sz, nu }),
     queryFn: () => getStaffCoordinateCommentsByStaffApprove(request),
     enabled: staffId !== undefined && staffId !== null && staffId !== '',
+  });
+}
+
+export function useInfiniteStaffCoordinateCommentsByStaffApproveQuery(
+  request: Omit<GetStaffCoordinateCommentsByStaffRequest, 'nu'>,
+  enabled = true,
+) {
+  const { staffId, sz } = request;
+
+  return useInfiniteQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_STAFF_APPROVE(staffId, { sz }),
+    queryFn: ({ pageParam }) =>
+      getStaffCoordinateCommentsByStaffApprove({
+        ...request,
+        nu: pageParam as number,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextPage = lastPage.page.number + 1;
+      return nextPage < lastPage.page.totalPages ? nextPage : undefined;
+    },
+    enabled: enabled && staffId !== undefined && staffId !== null && staffId !== '',
   });
 }
 

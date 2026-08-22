@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { refreshToken } from "@/features/auth/api/auth.api";
-import { ACCESS_TOKEN_KEY } from "./token";
+import { clearAccessToken, getAccessToken } from "./token";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,8 +12,29 @@ export const apiClient = axios.create({
   },
 });
 
+let refreshPromise: Promise<string> | null = null;
+
+function isAuthRequest(url?: string) {
+  return Boolean(
+    url &&
+      ["/login", "/refresh-token", "/check-token-expired"].some((path) =>
+        url.includes(path),
+      ),
+  );
+}
+
+function refreshAccessTokenOnce() {
+  if (!refreshPromise) {
+    refreshPromise = refreshToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
+}
+
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  const token = getAccessToken();
 
   if (token) {
     (config.headers as Record<string, string>).Authorization =
@@ -31,17 +52,26 @@ apiClient.interceptors.response.use(
       | undefined;
     const status = error.response?.status;
 
-    if (status !== 403 || !originalRequest || originalRequest._retry) {
+    if (
+      status !== 403 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthRequest(originalRequest.url)
+    ) {
+      return Promise.reject(error);
+    }
+
+    if (!getAccessToken()) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
 
     try {
-      const nextToken = await refreshToken();
+      const nextToken = await refreshAccessTokenOnce();
 
       if (!nextToken) {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        clearAccessToken();
         return Promise.reject(error);
       }
 
@@ -51,7 +81,7 @@ apiClient.interceptors.response.use(
 
       return apiClient(originalRequest);
     } catch (refreshError) {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      clearAccessToken();
       return Promise.reject(refreshError);
     }
   },

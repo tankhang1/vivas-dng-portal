@@ -18,7 +18,7 @@ type AuthContextValue = {
   role: UserRole;
   isAdminRole: boolean;
   isStaffRole: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 };
 
@@ -90,7 +90,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void bootstrapAuth();
   }, [bootstrapAuth]);
 
-  const logout = React.useCallback(() => {
+  const logout = React.useCallback(async () => {
+    await queryClient.cancelQueries();
     clearAllClientStorage();
     queryClient.clear();
     setIsAuthenticated(false);
@@ -99,7 +100,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryClient, setLocation]);
 
   const refreshSession = React.useCallback(async () => {
-    await refreshToken();
+    if (!getAccessToken()) {
+      throw new Error('Missing access token.');
+    }
+
     setIsAuthenticated(true);
     setRole(getCurrentRole());
   }, [setIsAuthenticated]);

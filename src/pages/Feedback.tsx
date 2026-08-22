@@ -36,6 +36,7 @@ import {
 } from "@/features/feedback/hooks/feedback.hook";
 import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import { useInfiniteCommentsByCategoryQuery } from "@/features/comment/hooks/comment.hook";
+import { useInfiniteStaffCoordinateCommentsByStaffApproveQuery } from "@/features/staff/hooks/staff.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import type { CategoryItem } from "@/features/category-news/types/get-categories.response";
 import {
@@ -116,7 +117,7 @@ type FeedbackTableProps = {
 };
 
 type CategorySidebarProps = {
-  categories: CategoryItem[];
+  categories: Pick<CategoryItem, "id" | "name">[];
   isLoading: boolean;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
@@ -695,11 +696,34 @@ export default function Feedback() {
   const [pendingAction, setPendingAction] =
     useState<PendingFeedbackAction | null>(null);
 
-  const categoriesQuery = useInfiniteCommentCategoriesQuery({ sz: PAGE_SIZE });
-  const categories = useMemo(
-    () => categoriesQuery.data?.pages.flatMap((pageData) => pageData.content) ?? [],
-    [categoriesQuery.data?.pages],
+  const categoriesQuery = useInfiniteCommentCategoriesQuery(
+    { sz: PAGE_SIZE },
+    !canManageFeedback,
   );
+  const staffCategoriesQuery = useInfiniteStaffCoordinateCommentsByStaffApproveQuery(
+    { staffId: CURRENT_STAFF.id, sz: PAGE_SIZE },
+    canManageFeedback,
+  );
+  const categories = useMemo(
+    () => {
+      if (canManageFeedback) {
+        const unique = new Map<number, Pick<CategoryItem, "id" | "name">>();
+        staffCategoriesQuery.data?.pages.forEach((pageData) => {
+          pageData.content.forEach((item) => {
+            unique.set(item.comments_category_item, {
+              id: item.comments_category_item,
+              name: item.comments_category_name ?? "Không rõ danh mục",
+            });
+          });
+        });
+        return Array.from(unique.values());
+      }
+
+      return categoriesQuery.data?.pages.flatMap((pageData) => pageData.content) ?? [];
+    },
+    [canManageFeedback, categoriesQuery.data?.pages, staffCategoriesQuery.data?.pages],
+  );
+  const categorySourceQuery = canManageFeedback ? staffCategoriesQuery : categoriesQuery;
 
   useEffect(() => {
     if (categories.length > 0 && !categories.some((item) => item.id === selectedCategoryId)) {
@@ -898,15 +922,15 @@ export default function Feedback() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]">
           <CategorySidebar
             categories={categories}
-            isLoading={categoriesQuery.isLoading}
-            isFetchingNextPage={categoriesQuery.isFetchingNextPage}
-            hasNextPage={!!categoriesQuery.hasNextPage}
+            isLoading={categorySourceQuery.isLoading}
+            isFetchingNextPage={categorySourceQuery.isFetchingNextPage}
+            hasNextPage={!!categorySourceQuery.hasNextPage}
             selectedCategoryId={selectedCategoryId}
             onSelectCategory={(categoryId) => {
               setSelectedCategoryId(categoryId);
             }}
             onLoadMore={() => {
-              void categoriesQuery.fetchNextPage();
+              void categorySourceQuery.fetchNextPage();
             }}
           />
 

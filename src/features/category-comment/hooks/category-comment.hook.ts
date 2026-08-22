@@ -23,6 +23,7 @@ export function useCommentCategoriesQuery(request: SearchCategoriesRequest = {})
 
 export function useInfiniteCommentCategoriesQuery(
   request: Omit<SearchCategoriesRequest, 'nu'> = {},
+  enabled = true,
 ) {
   const { sz } = request;
 
@@ -35,6 +36,7 @@ export function useInfiniteCommentCategoriesQuery(
       const nextPage = lastPage.page.number + 1;
       return nextPage < lastPage.page.totalPages ? nextPage : undefined;
     },
+    enabled,
   });
 }
 
