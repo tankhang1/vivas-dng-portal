@@ -46,7 +46,9 @@ import {
   EyeOff,
   MapPin,
   Paperclip,
+  Search,
   User,
+  Waypoints,
   X,
 } from "lucide-react";
 
@@ -135,8 +137,15 @@ function CategorySidebar({
   onSelectCategory,
   onLoadMore,
 }: CategorySidebarProps) {
+  const [searchTerm, setSearchTerm] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const filteredCategories = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return query
+      ? categories.filter((category) => category.name.toLowerCase().includes(query))
+      : categories;
+  }, [categories, searchTerm]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -155,11 +164,20 @@ function CategorySidebar({
 
   return (
     <Card className="min-w-0">
-      <CardHeader className="border-b border-border">
-        <CardTitle className="text-lg">Danh mục</CardTitle>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Chọn danh mục để lọc danh sách phản ánh.
-        </p>
+      <CardHeader className="border-b border-border pb-3">
+        <div className="flex items-center gap-2">
+          <Waypoints className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">Danh mục phản ánh kiến nghị</CardTitle>
+        </div>
+        <div className="relative mt-3">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Tìm kiếm danh mục..."
+            className="pl-9"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </div>
       </CardHeader>
       <CardContent className="pt-4">
         <div ref={scrollContainerRef} className="max-h-[620px] space-y-2 overflow-y-auto">
@@ -168,12 +186,12 @@ function CategorySidebar({
             <Spinner className="h-5 w-5" />
           </div>
           )}
-          {!isLoading && categories.length === 0 && (
+          {!isLoading && filteredCategories.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Chưa có danh mục phản ánh.
+            Không tìm thấy danh mục nào.
           </p>
           )}
-          {categories.map((category) => {
+          {filteredCategories.map((category) => {
           const isSelected = category.id === selectedCategoryId;
 
           return (
@@ -185,7 +203,7 @@ function CategorySidebar({
                 "w-full rounded-lg border px-3 py-3 text-left transition-colors",
                 isSelected
                   ? "border-primary bg-primary/5 text-primary"
-                  : "border-border hover:bg-slate-50",
+                : "border-transparent hover:border-border hover:bg-slate-50",
               ].join(" ")}
             >
               <span className="font-medium">{category.name}</span>
