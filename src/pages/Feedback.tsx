@@ -34,9 +34,8 @@ import {
   useEditFeedbackProcessMutation,
   useFeedbackQuery,
 } from "@/features/feedback/hooks/feedback.hook";
-import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import { useInfiniteCommentsByCategoryQuery } from "@/features/comment/hooks/comment.hook";
-import { useInfiniteStaffCoordinateCommentsByStaffApproveQuery } from "@/features/staff/hooks/staff.hook";
+import { useInfiniteStaffCoordinateCommentsByStaffQuery } from "@/features/staff/hooks/staff.hook";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import type { CategoryItem } from "@/features/category-news/types/get-categories.response";
 import {
@@ -117,7 +116,7 @@ type FeedbackTableProps = {
 };
 
 type CategorySidebarProps = {
-  categories: Pick<CategoryItem, "id" | "name">[];
+  categories: Array<Pick<CategoryItem, "id" | "name"> & { approval: number }>;
   isLoading: boolean;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
@@ -239,7 +238,6 @@ function FeedbackTable({
             <TableRow>
               <TableHead>Tiêu đề</TableHead>
               <TableHead>Người gửi</TableHead>
-              <TableHead>Danh mục</TableHead>
               <TableHead>Ngày gửi</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead className="text-right">Thao tác</TableHead>
@@ -249,7 +247,7 @@ function FeedbackTable({
             {showInitialLoading && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   <span className="inline-flex items-center gap-2">
@@ -261,7 +259,7 @@ function FeedbackTable({
             {isError && !showInitialLoading && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="h-24 text-center text-red-600"
                 >
                   Không thể tải danh sách phản ánh. Vui lòng thử lại.
@@ -292,13 +290,6 @@ function FeedbackTable({
                         {item.annonymous === 1 ? "Ẩn danh" : item.name}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {item.category_name ? (
-                        <Badge variant="outline">{item.category_name}</Badge>
-                      ) : (
-                        "N/A"
-                      )}
-                    </TableCell>
                     <TableCell>{formatDateTime(item.time_create)}</TableCell>
                     <TableCell>
                       <Badge variant={meta.variant} className="gap-1">
@@ -323,7 +314,7 @@ function FeedbackTable({
             {!showInitialLoading && !isError && items.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Không tìm thấy phản ánh nào.
@@ -367,6 +358,7 @@ type FeedbackDetailDialogProps = {
   isApproving: boolean;
   isUploadingFile: boolean;
   canManageFeedback: boolean;
+  canApproveCategory: boolean;
 };
 
 function FeedbackDetailDialog({
@@ -391,6 +383,7 @@ function FeedbackDetailDialog({
   isApproving,
   isUploadingFile,
   canManageFeedback,
+  canApproveCategory,
 }: FeedbackDetailDialogProps) {
   const feedbackAttachmentUrls = useMemo(
     () =>
@@ -413,8 +406,9 @@ function FeedbackDetailDialog({
     return null;
   }
 
-  const canAct = mode === "approve" && canManageFeedback;
   const isApproved = current.status === 1;
+  const canAct = mode === "approve" && canManageFeedback && !isApproved;
+  const canApprove = canAct && canApproveCategory;
   const status = feedbackStatus(current);
   const StatusIcon = status.icon;
 
@@ -667,13 +661,15 @@ function FeedbackDetailDialog({
               >
                 {isSendingReply ? "Đang lưu..." : replyActionLabel}
               </Button>
-              <Button onClick={onApprove} disabled={isApproved || isApproving}>
-                {isApproved
-                  ? "Đã duyệt"
-                  : isApproving
-                    ? "Đang duyệt..."
-                    : "Duyệt phản ánh"}
-              </Button>
+              {canApprove && (
+                <Button onClick={onApprove} disabled={isApproved || isApproving}>
+                  {isApproved
+                    ? "Đã duyệt"
+                    : isApproving
+                      ? "Đang duyệt..."
+                      : "Duyệt phản ánh"}
+                </Button>
+              )}
             </>
           )}
         </DialogFooter>
@@ -696,34 +692,26 @@ export default function Feedback() {
   const [pendingAction, setPendingAction] =
     useState<PendingFeedbackAction | null>(null);
 
-  const categoriesQuery = useInfiniteCommentCategoriesQuery(
-    { sz: PAGE_SIZE },
-    !canManageFeedback,
-  );
-  const staffCategoriesQuery = useInfiniteStaffCoordinateCommentsByStaffApproveQuery(
-    { staffId: CURRENT_STAFF.id, sz: PAGE_SIZE },
-    canManageFeedback,
-  );
+  const categoriesQuery = useInfiniteStaffCoordinateCommentsByStaffQuery({
+    staffId: CURRENT_STAFF.id,
+    sz: PAGE_SIZE,
+  });
   const categories = useMemo(
     () => {
-      if (canManageFeedback) {
-        const unique = new Map<number, Pick<CategoryItem, "id" | "name">>();
-        staffCategoriesQuery.data?.pages.forEach((pageData) => {
-          pageData.content.forEach((item) => {
-            unique.set(item.comments_category_item, {
-              id: item.comments_category_item,
-              name: item.comments_category_name ?? "Không rõ danh mục",
-            });
+      const unique = new Map<number, Pick<CategoryItem, "id" | "name"> & { approval: number }>();
+      categoriesQuery.data?.pages.forEach((pageData) => {
+        pageData.content.forEach((item) => {
+          unique.set(item.comments_category_item, {
+            id: item.comments_category_item,
+            name: item.comments_category_name ?? "Không rõ danh mục",
+            approval: item.approval,
           });
         });
-        return Array.from(unique.values());
-      }
-
-      return categoriesQuery.data?.pages.flatMap((pageData) => pageData.content) ?? [];
+      });
+      return Array.from(unique.values());
     },
-    [canManageFeedback, categoriesQuery.data?.pages, staffCategoriesQuery.data?.pages],
+    [categoriesQuery.data?.pages],
   );
-  const categorySourceQuery = canManageFeedback ? staffCategoriesQuery : categoriesQuery;
 
   useEffect(() => {
     if (categories.length > 0 && !categories.some((item) => item.id === selectedCategoryId)) {
@@ -735,6 +723,8 @@ export default function Feedback() {
     if (selectedCategoryId === "") return "";
     return categories.find((item) => item.id === selectedCategoryId)?.name ?? "";
   }, [categories, selectedCategoryId]);
+  const selectedCategoryCanApprove =
+    categories.find((item) => item.id === selectedCategoryId)?.approval === 1;
 
   const viewQuery = useInfiniteCommentsByCategoryQuery(
     {
@@ -922,15 +912,15 @@ export default function Feedback() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]">
           <CategorySidebar
             categories={categories}
-            isLoading={categorySourceQuery.isLoading}
-            isFetchingNextPage={categorySourceQuery.isFetchingNextPage}
-            hasNextPage={!!categorySourceQuery.hasNextPage}
+            isLoading={categoriesQuery.isLoading}
+            isFetchingNextPage={categoriesQuery.isFetchingNextPage}
+            hasNextPage={!!categoriesQuery.hasNextPage}
             selectedCategoryId={selectedCategoryId}
             onSelectCategory={(categoryId) => {
               setSelectedCategoryId(categoryId);
             }}
             onLoadMore={() => {
-              void categorySourceQuery.fetchNextPage();
+              void categoriesQuery.fetchNextPage();
             }}
           />
 
@@ -1000,6 +990,7 @@ export default function Feedback() {
         isFeedbackLoading={feedbackQuery.isLoading}
         isFeedbackFetching={feedbackQuery.isFetching}
         canManageFeedback={canManageFeedback}
+        canApproveCategory={selectedCategoryCanApprove}
       />
 
       <Dialog

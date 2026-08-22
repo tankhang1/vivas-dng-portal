@@ -116,6 +116,8 @@ export const API_PATH = {
       `/common-portal/staff-coordinate-comments/staff-approve/${staffId}`,
     STAFF_COORDINATE_COMMENTS_STAFF_NONE_APPROVE: (staffId: number | string) =>
       `/common-portal/staff-coordinate-comments/staff-none-approve/${staffId}`,
+    STAFF_COORDINATE_COMMENTS_STAFF: (staffId: number | string) =>
+      `/common-portal/staff-coordinate-comments/staff/${staffId}`,
     NEWS: '/common-portal/news',
     NEWS_DETAIL: (id: number | string) => `/common-portal/news/${id}`,
     NEWS_SEARCH: '/common-portal/news/search',

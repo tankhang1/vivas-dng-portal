@@ -40,6 +40,10 @@ export const QUERY_KEY = {
     staffId: number | string,
     params: { sz?: number; nu?: number },
   ) => ['staff', 'coordinate-comment', 'staff-none-approve', staffId, params] as const,
+  STAFF_COORDINATE_COMMENTS_STAFF: (
+    staffId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-comment', 'staff', staffId, params] as const,
   NEWS: ['news'] as const,
   NEWS_DETAIL: (id: number | string) => ['news', 'detail', id] as const,
   NEWS_ALL: (params: { sz?: number; nu?: number }) => ['news', 'all', params] as const,

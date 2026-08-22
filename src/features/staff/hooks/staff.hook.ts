@@ -7,6 +7,7 @@ import {
   getStaffCoordinateCommentsByCategoryNoneApprove,
   getStaffCoordinateCommentsByStaffApprove,
   getStaffCoordinateCommentsByStaffNoneApprove,
+  getStaffCoordinateCommentsByStaff,
   activeStaffProcess,
   createStaffProcess,
   createStaffCoordinateCommentProcess,
@@ -133,6 +134,25 @@ export function useInfiniteStaffCoordinateCommentsByStaffApproveQuery(
         ...request,
         nu: pageParam as number,
       }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextPage = lastPage.page.number + 1;
+      return nextPage < lastPage.page.totalPages ? nextPage : undefined;
+    },
+    enabled: enabled && staffId !== undefined && staffId !== null && staffId !== '',
+  });
+}
+
+export function useInfiniteStaffCoordinateCommentsByStaffQuery(
+  request: Omit<GetStaffCoordinateCommentsByStaffRequest, 'nu'>,
+  enabled = true,
+) {
+  const { staffId, sz } = request;
+
+  return useInfiniteQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_STAFF(staffId, { sz }),
+    queryFn: ({ pageParam }) =>
+      getStaffCoordinateCommentsByStaff({ ...request, nu: pageParam as number }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       const nextPage = lastPage.page.number + 1;
