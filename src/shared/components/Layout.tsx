@@ -60,7 +60,7 @@ const navItems: NavItem[] = [
     ],
   },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
-  { name: 'Phản ánh', href: '/feedback', icon: MessageSquareWarning },
+  { name: 'Phản ánh - Kiến nghị', href: '/feedback', icon: MessageSquareWarning },
   // Temporarily hidden
   // { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
@@ -129,11 +129,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Sidebar - Desktop */}
-      <aside className="hidden w-64 flex-col bg-sidebar md:flex">
+      <aside className="hidden h-screen w-64 shrink-0 flex-col bg-sidebar md:sticky md:top-0 md:flex">
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border px-6">
           <BrandMark compact />
         </div>
-        <div className="flex-1 overflow-auto py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto py-4">
           <p className="px-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
             Quản lý hệ thống
           </p>

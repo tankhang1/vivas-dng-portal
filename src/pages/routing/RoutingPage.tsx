@@ -21,9 +21,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import {
-  useCommentCategoriesQuery,
-} from "@/features/category-comment/hooks/category-comment.hook";
+import { useCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import {
   useSearchStaffQuery,
   useStaffCoordinateCommentsByCategoryApproveQuery,
@@ -446,7 +444,7 @@ export default function RoutingPage() {
               <div className="flex items-center gap-2">
                 <Waypoints className="h-5 w-5 text-primary" />
                 <CardTitle className="text-lg">
-                  Danh sách điều phối chuyên trách
+                  Danh mục phản ánh kiến nghị
                 </CardTitle>
               </div>
               <div className="relative mt-3">
@@ -588,7 +586,6 @@ export default function RoutingPage() {
           </Button>
         </DialogFooter>
       </Dialog>
-
     </Layout>
   );
 }

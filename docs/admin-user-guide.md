@@ -416,7 +416,7 @@ Phân hệ này phục vụ gán cán bộ vào từng điều phối, xác đ�
 ### 8.3. Danh sách điều phối
 
 Khu vực bên phải hiển thị:
-- Danh sách điều phối chuyên trách.
+- Danh mục phản ánh kiến nghị.
 - Ô tìm kiếm điều phối.
 - Số lượng cán bộ đã gán.
 
