@@ -108,6 +108,8 @@ export const API_PATH = {
       `/common-portal/staff/department/${departmentId}`,
     STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE: (categoryId: number | string) =>
       `/common-portal/staff-coordinate-comments/category-approve/${categoryId}`,
+    STAFF_COORDINATE_COMMENTS_CATEGORY: (categoryId: number | string) =>
+      `/common-portal/staff-coordinate-comments/category/${categoryId}`,
     STAFF_COORDINATE_COMMENTS_CATEGORY_NONE_APPROVE: (categoryId: number | string) =>
       `/common-portal/staff-coordinate-comments/category-none-approve/${categoryId}`,
     STAFF_COORDINATE_COMMENTS_STAFF_APPROVE: (staffId: number | string) =>

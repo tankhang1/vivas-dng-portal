@@ -197,6 +197,26 @@ export async function getStaffCoordinateCommentsByCategoryApprove(
   return response.data;
 }
 
+export async function getStaffCoordinateCommentsByCategory(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+): Promise<GetStaffCoordinateCommentsByCategoryResponse> {
+  const params = new URLSearchParams();
+
+  if (request.sz !== undefined) {
+    params.append('sz', String(request.sz));
+  }
+
+  if (request.nu !== undefined) {
+    params.append('nu', String(request.nu));
+  }
+
+  const response = await apiClient.get<GetStaffCoordinateCommentsByCategoryResponse>(
+    `${API_PATH.COMMON_PORTAL.STAFF_COORDINATE_COMMENTS_CATEGORY(request.categoryId)}?${params.toString()}`,
+  );
+
+  return response.data;
+}
+
 export async function getStaffCoordinateCommentsByCategoryNoneApprove(
   request: GetStaffCoordinateCommentsByCategoryRequest,
 ): Promise<GetStaffCoordinateCommentsByCategoryResponse> {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   activeStaffCoordinateCommentProcess,
+  getStaffCoordinateCommentsByCategory,
   getStaffCoordinateCommentsByCategoryApprove,
   getStaffCoordinateCommentsByCategoryNoneApprove,
   getStaffCoordinateCommentsByStaffApprove,
@@ -79,6 +80,18 @@ export function useStaffCoordinateCommentsByCategoryApproveQuery(
   return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
     queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY_APPROVE(categoryId, { sz, nu }),
     queryFn: () => getStaffCoordinateCommentsByCategoryApprove(request),
+    enabled: categoryId !== undefined && categoryId !== null && categoryId !== '',
+  });
+}
+
+export function useStaffCoordinateCommentsByCategoryQuery(
+  request: GetStaffCoordinateCommentsByCategoryRequest,
+) {
+  const { categoryId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateCommentsByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_COMMENTS_CATEGORY(categoryId, { sz, nu }),
+    queryFn: () => getStaffCoordinateCommentsByCategory(request),
     enabled: categoryId !== undefined && categoryId !== null && categoryId !== '',
   });
 }
