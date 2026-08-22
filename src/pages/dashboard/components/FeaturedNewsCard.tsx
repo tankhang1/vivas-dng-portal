@@ -13,6 +13,7 @@ import { Spinner } from "../../../shared/components/ui/spinner";
 type FeaturedNewsCardProps = {
   items: NewsItem[];
   isLoading?: boolean;
+  showViewAll?: boolean;
 };
 
 const formatDateTime = (value: string) =>
@@ -25,14 +26,17 @@ const formatDateTime = (value: string) =>
 export function FeaturedNewsCard({
   items,
   isLoading,
+  showViewAll = true,
 }: FeaturedNewsCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Bản tin nổi bật</CardTitle>
-        <Link href="/news" className="text-sm text-primary hover:underline">
-          Xem tất cả
-        </Link>
+        {showViewAll && (
+          <Link href="/news" className="text-sm text-primary hover:underline">
+            Xem tất cả
+          </Link>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading ? (

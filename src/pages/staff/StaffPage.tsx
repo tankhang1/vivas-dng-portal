@@ -28,6 +28,7 @@ import {
 } from "@/features/staff/hooks/staff.hook";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 import { Edit2, Eye, Lock, Plus, Search, Unlock } from "lucide-react";
+import { useAuth } from "@/shared/providers";
 
 const PAGE_SIZE = 5;
 
@@ -41,6 +42,7 @@ function staffStatusVariant(status: number) {
 
 export default function StaffPage() {
   const [, navigate] = useLocation();
+  const { isAdminRole: canManageStaff } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
   const [page, setPage] = useState(1);
@@ -102,13 +104,15 @@ export default function StaffPage() {
               Quản lý tài khoản và thông tin hiển thị của cán bộ, công chức.
             </p>
           </div>
-          <Button
-            onClick={() => navigate("/staff/new")}
-            className="gap-2 self-start"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm cán bộ
-          </Button>
+          {canManageStaff && (
+            <Button
+              onClick={() => navigate("/staff/new")}
+              className="gap-2 self-start"
+            >
+              <Plus className="h-4 w-4" />
+              Thêm cán bộ
+            </Button>
+          )}
         </div>
 
         <Card>
@@ -192,34 +196,38 @@ export default function StaffPage() {
                           >
                             <Eye className="h-4 w-4 text-emerald-600" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Chỉnh sửa"
-                            onClick={() => navigate(`/staff/${staff.id}/edit`)}
-                          >
-                            <Edit2 className="h-4 w-4 text-blue-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title={
-                              staff.status === 1
-                                ? "Khóa tài khoản"
-                                : "Mở khóa tài khoản"
-                            }
-                            onClick={() => handleToggleStatus(staff)}
-                            disabled={
-                              activeStaffMutation.isPending ||
-                              deactiveStaffMutation.isPending
-                            }
-                          >
-                            {staff.status === 1 ? (
-                              <Lock className="h-4 w-4 text-red-600" />
-                            ) : (
-                              <Unlock className="h-4 w-4 text-emerald-600" />
-                            )}
-                          </Button>
+                          {canManageStaff && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Chỉnh sửa"
+                                onClick={() => navigate(`/staff/${staff.id}/edit`)}
+                              >
+                                <Edit2 className="h-4 w-4 text-blue-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title={
+                                  staff.status === 1
+                                    ? "Khóa tài khoản"
+                                    : "Mở khóa tài khoản"
+                                }
+                                onClick={() => handleToggleStatus(staff)}
+                                disabled={
+                                  activeStaffMutation.isPending ||
+                                  deactiveStaffMutation.isPending
+                                }
+                              >
+                                {staff.status === 1 ? (
+                                  <Lock className="h-4 w-4 text-red-600" />
+                                ) : (
+                                  <Unlock className="h-4 w-4 text-emerald-600" />
+                                )}
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

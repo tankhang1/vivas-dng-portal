@@ -32,6 +32,7 @@ import {
 } from "./components/DepartmentFormDialog";
 import { StaffDetailDialog } from "./components/StaffDetailDialog";
 import type { DepartmentRecord } from "./types";
+import { useAuth } from "@/shared/providers";
 
 const PAGE_TITLE = "Phòng ban";
 
@@ -72,6 +73,7 @@ function useDepartmentTree() {
 
 export default function Departments() {
   const queryClient = useQueryClient();
+  const { isAdminRole: canManageDepartments } = useAuth();
   const { records: departmentsFromApi, isLoading: isDepartmentsLoading } =
     useDepartmentTree();
   const createDepartmentMutation = useCreateDepartmentProcessMutation();
@@ -342,13 +344,15 @@ export default function Departments() {
               nhân sự theo từng nhánh.
             </p>
           </div>
-          <Button
-            onClick={() => openCreateDialog(null)}
-            className="gap-2 self-start"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm phòng ban
-          </Button>
+          {canManageDepartments && (
+            <Button
+              onClick={() => openCreateDialog(null)}
+              className="gap-2 self-start"
+            >
+              <Plus className="h-4 w-4" />
+              Thêm phòng ban
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -373,6 +377,7 @@ export default function Departments() {
               onDelete={() =>
                 selectedDepartment && handleDeleteDepartment(selectedDepartment)
               }
+              canManage={canManageDepartments}
             />
 
             <DepartmentStaffTable
@@ -384,17 +389,19 @@ export default function Departments() {
         </div>
       </div>
 
-      <DepartmentFormDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        isEdit={!!editingDepartmentId}
-        initialValues={dialogInitialValues}
-        excludeDepartmentId={editingDepartmentId ?? undefined}
-        departments={departments}
-        managerOptions={managerOptions}
-        isSaving={isSaving}
-        onSubmit={handleSubmit}
-      />
+      {canManageDepartments && (
+        <DepartmentFormDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          isEdit={!!editingDepartmentId}
+          initialValues={dialogInitialValues}
+          excludeDepartmentId={editingDepartmentId ?? undefined}
+          departments={departments}
+          managerOptions={managerOptions}
+          isSaving={isSaving}
+          onSubmit={handleSubmit}
+        />
+      )}
 
       <Dialog
         open={pendingSaveValues !== null}

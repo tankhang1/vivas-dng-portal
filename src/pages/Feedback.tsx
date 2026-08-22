@@ -28,6 +28,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { QUERY_KEY } from "@/shared/api";
 import { CURRENT_STAFF } from "./news/types";
 import { useUploadPdfMutation } from "@/features/upload/hooks/upload.hook";
+import { useAuth } from "@/shared/providers";
 import {
   useApproveFeedbackProcessMutation,
   useCreateFeedbackProcessMutation,
@@ -358,6 +359,7 @@ type FeedbackDetailDialogProps = {
   isSendingReply: boolean;
   isApproving: boolean;
   isUploadingFile: boolean;
+  canManageFeedback: boolean;
 };
 
 function FeedbackDetailDialog({
@@ -381,6 +383,7 @@ function FeedbackDetailDialog({
   isSendingReply,
   isApproving,
   isUploadingFile,
+  canManageFeedback,
 }: FeedbackDetailDialogProps) {
   const feedbackAttachmentUrls = useMemo(
     () =>
@@ -403,7 +406,7 @@ function FeedbackDetailDialog({
     return null;
   }
 
-  const canAct = mode === "approve";
+  const canAct = mode === "approve" && canManageFeedback;
   const isApproved = current.status === 1;
   const status = feedbackStatus(current);
   const StatusIcon = status.icon;
@@ -673,6 +676,7 @@ function FeedbackDetailDialog({
 }
 
 export default function Feedback() {
+  const { isStaffRole: canManageFeedback } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<FeedbackMode>("approve");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
@@ -995,6 +999,7 @@ export default function Feedback() {
         feedbackDetail={feedbackDetail}
         isFeedbackLoading={feedbackQuery.isLoading}
         isFeedbackFetching={feedbackQuery.isFetching}
+        canManageFeedback={canManageFeedback}
       />
 
       <Dialog

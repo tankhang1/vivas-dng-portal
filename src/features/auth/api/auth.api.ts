@@ -17,7 +17,11 @@ export async function login(
     request,
   );
   setAccessToken(response.data.token);
-  setCurrentStaff(response.data.staff_item, response.data.staff_name);
+  setCurrentStaff(
+    response.data.staff_item,
+    response.data.staff_name,
+    response.data.roles,
+  );
   return response.data;
 }
 

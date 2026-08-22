@@ -23,7 +23,22 @@ import { BrandMark } from './BrandMark';
 import { useAuth } from '@/shared/providers';
 import { getCurrentStaff } from '@/shared/api';
 
-const navItems = [
+type NavLeaf = {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type NavGroup = {
+  name: string;
+  menuKey: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: NavLeaf[];
+};
+
+type NavItem = NavLeaf | NavGroup;
+
+const navItems: NavItem[] = [
   { name: 'Tổng quan', href: '/dashboard', icon: LayoutDashboard },
   {
     name: 'Danh bạ nội bộ',
@@ -60,18 +75,39 @@ const navItems = [
   },
 ];
 
+function getVisibleNavItems(isAdmin: boolean): NavItem[] {
+  if (isAdmin) return navItems;
+
+  return navItems.reduce<NavItem[]>((visible, item) => {
+    if (isGroupItem(item)) {
+      const children = item.menuKey === 'internal' ? item.children : [];
+      if (children.length) visible.push({ ...item, children });
+      return visible;
+    }
+
+    if (item.href === '/dashboard' || item.href === '/feedback') {
+      visible.push(item);
+    }
+    return visible;
+  }, []);
+}
+
 function isGroupItem(
-  item: (typeof navItems)[number],
-): item is (typeof navItems)[number] & { children: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }[] } {
+  item: NavItem,
+): item is NavGroup {
   return 'children' in item;
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { logout } = useAuth();
+  const { logout, isAdminRole } = useAuth();
   const currentStaff = React.useMemo(() => getCurrentStaff(), []);
-  const staffRole = currentStaff.id === 0 ? 'Admin' : 'Cán bộ';
+  const visibleNavItems = React.useMemo(
+    () => getVisibleNavItems(isAdminRole),
+    [isAdminRole],
+  );
+  const staffRole = isAdminRole ? 'Quản trị viên' : 'Cán bộ';
   const staffInitials = currentStaff.name
     .split(' ')
     .filter(Boolean)
@@ -102,7 +138,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             Quản lý hệ thống
           </p>
             <nav className="grid gap-1 px-2">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
               if (isGroupItem(item)) {
                 const isChildActive = item.children.some(
                   (child) => location === child.href || location.startsWith(child.href),
@@ -237,7 +273,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-sidebar-border bg-sidebar absolute top-16 left-0 right-0 z-50 shadow-lg max-h-[80vh] overflow-auto">
             <nav className="grid gap-1 p-4">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 if (isGroupItem(item)) {
                   const isChildActive = item.children.some(
                     (child) => location === child.href || location.startsWith(child.href),

@@ -25,6 +25,7 @@ type DepartmentInfoCardProps = {
   onAddChild: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  canManage: boolean;
 };
 
 export function DepartmentInfoCard({
@@ -35,6 +36,7 @@ export function DepartmentInfoCard({
   onAddChild,
   onEdit,
   onDelete,
+  canManage,
 }: DepartmentInfoCardProps) {
   return (
     <Card>
@@ -46,7 +48,7 @@ export function DepartmentInfoCard({
               {department?.name ?? "Chưa chọn phòng ban"}
             </p>
           </div>
-          {department && (
+          {department && canManage && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={onAddChild}>
                 <Plus className="mr-2 h-4 w-4" />

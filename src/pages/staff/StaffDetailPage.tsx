@@ -36,6 +36,7 @@ import {
   Tag,
   User2,
 } from "lucide-react";
+import { useAuth } from "@/shared/providers";
 
 type StaffDetailPageProps = {
   staffId?: string;
@@ -64,6 +65,7 @@ function buildUsername(name: string, phone: string | null) {
 export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/staff/:id");
+  const { isAdminRole } = useAuth();
   const id = staffId ?? params?.id;
   const { data: staff, isLoading: isStaffLoading } = useStaffDetailQuery(id);
   const [categoryTab, setCategoryTab] = useState<"approved" | "pending">(
@@ -148,13 +150,15 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
               </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/staff/${staff.id}/edit`)}
-            className="self-start"
-          >
-            Chỉnh sửa
-          </Button>
+          {isAdminRole && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/staff/${staff.id}/edit`)}
+              className="self-start"
+            >
+              Chỉnh sửa
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[4fr_6fr]">

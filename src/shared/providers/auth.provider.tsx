@@ -1,16 +1,23 @@
 import React from 'react';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { checkTokenExpired, refreshToken } from '@/features/auth/api/auth.api';
 import {
   clearAccessToken,
+  clearAllClientStorage,
   clearCurrentStaff,
   getAccessToken,
+  getCurrentRole,
+  type UserRole,
 } from '@/shared/api';
 
 type AuthContextValue = {
   isReady: boolean;
   isAuthenticated: boolean;
+  role: UserRole;
+  isAdminRole: boolean;
+  isStaffRole: boolean;
   logout: () => void;
   refreshSession: () => Promise<void>;
 };
@@ -29,8 +36,10 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [isReady, setIsReady] = React.useState(false);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [role, setRole] = React.useState<UserRole>(getCurrentRole());
   const initialLocationRef = React.useRef(location);
 
   const bootstrapAuth = React.useCallback(async () => {
@@ -40,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearAccessToken();
       clearCurrentStaff();
       setIsAuthenticated(false);
+      setRole(getCurrentRole());
       setIsReady(true);
 
       if (initialLocationRef.current !== '/login') {
@@ -57,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setIsAuthenticated(true);
+      setRole(getCurrentRole());
       setIsReady(true);
 
       if (initialLocationRef.current === '/login') {
@@ -66,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearAccessToken();
       clearCurrentStaff();
       setIsAuthenticated(false);
+      setRole(getCurrentRole());
       setIsReady(true);
 
       if (initialLocationRef.current !== '/login') {
@@ -79,25 +91,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [bootstrapAuth]);
 
   const logout = React.useCallback(() => {
-    clearAccessToken();
-    clearCurrentStaff();
+    clearAllClientStorage();
+    queryClient.clear();
     setIsAuthenticated(false);
+    setRole(getCurrentRole());
     setLocation('/login');
-  }, [setLocation]);
+  }, [queryClient, setLocation]);
 
   const refreshSession = React.useCallback(async () => {
     await refreshToken();
     setIsAuthenticated(true);
+    setRole(getCurrentRole());
   }, [setIsAuthenticated]);
 
   const value = React.useMemo<AuthContextValue>(
     () => ({
       isReady,
       isAuthenticated,
+      role,
+      isAdminRole: role === 'ROLE_ADMIN' || role === 'ROLE_SUPERADMIN',
+      isStaffRole: role === 'ROLE_STAFF',
       logout,
       refreshSession,
     }),
-    [isAuthenticated, isReady, logout, refreshSession],
+    [isAuthenticated, isReady, logout, refreshSession, role],
   );
 
   if (!isReady) {

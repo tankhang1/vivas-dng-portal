@@ -20,7 +20,7 @@ import Feedback from "@/pages/Feedback";
 import QueueTickets from "@/pages/QueueTickets";
 import GeneralSettingsPage from "@/pages/settings/GeneralSettingsPage";
 import HotlinePage from "@/pages/settings/hotline/HotlinePage";
-import { AuthProvider, QueryClientProviderRoot } from "@/shared/providers";
+import { AuthProvider, QueryClientProviderRoot, useAuth } from "@/shared/providers";
 
 function NotFound() {
   return (
@@ -46,38 +46,122 @@ function Router() {
         <Redirect to="/dashboard" />
       </Route>
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/staff/new" component={StaffCreate} />
-      <Route path="/staff/:id/edit" component={StaffEdit} />
+      <Route path="/staff/new">
+        <RoleGate adminOnly>
+          <StaffCreate />
+        </RoleGate>
+      </Route>
+      <Route path="/staff/:id/edit">
+        <RoleGate adminOnly>
+          <StaffEdit />
+        </RoleGate>
+      </Route>
       <Route path="/staff/:id" component={StaffDetail} />
       <Route path="/staff" component={Staff} />
       <Route path="/departments" component={Departments} />
-      <Route path="/divisions" component={Divisions} />
-      <Route path="/news/new" component={NewsCreate} />
-      <Route path="/news/:id/edit" component={NewsEdit} />
-      <Route path="/news" component={NewsPage} />
-      <Route path="/news/:id" component={NewsPage} />
-      <Route path="/categories" component={CategoriesPage} />
-      <Route path="/citizens/new" component={CitizensCreate} />
-      <Route path="/citizens/:id/edit" component={CitizensEdit} />
-      <Route path="/citizens/:id" component={CitizenDetail} />
-      <Route path="/citizens" component={Citizens} />
+      <Route path="/divisions">
+        <Divisions />
+      </Route>
+      <Route path="/news/new">
+        <RoleGate adminOnly>
+          <NewsCreate />
+        </RoleGate>
+      </Route>
+      <Route path="/news/:id/edit">
+        <RoleGate adminOnly>
+          <NewsEdit />
+        </RoleGate>
+      </Route>
+      <Route path="/news">
+        <RoleGate adminOnly>
+          <NewsPage />
+        </RoleGate>
+      </Route>
+      <Route path="/news/:id">
+        <RoleGate adminOnly>
+          <NewsPage />
+        </RoleGate>
+      </Route>
+      <Route path="/categories">
+        <RoleGate adminOnly>
+          <CategoriesPage />
+        </RoleGate>
+      </Route>
+      <Route path="/citizens/new">
+        <RoleGate adminOnly>
+          <CitizensCreate />
+        </RoleGate>
+      </Route>
+      <Route path="/citizens/:id/edit">
+        <RoleGate adminOnly>
+          <CitizensEdit />
+        </RoleGate>
+      </Route>
+      <Route path="/citizens/:id">
+        <RoleGate adminOnly>
+          <CitizenDetail />
+        </RoleGate>
+      </Route>
+      <Route path="/citizens">
+        <RoleGate adminOnly>
+          <Citizens />
+        </RoleGate>
+      </Route>
       <Route path="/routing/list">
-        <Redirect to="/routing" />
+        <RoleGate adminOnly>
+          <Redirect to="/routing" />
+        </RoleGate>
       </Route>
       <Route path="/routing/setup">
-        <Redirect to="/routing" />
+        <RoleGate adminOnly>
+          <Redirect to="/routing" />
+        </RoleGate>
       </Route>
-      <Route path="/routing" component={RoutingPage} />
+      <Route path="/routing">
+        <RoleGate adminOnly>
+          <RoutingPage />
+        </RoleGate>
+      </Route>
       <Route path="/feedback" component={Feedback} />
-      <Route path="/appointments" component={QueueTickets} />
-      <Route path="/settings/general" component={GeneralSettingsPage} />
-      <Route path="/settings/hotline" component={HotlinePage} />
+      <Route path="/appointments">
+        <RoleGate adminOnly>
+          <QueueTickets />
+        </RoleGate>
+      </Route>
+      <Route path="/settings/general">
+        <RoleGate adminOnly>
+          <GeneralSettingsPage />
+        </RoleGate>
+      </Route>
+      <Route path="/settings/hotline">
+        <RoleGate adminOnly>
+          <HotlinePage />
+        </RoleGate>
+      </Route>
       <Route path="/settings">
-        <Redirect to="/settings/general" />
+        <RoleGate adminOnly>
+          <Redirect to="/settings/general" />
+        </RoleGate>
       </Route>
       <Route component={NotFound} />
     </Switch>
   );
+}
+
+function RoleGate({
+  adminOnly = false,
+  children,
+}: {
+  adminOnly?: boolean;
+  children: React.ReactNode;
+}) {
+  const { isAdminRole } = useAuth();
+
+  if (adminOnly && !isAdminRole) {
+    return <Redirect to="/dashboard" />;
+  }
+
+  return <>{children}</>;
 }
 
 function App() {

@@ -13,10 +13,12 @@ import {
   useNewsIndexQuery,
 } from "@/features/news/hooks/news.hook";
 import { useSearchCommentsQuery } from "@/features/comment/hooks/comment.hook";
+import { useAuth } from "@/shared/providers";
 
 const DASHBOARD_ITEM_LIMIT = 4;
 
 export default function Dashboard() {
+  const { isAdminRole } = useAuth();
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardQuery();
   const { data: recentNewsData, isLoading: isRecentNewsLoading } =
@@ -66,10 +68,15 @@ export default function Dashboard() {
         </div> */}
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <RecentNewsCard items={recentNews} isLoading={isRecentNewsLoading} />
+          <RecentNewsCard
+            items={recentNews}
+            isLoading={isRecentNewsLoading}
+            showViewAll={isAdminRole}
+          />
           <FeaturedNewsCard
             items={featuredNews}
             isLoading={isFeaturedNewsLoading}
+            showViewAll={isAdminRole}
           />
           <LatestFeedbackCard
             items={latestFeedback}

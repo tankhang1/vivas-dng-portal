@@ -22,6 +22,7 @@ type DivisionsTableProps = {
   onSearchTermChange: (value: string) => void;
   onEdit: (item: DivisionItem) => void;
   onDelete: (id: number) => void;
+  canManage: boolean;
 };
 
 export function DivisionsTable({
@@ -31,6 +32,7 @@ export function DivisionsTable({
   onSearchTermChange,
   onEdit,
   onDelete,
+  canManage,
 }: DivisionsTableProps) {
   return (
     <Card>
@@ -51,7 +53,7 @@ export function DivisionsTable({
             <TableRow>
               <TableHead>Tên lĩnh vực</TableHead>
               <TableHead>Mô tả</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
+              {canManage && <TableHead className="text-right">Thao tác</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -71,8 +73,9 @@ export function DivisionsTable({
                   <TableCell className="text-muted-foreground">
                     {item.note || "-"}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="inline-flex items-center gap-1">
+                  {canManage && (
+                    <TableCell className="text-right">
+                      <div className="inline-flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -89,8 +92,9 @@ export function DivisionsTable({
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
-                    </div>
-                  </TableCell>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             {!isLoading && divisions.length === 0 && (

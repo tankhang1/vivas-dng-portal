@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useLoginMutation } from '@/features/auth/hooks/auth.hook';
+import { useAuth } from '@/shared/providers';
 import { Form } from '@/shared/components/ui/form';
 import {
   Card,
@@ -31,6 +32,7 @@ const defaultValues: LoginFormValues = {
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { refreshSession } = useAuth();
   const loginMutation = useLoginMutation();
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,6 +42,7 @@ export default function Login() {
 
   const handleLogin = async (values: LoginFormValues) => {
     await loginMutation.mutateAsync(values);
+    await refreshSession();
     setLocation('/dashboard');
   };
 

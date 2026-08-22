@@ -15,6 +15,7 @@ import {
 } from "@/features/division/hooks/division.hook";
 import type { DivisionItem } from "@/features/division/types/get-divisions.response";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/shared/providers";
 import { DivisionsTable } from "./components/DivisionsTable";
 import {
   DivisionFormDialog,
@@ -22,6 +23,7 @@ import {
 } from "./components/DivisionFormDialog";
 
 export default function Divisions() {
+  const { isAdminRole: canManageDivisions } = useAuth();
   const {
     data: divisionsData,
     isLoading: isDivisionsLoading,
@@ -122,12 +124,14 @@ export default function Divisions() {
               xử lý.
             </p>
           </div>
-          <Button
-            onClick={() => handleOpenDialog()}
-            className="gap-2 self-start"
-          >
-            <Plus className="h-4 w-4" /> Thêm lĩnh vực
-          </Button>
+          {canManageDivisions && (
+            <Button
+              onClick={() => handleOpenDialog()}
+              className="gap-2 self-start"
+            >
+              <Plus className="h-4 w-4" /> Thêm lĩnh vực
+            </Button>
+          )}
         </div>
 
         <DivisionsTable
@@ -137,6 +141,7 @@ export default function Divisions() {
           onSearchTermChange={setSearchTerm}
           onEdit={handleOpenDialog}
           onDelete={handleDelete}
+          canManage={canManageDivisions}
         />
       </div>
 
