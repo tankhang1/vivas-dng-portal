@@ -403,14 +403,14 @@ Các thông tin cần khai báo:
 
 ### 8.1. Mục đích
 
-Phân hệ này phục vụ gán cán bộ vào từng điều phối, xác định cán bộ có quyền xem hoặc quyền phản hồi, đồng thời hỗ trợ theo dõi tình trạng phân công.
+Phân hệ này phục vụ gán cán bộ vào từng điều phối, xác định cán bộ có quyền xử lý hoặc quyền phản hồi, đồng thời hỗ trợ theo dõi tình trạng phân công.
 
 ### 8.2. Khái niệm nghiệp vụ
 
 - `Điều phối` là nhóm danh mục phản ánh được gán cho cán bộ phụ trách.
 - Mỗi điều phối có thể có nhiều cán bộ.
 - Mỗi cán bộ trong điều phối có thể thuộc một trong hai nhóm:
-  - Quyền xem.
+  - Quyền xử lý.
   - Quyền phản hồi.
 
 ### 8.3. Danh sách điều phối
@@ -432,7 +432,7 @@ Khi chọn một điều phối, hệ thống hiển thị:
 
 Danh sách cán bộ được chia thành 2 nhóm:
 - Được quyền phê duyệt.
-- Quyền xem.
+- Quyền xử lý.
 
 Mỗi dòng dữ liệu thể hiện:
 - Họ tên cán bộ.
@@ -579,7 +579,7 @@ Màn hình gồm hai khu vực chính:
 ### 10.3. Chế độ điều phối
 
 Khung điều phối hỗ trợ hai tab:
-- `Quyền xem`
+- `Quyền xử lý`
 - `Quyền phản hồi`
 
 Khi chuyển tab:

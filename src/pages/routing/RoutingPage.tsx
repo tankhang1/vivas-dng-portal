@@ -398,7 +398,7 @@ export default function RoutingPage() {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-slate-50">
                         <span className="flex items-center gap-2">
                           <CircleDashed className="h-4 w-4 text-muted-foreground" />
-                          Quyền xem
+                          Quyền xử lý
                           <Badge variant="outline">
                             {pendingRows.length} cán bộ
                           </Badge>
@@ -410,7 +410,7 @@ export default function RoutingPage() {
                       <CollapsibleContent>
                         {pendingRows.length === 0 ? (
                           <p className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                            Không có cán bộ được quyền xem.
+                            Không có cán bộ được quyền xử lý.
                           </p>
                         ) : (
                           pendingRows.map(renderStaffRow)

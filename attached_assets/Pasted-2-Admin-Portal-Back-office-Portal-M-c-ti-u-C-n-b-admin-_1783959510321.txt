@@ -6,7 +6,7 @@ Mục tiêu: Cán bộ, admin và lãnh đạo dùng để quản lý nội dung
 Feature	Mô tả
 Đăng nhập portal	Cán bộ đăng nhập bằng tài khoản nội bộ
 Quản lý vai trò	Super Admin, Admin, Cán bộ xử lý, Biên tập viên, Lãnh đạo
-Phân quyền chức năng	Mỗi vai trò được quyền xem/tạo/sửa/xóa/xử lý khác nhau
+Phân quyền chức năng	Mỗi vai trò được quyền xử lý/tạo/sửa/xóa/xử lý khác nhau
 Khóa tài khoản	Admin có thể disable tài khoản cán bộ
 Nhật ký đăng nhập	Ghi nhận lịch sử đăng nhập và thao tác quan trọng
 2.2. Dashboard tổng quan

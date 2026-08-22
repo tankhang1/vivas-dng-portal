@@ -254,7 +254,7 @@ export default function StaffDetailPage({ staffId }: StaffDetailPageProps) {
                   </TabsTrigger>
                   <TabsTrigger value="pending" className="gap-1.5">
                     <CircleDashed className="h-4 w-4" />
-                    Quyền xem
+                    Quyền xử lý
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent

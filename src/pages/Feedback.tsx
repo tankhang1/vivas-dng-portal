@@ -139,7 +139,7 @@ function RoutingSidebar({
           onValueChange={(value) => onModeChange(value as FeedbackMode)}
         >
           <TabsList className="mt-3">
-            <TabsTrigger value="view">Quyền xem</TabsTrigger>
+            <TabsTrigger value="view">Quyền xử lý</TabsTrigger>
             <TabsTrigger value="approve">Quyền phản hồi</TabsTrigger>
           </TabsList>
         </Tabs>
@@ -878,7 +878,7 @@ export default function Feedback() {
             Phản ánh kiến nghị
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Quản lý phản ánh theo đúng quyền xem và quyền duyệt.
+            Quản lý phản ánh theo đúng quyền xử lý và quyền duyệt.
           </p>
         </div>
 
