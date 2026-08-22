@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createCategoryCommentProcess,
@@ -18,6 +18,23 @@ export function useCommentCategoriesQuery(request: SearchCategoriesRequest = {})
   return useQuery<GetCategoriesResponse>({
     queryKey: QUERY_KEY.COMMENT_CATEGORIES(request),
     queryFn: () => getCommentCategories(request),
+  });
+}
+
+export function useInfiniteCommentCategoriesQuery(
+  request: Omit<SearchCategoriesRequest, 'nu'> = {},
+) {
+  const { sz } = request;
+
+  return useInfiniteQuery<GetCategoriesResponse>({
+    queryKey: QUERY_KEY.COMMENT_CATEGORIES({ sz }),
+    queryFn: ({ pageParam }) =>
+      getCommentCategories({ ...request, nu: pageParam as number }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextPage = lastPage.page.number + 1;
+      return nextPage < lastPage.page.totalPages ? nextPage : undefined;
+    },
   });
 }
 

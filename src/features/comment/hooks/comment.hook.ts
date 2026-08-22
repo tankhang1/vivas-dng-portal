@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import {
   getCitizenComments,
@@ -37,6 +37,29 @@ export function useCommentsByCategoryQuery(
     queryKey: QUERY_KEY.COMMENTS_BY_CATEGORY(categoryId, { sz, nu }),
     queryFn: () => getCommentsByCategory(request),
     placeholderData: keepPreviousData,
+    enabled:
+      enabled &&
+      categoryId !== undefined &&
+      categoryId !== null &&
+      categoryId !== '',
+  });
+}
+
+export function useInfiniteCommentsByCategoryQuery(
+  request: Omit<GetCommentsByCategoryRequest, 'nu'>,
+  enabled = true,
+) {
+  const { categoryId, sz } = request;
+
+  return useInfiniteQuery<GetCommentsResponse>({
+    queryKey: QUERY_KEY.COMMENTS_BY_CATEGORY(categoryId, { sz }),
+    queryFn: ({ pageParam }) =>
+      getCommentsByCategory({ ...request, nu: pageParam as number }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextPage = lastPage.page.number + 1;
+      return nextPage < lastPage.page.totalPages ? nextPage : undefined;
+    },
     enabled:
       enabled &&
       categoryId !== undefined &&
