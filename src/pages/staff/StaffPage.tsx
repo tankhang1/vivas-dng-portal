@@ -7,6 +7,10 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
   Pagination,
   Table,
@@ -40,6 +44,8 @@ export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDeferredValue(searchTerm);
   const [page, setPage] = useState(1);
+  const [staffPendingStatusChange, setStaffPendingStatusChange] =
+    useState<StaffItem | null>(null);
 
   const { data, isLoading, isFetching, refetch } = useSearchStaffQuery({
     key: debouncedSearch || undefined,
@@ -62,13 +68,15 @@ export default function StaffPage() {
     setPage(1);
   };
 
-  const handleToggleStatus = async (staff: StaffItem) => {
-    const isActive = staff.status === 1;
-    const confirmMessage = isActive
-      ? `Khóa tài khoản cán bộ "${staff.name}"?`
-      : `Mở khóa tài khoản cán bộ "${staff.name}"?`;
-    if (!confirm(confirmMessage)) return;
+  const handleToggleStatus = (staff: StaffItem) => {
+    setStaffPendingStatusChange(staff);
+  };
 
+  const handleConfirmStatusChange = async () => {
+    if (!staffPendingStatusChange) return;
+
+    const staff = staffPendingStatusChange;
+    const isActive = staff.status === 1;
     try {
       const request = { id: staff.id, phone: staff.phone ?? "" };
       if (isActive) {
@@ -79,6 +87,8 @@ export default function StaffPage() {
       refetch();
     } catch {
       window.alert("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
+    } finally {
+      setStaffPendingStatusChange(null);
     }
   };
 
@@ -199,6 +209,10 @@ export default function StaffPage() {
                                 : "Mở khóa tài khoản"
                             }
                             onClick={() => handleToggleStatus(staff)}
+                            disabled={
+                              activeStaffMutation.isPending ||
+                              deactiveStaffMutation.isPending
+                            }
                           >
                             {staff.status === 1 ? (
                               <Lock className="h-4 w-4 text-red-600" />
@@ -232,6 +246,51 @@ export default function StaffPage() {
           </CardContent>
         </Card>
       </div>
+      <Dialog
+        open={staffPendingStatusChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setStaffPendingStatusChange(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {staffPendingStatusChange?.status === 1
+              ? "Khóa tài khoản cán bộ?"
+              : "Mở khóa tài khoản cán bộ?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {staffPendingStatusChange?.status === 1
+            ? `Bạn có chắc muốn khóa tài khoản của "${staffPendingStatusChange?.name}" không?`
+            : `Bạn có chắc muốn mở khóa tài khoản của "${staffPendingStatusChange?.name}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setStaffPendingStatusChange(null)}
+            disabled={
+              activeStaffMutation.isPending || deactiveStaffMutation.isPending
+            }
+          >
+            Hủy
+          </Button>
+          <Button
+            variant={
+              staffPendingStatusChange?.status === 1
+                ? "destructive"
+                : "default"
+            }
+            onClick={handleConfirmStatusChange}
+            disabled={
+              activeStaffMutation.isPending || deactiveStaffMutation.isPending
+            }
+          >
+            {activeStaffMutation.isPending || deactiveStaffMutation.isPending
+              ? "Đang cập nhật..."
+              : "Xác nhận"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }

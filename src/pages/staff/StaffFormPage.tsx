@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +11,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Input,
   Label,
   Select,
@@ -105,6 +109,8 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
   const deactiveStaffMutation = useDeactiveStaffProcessMutation();
   const uploadImageMutation = useUploadImageMutation();
   const hasAppliedCreateDepartmentDefault = useRef(false);
+  const [pendingSaveValues, setPendingSaveValues] =
+    useState<StaffFormValues | null>(null);
 
   const schema = mode === "create" ? staffCreateSchema : staffEditSchema;
 
@@ -172,7 +178,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
     uploadImageMutation.isPending ||
     isSubmitting;
 
-  const handleSave = handleSubmit(async (values) => {
+  const executeSave = async (values: StaffFormValues) => {
     const department = departmentsData?.content.find(
       (item) => String(item.id) === values.department,
     );
@@ -223,6 +229,10 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
     } catch {
       window.alert("Lưu thông tin cán bộ thất bại. Vui lòng thử lại.");
     }
+  };
+
+  const handleSave = handleSubmit((values) => {
+    setPendingSaveValues(values);
   });
 
   if (mode === "edit" && isStaffLoading) {
@@ -462,6 +472,45 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
           </Card>
         </div>
       </div>
+      <Dialog
+        open={pendingSaveValues !== null}
+        onOpenChange={(open) => {
+          if (!open && !isSaving) setPendingSaveValues(null);
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {mode === "create"
+              ? "Xác nhận thêm cán bộ?"
+              : "Xác nhận lưu thay đổi?"}
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {mode === "create"
+            ? `Bạn có chắc muốn thêm cán bộ "${pendingSaveValues?.name ?? ""}" không?`
+            : `Bạn có chắc muốn lưu thay đổi cho cán bộ "${pendingSaveValues?.name ?? ""}" không?`}
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingSaveValues(null)}
+            disabled={isSaving}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={async () => {
+              if (!pendingSaveValues) return;
+              const values = pendingSaveValues;
+              setPendingSaveValues(null);
+              await executeSave(values);
+            }}
+            disabled={isSaving}
+          >
+            {isSaving ? "Đang lưu..." : "Xác nhận lưu"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Layout>
   );
 }
