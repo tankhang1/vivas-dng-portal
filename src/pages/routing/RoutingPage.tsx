@@ -42,7 +42,9 @@ const STAFF_LIST_SIZE = 200;
 export default function RoutingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
-  const [activeTab, setActiveTab] = useState<"approved" | "pending">("approved");
+  const [activeTab, setActiveTab] = useState<"approved" | "pending">(
+    "approved",
+  );
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
   const [editingStaffLink, setEditingStaffLink] =
     useState<StaffCoordinateCommentItem | null>(null);
@@ -75,7 +77,11 @@ export default function RoutingPage() {
 
   useEffect(() => {
     const target = categoryLoadMoreRef.current;
-    if (!target || !categoriesQuery.hasNextPage || categoriesQuery.isFetchingNextPage) {
+    if (
+      !target ||
+      !categoriesQuery.hasNextPage ||
+      categoriesQuery.isFetchingNextPage
+    ) {
       return;
     }
 
@@ -90,7 +96,11 @@ export default function RoutingPage() {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [categoriesQuery.fetchNextPage, categoriesQuery.hasNextPage, categoriesQuery.isFetchingNextPage]);
+  }, [
+    categoriesQuery.fetchNextPage,
+    categoriesQuery.hasNextPage,
+    categoriesQuery.isFetchingNextPage,
+  ]);
 
   const activeCategoryId =
     selectedCategoryId !== "" ? selectedCategoryId : (categories[0]?.id ?? "");
@@ -312,17 +322,21 @@ export default function RoutingPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-4">
-              <div ref={categoryScrollRef} className="max-h-[620px] space-y-2 overflow-y-auto">
+              <div
+                ref={categoryScrollRef}
+                className="max-h-[620px] space-y-2 overflow-y-auto"
+              >
                 {categoriesQuery.isLoading && (
                   <div className="flex justify-center py-8">
                     <Spinner />
                   </div>
                 )}
-                {!categoriesQuery.isLoading && filteredCategories.length === 0 && (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    Không tìm thấy danh mục nào.
-                  </p>
-                )}
+                {!categoriesQuery.isLoading &&
+                  filteredCategories.length === 0 && (
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      Không tìm thấy danh mục nào.
+                    </p>
+                  )}
                 {filteredCategories.map((category) => {
                   const isSelected = category.id === activeCategoryId;
                   return (
@@ -341,8 +355,13 @@ export default function RoutingPage() {
                     </button>
                   );
                 })}
-                <div ref={categoryLoadMoreRef} className="flex min-h-10 items-center justify-center">
-                  {categoriesQuery.isFetchingNextPage && <Spinner className="h-4 w-4" />}
+                <div
+                  ref={categoryLoadMoreRef}
+                  className="flex min-h-10 items-center justify-center"
+                >
+                  {categoriesQuery.isFetchingNextPage && (
+                    <Spinner className="h-4 w-4" />
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -383,14 +402,16 @@ export default function RoutingPage() {
                 {activeCategory && !isLoadingRows && (
                   <Tabs
                     value={activeTab}
-                    onValueChange={(value) => setActiveTab(value as "approved" | "pending")}
+                    onValueChange={(value) =>
+                      setActiveTab(value as "approved" | "pending")
+                    }
                   >
                     <TabsList className="w-full">
                       <TabsTrigger value="approved" className="flex-1">
                         Quyền phê duyệt ({approvedRows.length})
                       </TabsTrigger>
                       <TabsTrigger value="pending" className="flex-1">
-                        Quyền xem ({pendingRows.length})
+                        Quyền xử lý ({pendingRows.length})
                       </TabsTrigger>
                     </TabsList>
                     <div className="mt-3 overflow-hidden rounded-lg border border-border">
@@ -404,7 +425,7 @@ export default function RoutingPage() {
                         )
                       ) : pendingRows.length === 0 ? (
                         <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                          Chưa có cán bộ được quyền xem.
+                          Chưa có cán bộ được quyền xử lý.
                         </p>
                       ) : (
                         pendingRows.map(renderStaffRow)
@@ -415,7 +436,6 @@ export default function RoutingPage() {
               </CardContent>
             </Card>
           </div>
-
         </div>
       </div>
 
