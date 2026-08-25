@@ -38,16 +38,27 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 import type { DepartmentRecord } from "../types";
 
-const departmentFormSchema = z.object({
-  code: z.string(),
-  name: z.string().min(1, "Vui lòng nhập tên phòng ban"),
-  parentId: z.string().nullable(),
-  manager: z.string(),
-  managerId: z.number().nullable(),
-  description: z.string(),
-});
+const departmentFormSchema = () =>
+  z
+    .object({
+      code: z.string(),
+      name: z.string().trim().min(1, "Vui lòng nhập tên phòng ban"),
+      parentId: z.string().nullable(),
+      manager: z.string(),
+      managerId: z.number().nullable(),
+      description: z.string(),
+    })
+    .superRefine((values, context) => {
+      if (!values.description.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["description"],
+          message: "Vui lòng nhập mô tả phòng ban",
+        });
+      }
+    });
 
-export type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
+export type DepartmentFormValues = z.infer<ReturnType<typeof departmentFormSchema>>;
 
 const defaultValues = (): DepartmentFormValues => ({
   code: "",
@@ -84,7 +95,7 @@ export function DepartmentFormDialog({
   const [isManagerPickerOpen, setIsManagerPickerOpen] = useState(false);
 
   const form = useForm<DepartmentFormValues>({
-    resolver: zodResolver(departmentFormSchema),
+    resolver: zodResolver(departmentFormSchema()),
     defaultValues: defaultValues(),
   });
   const { control, handleSubmit, reset } = form;
@@ -117,7 +128,7 @@ export function DepartmentFormDialog({
               <FormInputField
                 control={control}
                 name="code"
-                label="Mã (tùy chọn)"
+                label="Mã"
                 inputProps={{ placeholder: "IT" }}
               />
             </div>
@@ -193,8 +204,10 @@ export function DepartmentFormDialog({
                         <PopoverContent className="w-[--radix-popover-trigger-width] bg-white p-0">
                           <Command>
                             <CommandInput placeholder="Tìm nhân sự..." />
-                            <CommandList>
-                              <CommandEmpty>Không tìm thấy nhân sự.</CommandEmpty>
+                            <CommandList className="max-h-60 overflow-y-auto">
+                              <CommandEmpty>
+                                Không tìm thấy nhân sự.
+                              </CommandEmpty>
                               <CommandGroup>
                                 {managerOptions.map((staff) => (
                                   <CommandItem
@@ -234,7 +247,7 @@ export function DepartmentFormDialog({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mô tả</FormLabel>
+                    <FormLabel required>Mô tả</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}

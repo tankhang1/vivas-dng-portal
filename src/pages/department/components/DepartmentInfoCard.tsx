@@ -26,6 +26,7 @@ type DepartmentInfoCardProps = {
   onEdit: () => void;
   onDelete: () => void;
   canManage: boolean;
+  canDelete: boolean;
 };
 
 export function DepartmentInfoCard({
@@ -37,6 +38,7 @@ export function DepartmentInfoCard({
   onEdit,
   onDelete,
   canManage,
+  canDelete,
 }: DepartmentInfoCardProps) {
   return (
     <Card>
@@ -58,10 +60,12 @@ export function DepartmentInfoCard({
                 <Edit2 className="mr-2 h-4 w-4" />
                 Chỉnh sửa
               </Button>
-              <Button variant="destructive" size="sm" onClick={onDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Xóa
-              </Button>
+              {canDelete && (
+                <Button variant="destructive" size="sm" onClick={onDelete}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Xóa
+                </Button>
+              )}
             </div>
           )}
         </div>

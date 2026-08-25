@@ -158,22 +158,6 @@ export default function Departments() {
     ? (departmentsById.get(selectedDepartment.parentId) ?? null)
     : null;
 
-  const collectDescendantIds = (departmentId: string): string[] => {
-    const stack = [departmentId];
-    const ids = new Set<string>();
-
-    while (stack.length > 0) {
-      const currentId = stack.pop();
-      if (!currentId) continue;
-      ids.add(currentId);
-
-      const children = childrenByParentId.get(currentId) ?? [];
-      children.forEach((child) => stack.push(child.id));
-    }
-
-    return Array.from(ids);
-  };
-
   const openCreateDialog = (parentId: string | null = selectedDepartmentId) => {
     setEditingDepartmentId(null);
     setDialogParentId(parentId);
@@ -300,18 +284,23 @@ export default function Departments() {
   };
 
   const executeDeleteDepartment = async (department: DepartmentRecord) => {
+    if ((childrenByParentId.get(department.id) ?? []).length > 0) {
+      window.alert("Vui lòng xóa hết phòng ban con trước.");
+      setPendingDeleteDepartment(null);
+      return;
+    }
+
     try {
       await removeDepartmentMutation.mutateAsync({
         item: Number(department.id),
       });
 
-      const idsToRemove = new Set(collectDescendantIds(department.id));
       const nextDepartments = departments.filter(
-        (item) => !idsToRemove.has(item.id),
+        (item) => item.id !== department.id,
       );
       setDepartments(nextDepartments);
 
-      if (idsToRemove.has(selectedDepartmentId)) {
+      if (department.id === selectedDepartmentId) {
         const fallback =
           nextDepartments.find((item) => item.parentId === null) ??
           nextDepartments[0] ??
@@ -326,6 +315,10 @@ export default function Departments() {
   };
 
   const handleDeleteDepartment = (department: DepartmentRecord) => {
+    if ((childrenByParentId.get(department.id) ?? []).length > 0) {
+      window.alert("Vui lòng xóa hết phòng ban con trước.");
+      return;
+    }
     setPendingDeleteDepartment(department);
   };
 
@@ -377,6 +370,7 @@ export default function Departments() {
               onDelete={() =>
                 selectedDepartment && handleDeleteDepartment(selectedDepartment)
               }
+              canDelete={selectedDepartmentChildren.length === 0}
               canManage={canManageDepartments}
             />
 
@@ -455,7 +449,7 @@ export default function Departments() {
           <DialogTitle>Xác nhận xóa phòng ban?</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Phòng ban con cũng sẽ bị xóa khỏi cây. Bạn có chắc muốn xóa phòng ban
+          Bạn có chắc muốn xóa phòng ban
           "{pendingDeleteDepartment?.name ?? ""}" không?
         </p>
         <DialogFooter>
