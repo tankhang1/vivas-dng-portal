@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from "react";
 import { useLocation } from "wouter";
+import { isAxiosError } from "axios";
 import { Layout } from "../../shared/components/Layout";
 import {
   Badge,
@@ -27,6 +28,7 @@ import {
   useSearchStaffQuery,
 } from "@/features/staff/hooks/staff.hook";
 import { useUpdatePasswordProcessMutation } from "@/features/account/hooks/account.hook";
+import type { UpdatePasswordProcessResponse } from "@/features/account/types/update-password-process.response";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 import { Edit2, Eye, KeyRound, Lock, Plus, Search, Unlock } from "lucide-react";
 import { useAuth } from "@/shared/providers";
@@ -126,8 +128,24 @@ export default function StaffPage() {
       await updatePasswordMutation.mutateAsync(request);
       window.alert("Đổi mật khẩu thành công.");
       setPendingPasswordChange(null);
-    } catch {
-      window.alert("Đổi mật khẩu thất bại. Vui lòng kiểm tra lại thông tin và thử lại.");
+    } catch (error) {
+      const status = isAxiosError<UpdatePasswordProcessResponse>(error)
+        ? error.response?.data?.status
+        : undefined;
+
+      if (status === -2) {
+        window.alert("Nhân viên không tồn tại.");
+        return;
+      }
+
+      if (status === -3) {
+        window.alert("Mật khẩu hiện tại không chính xác.");
+        return;
+      }
+
+      window.alert(
+        "Đổi mật khẩu thất bại. Vui lòng kiểm tra lại thông tin và thử lại.",
+      );
     }
   };
 
@@ -239,7 +257,9 @@ export default function StaffPage() {
                                 variant="ghost"
                                 size="icon"
                                 title="Chỉnh sửa"
-                                onClick={() => navigate(`/staff/${staff.id}/edit`)}
+                                onClick={() =>
+                                  navigate(`/staff/${staff.id}/edit`)
+                                }
                               >
                                 <Edit2 className="h-4 w-4 text-blue-600" />
                               </Button>
@@ -329,9 +349,7 @@ export default function StaffPage() {
           </Button>
           <Button
             variant={
-              staffPendingStatusChange?.status === 1
-                ? "destructive"
-                : "default"
+              staffPendingStatusChange?.status === 1 ? "destructive" : "default"
             }
             onClick={handleConfirmStatusChange}
             disabled={
@@ -361,7 +379,8 @@ export default function StaffPage() {
           <DialogTitle>Xác nhận đổi mật khẩu?</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Bạn có chắc muốn đổi mật khẩu cho "{pendingPasswordChange?.staffName}" (tên đăng nhập: {pendingPasswordChange?.username}) không?
+          Bạn có chắc muốn đổi mật khẩu cho "{pendingPasswordChange?.staffName}"
+          (tên đăng nhập: {pendingPasswordChange?.username}) không?
         </p>
         <DialogFooter>
           <Button
@@ -375,7 +394,9 @@ export default function StaffPage() {
             onClick={handleConfirmPasswordChange}
             disabled={updatePasswordMutation.isPending}
           >
-            {updatePasswordMutation.isPending ? "Đang đổi..." : "Xác nhận đổi mật khẩu"}
+            {updatePasswordMutation.isPending
+              ? "Đang đổi..."
+              : "Xác nhận đổi mật khẩu"}
           </Button>
         </DialogFooter>
       </Dialog>
