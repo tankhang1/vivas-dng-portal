@@ -26,8 +26,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const defaultValues: LoginFormValues = {
-  username: 'admin',
-  password: 'Viv@s@2026',
+  username: '',
+  password: '',
 };
 
 export default function Login() {

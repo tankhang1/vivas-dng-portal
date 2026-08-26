@@ -7,6 +7,9 @@ export const API_PATH = {
   ADMIN: {
     SIGNUP: '/admin/signup',
   },
+  ACCOUNT: {
+    UPDATE_PASSWORD_PROCESS: '/admin/account/update-password/process',
+  },
   STAFF: {
     CREATE_PROCESS: '/admin/staff/create/process',
     EDIT_PROCESS: '/admin/staff/edit/process',

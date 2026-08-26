@@ -26,9 +26,14 @@ import {
   useDeactiveStaffProcessMutation,
   useSearchStaffQuery,
 } from "@/features/staff/hooks/staff.hook";
+import { useUpdatePasswordProcessMutation } from "@/features/account/hooks/account.hook";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
-import { Edit2, Eye, Lock, Plus, Search, Unlock } from "lucide-react";
+import { Edit2, Eye, KeyRound, Lock, Plus, Search, Unlock } from "lucide-react";
 import { useAuth } from "@/shared/providers";
+import {
+  ChangePasswordDialog,
+  type PasswordFormValues,
+} from "./components/ChangePasswordDialog";
 
 const PAGE_SIZE = 5;
 
@@ -48,6 +53,11 @@ export default function StaffPage() {
   const [page, setPage] = useState(1);
   const [staffPendingStatusChange, setStaffPendingStatusChange] =
     useState<StaffItem | null>(null);
+  const [staffChangingPassword, setStaffChangingPassword] =
+    useState<StaffItem | null>(null);
+  const [pendingPasswordChange, setPendingPasswordChange] = useState<
+    (PasswordFormValues & { staffName: string }) | null
+  >(null);
 
   const { data, isLoading, isFetching, refetch } = useSearchStaffQuery({
     key: debouncedSearch || undefined,
@@ -56,6 +66,7 @@ export default function StaffPage() {
   });
   const activeStaffMutation = useActiveStaffProcessMutation();
   const deactiveStaffMutation = useDeactiveStaffProcessMutation();
+  const updatePasswordMutation = useUpdatePasswordProcessMutation();
 
   const staffList = data?.content ?? [];
   const showInitialLoading = isLoading && staffList.length === 0;
@@ -91,6 +102,32 @@ export default function StaffPage() {
       window.alert("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
     } finally {
       setStaffPendingStatusChange(null);
+    }
+  };
+
+  const openPasswordDialog = (staff: StaffItem) => {
+    setStaffChangingPassword(staff);
+  };
+
+  const handlePasswordDialogSubmit = (values: PasswordFormValues) => {
+    setPendingPasswordChange({
+      ...values,
+      username: values.username.trim(),
+      staffName: staffChangingPassword?.name ?? "tài khoản này",
+    });
+    setStaffChangingPassword(null);
+  };
+
+  const handleConfirmPasswordChange = async () => {
+    if (!pendingPasswordChange) return;
+
+    try {
+      const { staffName: _staffName, ...request } = pendingPasswordChange;
+      await updatePasswordMutation.mutateAsync(request);
+      window.alert("Đổi mật khẩu thành công.");
+      setPendingPasswordChange(null);
+    } catch {
+      window.alert("Đổi mật khẩu thất bại. Vui lòng kiểm tra lại thông tin và thử lại.");
     }
   };
 
@@ -209,6 +246,14 @@ export default function StaffPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                title="Đổi mật khẩu"
+                                onClick={() => openPasswordDialog(staff)}
+                              >
+                                <KeyRound className="h-4 w-4 text-amber-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 title={
                                   staff.status === 1
                                     ? "Khóa tài khoản"
@@ -296,6 +341,41 @@ export default function StaffPage() {
             {activeStaffMutation.isPending || deactiveStaffMutation.isPending
               ? "Đang cập nhật..."
               : "Xác nhận"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+      <ChangePasswordDialog
+        staff={staffChangingPassword}
+        onClose={() => setStaffChangingPassword(null)}
+        onContinue={handlePasswordDialogSubmit}
+      />
+      <Dialog
+        open={pendingPasswordChange !== null}
+        onOpenChange={(open) => {
+          if (!open && !updatePasswordMutation.isPending) {
+            setPendingPasswordChange(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận đổi mật khẩu?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn đổi mật khẩu cho "{pendingPasswordChange?.staffName}" (tên đăng nhập: {pendingPasswordChange?.username}) không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingPasswordChange(null)}
+            disabled={updatePasswordMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmPasswordChange}
+            disabled={updatePasswordMutation.isPending}
+          >
+            {updatePasswordMutation.isPending ? "Đang đổi..." : "Xác nhận đổi mật khẩu"}
           </Button>
         </DialogFooter>
       </Dialog>
