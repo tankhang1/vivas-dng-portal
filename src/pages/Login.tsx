@@ -100,7 +100,9 @@ export default function Login() {
                 {loginMutation.isPending ? 'Đang đăng nhập...' : 'Đăng Nhập'}
               </Button>
               {loginMutation.isError ? (
-                <p className="text-sm text-red-600">{loginMutation.error.message}</p>
+                <p className="text-sm text-red-600">
+                  Đăng nhập không thành công, vui lòng kiểm tra lại tài khoản / mật khẩu
+                </p>
               ) : null}
             </form>
           </Form>

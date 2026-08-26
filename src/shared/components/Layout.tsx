@@ -1,4 +1,5 @@
 import React from 'react';
+import { isAxiosError } from 'axios';
 import { Link, useLocation } from 'wouter';
 import {
   Users,
@@ -12,16 +13,23 @@ import {
   LayoutDashboard,
   MessageSquareWarning,
   ChevronDown,
+  KeyRound,
   Tag,
   Settings,
   Info,
   Phone,
 } from 'lucide-react';
-import { cn } from './ui';
+import { Button, cn, Dialog, DialogFooter, DialogHeader, DialogTitle } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import {
+  ChangePasswordDialog,
+  type PasswordFormValues,
+} from './ChangePasswordDialog';
 import { BrandMark } from './BrandMark';
 import { useAuth } from '@/shared/providers';
 import { getCurrentStaff } from '@/shared/api';
+import { useUpdatePasswordProcessMutation } from '@/features/account/hooks/account.hook';
+import type { UpdatePasswordProcessResponse } from '@/features/account/types/update-password-process.response';
 
 type NavLeaf = {
   name: string;
@@ -126,6 +134,42 @@ export function Layout({ children }: { children: React.ReactNode }) {
     settings: location.startsWith('/settings'),
   });
 
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = React.useState(false);
+  const [pendingPasswordChange, setPendingPasswordChange] =
+    React.useState<PasswordFormValues | null>(null);
+  const updatePasswordMutation = useUpdatePasswordProcessMutation();
+
+  const handlePasswordDialogSubmit = (values: PasswordFormValues) => {
+    setPendingPasswordChange(values);
+    setChangePasswordDialogOpen(false);
+  };
+
+  const handleConfirmPasswordChange = async () => {
+    if (!pendingPasswordChange) return;
+
+    try {
+      await updatePasswordMutation.mutateAsync(pendingPasswordChange);
+      window.alert('Đổi mật khẩu thành công.');
+      setPendingPasswordChange(null);
+    } catch (error) {
+      const status = isAxiosError<UpdatePasswordProcessResponse>(error)
+        ? error.response?.data?.status
+        : undefined;
+
+      if (status === -2) {
+        window.alert('Nhân viên không tồn tại.');
+        return;
+      }
+
+      if (status === -3) {
+        window.alert('Mật khẩu hiện tại không chính xác.');
+        return;
+      }
+
+      window.alert('Đổi mật khẩu thất bại. Vui lòng kiểm tra lại thông tin và thử lại.');
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Sidebar - Desktop */}
@@ -217,7 +261,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary/20 font-bold text-sidebar-primary">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20 font-bold text-sidebar-primary">
               {staffInitials || 'NA'}
             </div>
             <div className="flex-1 overflow-hidden">
@@ -228,6 +272,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {staffRole}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => setChangePasswordDialogOpen(true)}
+              className="shrink-0 rounded-md p-2 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              title="Đổi mật khẩu"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span className="sr-only">Đổi mật khẩu</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -358,6 +411,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      <ChangePasswordDialog
+        open={changePasswordDialogOpen}
+        title="Đổi mật khẩu"
+        onClose={() => setChangePasswordDialogOpen(false)}
+        onContinue={handlePasswordDialogSubmit}
+      />
+      <Dialog
+        open={pendingPasswordChange !== null}
+        onOpenChange={(open) => {
+          if (!open && !updatePasswordMutation.isPending) {
+            setPendingPasswordChange(null);
+          }
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Xác nhận đổi mật khẩu?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Bạn có chắc muốn đổi mật khẩu cho tài khoản "{pendingPasswordChange?.username}" không?
+        </p>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setPendingPasswordChange(null)}
+            disabled={updatePasswordMutation.isPending}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleConfirmPasswordChange}
+            disabled={updatePasswordMutation.isPending}
+          >
+            {updatePasswordMutation.isPending ? 'Đang đổi...' : 'Xác nhận đổi mật khẩu'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   );
 }

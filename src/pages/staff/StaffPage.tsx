@@ -35,7 +35,7 @@ import { useAuth } from "@/shared/providers";
 import {
   ChangePasswordDialog,
   type PasswordFormValues,
-} from "./components/ChangePasswordDialog";
+} from "@/shared/components/ChangePasswordDialog";
 
 const PAGE_SIZE = 5;
 
@@ -363,7 +363,12 @@ export default function StaffPage() {
         </DialogFooter>
       </Dialog>
       <ChangePasswordDialog
-        staff={staffChangingPassword}
+        open={staffChangingPassword !== null}
+        title={
+          staffChangingPassword
+            ? `Đổi mật khẩu: ${staffChangingPassword.name}`
+            : undefined
+        }
         onClose={() => setStaffChangingPassword(null)}
         onContinue={handlePasswordDialogSubmit}
       />

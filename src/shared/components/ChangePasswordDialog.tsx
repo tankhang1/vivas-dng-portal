@@ -4,7 +4,6 @@ import { Controller, useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
-import type { StaffItem } from "@/features/staff/types/get-staffs.response";
 import {
   Button,
   Dialog,
@@ -34,13 +33,15 @@ const emptyPasswordForm: PasswordFormValues = {
 };
 
 type ChangePasswordDialogProps = {
-  staff: StaffItem | null;
+  open: boolean;
+  title?: string;
   onClose: () => void;
   onContinue: (values: PasswordFormValues) => void;
 };
 
 export function ChangePasswordDialog({
-  staff,
+  open,
+  title = "Đổi mật khẩu",
   onClose,
   onContinue,
 }: ChangePasswordDialogProps) {
@@ -52,21 +53,20 @@ export function ChangePasswordDialog({
   });
 
   useEffect(() => {
+    if (!open) return;
     form.reset(emptyPasswordForm);
     setShowCurrentPassword(false);
     setShowNewPassword(false);
-  }, [form, staff]);
+  }, [form, open]);
 
   const handleSubmit = (values: PasswordFormValues) => {
     onContinue({ ...values, username: values.username.trim() });
   };
 
   return (
-    <Dialog open={staff !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogHeader>
-        <DialogTitle>
-          Đổi mật khẩu{staff ? `: ${staff.name}` : ""}
-        </DialogTitle>
+        <DialogTitle>{title}</DialogTitle>
       </DialogHeader>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
