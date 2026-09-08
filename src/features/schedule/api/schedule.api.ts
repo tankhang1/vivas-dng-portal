@@ -3,6 +3,7 @@ import type { ConfirmScheduleMeetProcessRequest } from "@/features/schedule/type
 import type { ConfirmScheduleMeetProcessResponse } from "@/features/schedule/types/confirm-schedule-meet-process.response";
 import type { GetSchedulesByCategoryRequest } from "@/features/schedule/types/get-schedules-by-category.request";
 import type { GetSchedulesResponse } from "@/features/schedule/types/get-schedules.response";
+import type { GetTimeScheduleResponse } from "@/features/schedule/types/get-time-schedule.response";
 import type { ResolveScheduleMeetProcessRequest } from "@/features/schedule/types/resolve-schedule-meet-process.request";
 import type { ResolveScheduleMeetProcessResponse } from "@/features/schedule/types/resolve-schedule-meet-process.response";
 
@@ -23,6 +24,14 @@ export async function resolveScheduleMeetProcess(
   const response = await apiClient.post<ResolveScheduleMeetProcessResponse>(
     API_PATH.SCHEDULE.RESOLVE_PROCESS,
     request,
+  );
+
+  return response.data;
+}
+
+export async function getTimeSchedule(): Promise<GetTimeScheduleResponse> {
+  const response = await apiClient.get<GetTimeScheduleResponse>(
+    API_PATH.COMMON.TIME_SCHEDULE,
   );
 
   return response.data;

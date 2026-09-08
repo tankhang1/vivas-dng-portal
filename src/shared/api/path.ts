@@ -93,6 +93,7 @@ export const API_PATH = {
   COMMON: {
     HOTLINE: '/common/hotline',
     DASHBOARD: '/common/dashboard',
+    TIME_SCHEDULE: '/common/time-schedule',
     DEPARTMENTS: '/common/departments',
     DEPARTMENTS_SUB: (idRoot: number | string) => `/common/departments/sub/${idRoot}`,
     DEPARTMENT: '/common/department',

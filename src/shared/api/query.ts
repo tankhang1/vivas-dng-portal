@@ -6,6 +6,7 @@ export const QUERY_KEY = {
   },
   DASHBOARD: ['dashboard'] as const,
   HOTLINE: ['hotline'] as const,
+  TIME_SCHEDULE: ['time-schedule'] as const,
   CATEGORY_COMMENT: ['category-comment'] as const,
   CATEGORY_MEDIA: ['category-media'] as const,
   CATEGORY_NEWS: ['category-news'] as const,

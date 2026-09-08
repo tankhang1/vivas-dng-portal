@@ -18,6 +18,7 @@ import {
   Settings,
   Info,
   Phone,
+  CalendarClock,
 } from 'lucide-react';
 import { Button, cn, Dialog, DialogFooter, DialogHeader, DialogTitle } from './ui';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -69,8 +70,7 @@ const navItems: NavItem[] = [
   },
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh - Kiến nghị', href: '/feedback', icon: MessageSquareWarning },
-  // Temporarily hidden
-  // { name: 'Bốc Số', href: '/appointments', icon: CalendarClock },
+  { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
   { name: 'Điều phối', href: '/routing', icon: Waypoints },
   {
     name: 'Cài đặt',
@@ -93,7 +93,7 @@ function getVisibleNavItems(isAdmin: boolean): NavItem[] {
       return visible;
     }
 
-    if (item.href === '/dashboard' || item.href === '/feedback') {
+    if (item.href === '/dashboard' || item.href === '/feedback' || item.href === '/appointments') {
       visible.push(item);
     }
     return visible;

@@ -226,6 +226,28 @@ export function useStaffCoordinateSchedulesByStaffQuery(
   });
 }
 
+export function useInfiniteStaffCoordinateSchedulesByStaffQuery(
+  request: Omit<GetStaffCoordinateSchedulesByStaffRequest, 'nu'>,
+  enabled = true,
+) {
+  const { staffId, sz } = request;
+
+  return useInfiniteQuery<GetStaffCoordinateSchedulesByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_SCHEDULE_STAFF(staffId, { sz }),
+    queryFn: ({ pageParam }) =>
+      getStaffCoordinateSchedulesByStaff({
+        ...request,
+        nu: pageParam as number,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextPage = lastPage.page.number + 1;
+      return nextPage < lastPage.page.totalPages ? nextPage : undefined;
+    },
+    enabled: enabled && staffId !== undefined && staffId !== null && staffId !== '',
+  });
+}
+
 export function useStaffCoordinateScheduleQuery(
   request: GetStaffCoordinateScheduleRequest,
   enabled = true,

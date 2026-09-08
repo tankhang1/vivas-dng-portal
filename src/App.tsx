@@ -17,7 +17,7 @@ import CitizensCreate from "@/pages/citizens/Create";
 import CitizenDetail from "@/pages/citizens/Detail";
 import CitizensEdit from "@/pages/citizens/Edit";
 import Feedback from "@/pages/Feedback";
-import QueueTickets from "@/pages/QueueTickets";
+import QueueTickets from "@/pages/queue-tickets/QueueTicketsPage";
 import GeneralSettingsPage from "@/pages/settings/GeneralSettingsPage";
 import HotlinePage from "@/pages/settings/hotline/HotlinePage";
 import { AuthProvider, QueryClientProviderRoot, useAuth } from "@/shared/providers";
@@ -123,11 +123,7 @@ function Router() {
         </RoleGate>
       </Route>
       <Route path="/feedback" component={Feedback} />
-      <Route path="/appointments">
-        <RoleGate adminOnly>
-          <QueueTickets />
-        </RoleGate>
-      </Route>
+      <Route path="/appointments" component={QueueTickets} />
       <Route path="/settings/general">
         <RoleGate adminOnly>
           <GeneralSettingsPage />
