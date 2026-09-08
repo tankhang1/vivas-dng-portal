@@ -44,6 +44,20 @@ export const QUERY_KEY = {
     staffId: number | string,
     params: { sz?: number; nu?: number },
   ) => ['staff', 'coordinate-comment', 'staff', staffId, params] as const,
+  STAFF_COORDINATE_SCHEDULE_CATEGORY: (
+    categoryId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-schedule', 'category', categoryId, params] as const,
+  STAFF_COORDINATE_SCHEDULE_STAFF: (
+    staffId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['staff', 'coordinate-schedule', 'staff', staffId, params] as const,
+  STAFF_COORDINATE_SCHEDULE_STAFF_CATEGORY: (
+    staffId: number | string,
+    categoryId: number | string,
+  ) => ['staff', 'coordinate-schedule', 'staff-category', staffId, categoryId] as const,
+  STAFF_COORDINATE_SCHEDULE: (id: number | string) =>
+    ['staff', 'coordinate-schedule', 'detail', id] as const,
   NEWS: ['news'] as const,
   NEWS_DETAIL: (id: number | string) => ['news', 'detail', id] as const,
   NEWS_ALL: (params: { sz?: number; nu?: number }) => ['news', 'all', params] as const,
@@ -87,6 +101,10 @@ export const QUERY_KEY = {
     nu?: number;
   }) => ['citizens', 'search', params] as const,
   CITIZEN_PROFILE: (zaloUserId: number | string) => ['citizens', 'profile', zaloUserId] as const,
+  SCHEDULES_BY_CATEGORY: (
+    categoryId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['schedules', 'category', categoryId, params] as const,
   NEWS_SEARCH: (params: {
     key?: string;
     category_item?: number;
@@ -97,6 +115,8 @@ export const QUERY_KEY = {
     ['category-news', 'list', params] as const,
   COMMENT_CATEGORIES: (params: { sz?: number; nu?: number }) =>
     ['category-comment', 'list', params] as const,
+  SCHEDULE_CATEGORIES: (params: { sz?: number; nu?: number }) =>
+    ['category-schedule', 'list', params] as const,
 } as const;
 
 export function createAppQueryClient() {

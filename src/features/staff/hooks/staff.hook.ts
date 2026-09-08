@@ -2,20 +2,29 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 import {
   activeStaffCoordinateCommentProcess,
+  activeStaffCoordinateScheduleProcess,
   getStaffCoordinateCommentsByCategory,
   getStaffCoordinateCommentsByCategoryApprove,
   getStaffCoordinateCommentsByCategoryNoneApprove,
   getStaffCoordinateCommentsByStaffApprove,
   getStaffCoordinateCommentsByStaffNoneApprove,
   getStaffCoordinateCommentsByStaff,
+  getStaffCoordinateSchedule,
+  getStaffCoordinateScheduleById,
+  getStaffCoordinateSchedulesByCategory,
+  getStaffCoordinateSchedulesByStaff,
   activeStaffProcess,
   createStaffProcess,
   createStaffCoordinateCommentProcess,
+  createStaffCoordinateScheduleProcess,
   deactiveStaffProcess,
   deactiveStaffCoordinateCommentProcess,
+  deactiveStaffCoordinateScheduleProcess,
   editStaffCoordinateCommentProcess,
+  editStaffCoordinateScheduleProcess,
   editStaffProcess,
   removeStaffCoordinateCommentProcess,
+  removeStaffCoordinateScheduleProcess,
   searchStaff,
   getStaffByDepartment,
   getStaffDetail,
@@ -27,16 +36,33 @@ import type { GetStaffByDepartmentRequest } from '@/features/staff/types/get-sta
 import type { GetStaffByDepartmentResponse } from '@/features/staff/types/get-staff-by-department.response';
 import type { ActiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/active-staff-coordinate-comment-process.request';
 import type { ActiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/active-staff-coordinate-comment-process.response';
+import type { ActiveStaffCoordinateScheduleProcessRequest } from '@/features/staff/types/active-staff-coordinate-schedule-process.request';
+import type { ActiveStaffCoordinateScheduleProcessResponse } from '@/features/staff/types/active-staff-coordinate-schedule-process.response';
 import type { CreateStaffCoordinateCommentProcessRequest } from '@/features/staff/types/create-staff-coordinate-comment-process.request';
 import type { CreateStaffCoordinateCommentProcessResponse } from '@/features/staff/types/create-staff-coordinate-comment-process.response';
+import type { CreateStaffCoordinateScheduleProcessRequest } from '@/features/staff/types/create-staff-coordinate-schedule-process.request';
+import type { CreateStaffCoordinateScheduleProcessResponse } from '@/features/staff/types/create-staff-coordinate-schedule-process.response';
 import type { DeactiveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/deactive-staff-coordinate-comment-process.request';
 import type { DeactiveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/deactive-staff-coordinate-comment-process.response';
+import type { DeactiveStaffCoordinateScheduleProcessRequest } from '@/features/staff/types/deactive-staff-coordinate-schedule-process.request';
+import type { DeactiveStaffCoordinateScheduleProcessResponse } from '@/features/staff/types/deactive-staff-coordinate-schedule-process.response';
 import type { EditStaffCoordinateCommentProcessRequest } from '@/features/staff/types/edit-staff-coordinate-comment-process.request';
 import type { EditStaffCoordinateCommentProcessResponse } from '@/features/staff/types/edit-staff-coordinate-comment-process.response';
+import type { EditStaffCoordinateScheduleProcessRequest } from '@/features/staff/types/edit-staff-coordinate-schedule-process.request';
+import type { EditStaffCoordinateScheduleProcessResponse } from '@/features/staff/types/edit-staff-coordinate-schedule-process.response';
 import type { RemoveStaffCoordinateCommentProcessRequest } from '@/features/staff/types/remove-staff-coordinate-comment-process.request';
 import type { RemoveStaffCoordinateCommentProcessResponse } from '@/features/staff/types/remove-staff-coordinate-comment-process.response';
+import type { RemoveStaffCoordinateScheduleProcessRequest } from '@/features/staff/types/remove-staff-coordinate-schedule-process.request';
+import type { RemoveStaffCoordinateScheduleProcessResponse } from '@/features/staff/types/remove-staff-coordinate-schedule-process.response';
 import type { GetStaffCoordinateCommentsByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-category.request';
 import type { GetStaffCoordinateCommentsByCategoryResponse } from '@/features/staff/types/get-staff-coordinate-comments-by-category.response';
+import type { GetStaffCoordinateScheduleRequest } from '@/features/staff/types/get-staff-coordinate-schedule.request';
+import type { GetStaffCoordinateSchedulesByCategoryRequest } from '@/features/staff/types/get-staff-coordinate-schedules-by-category.request';
+import type {
+  GetStaffCoordinateSchedulesByCategoryResponse,
+  StaffCoordinateScheduleItem,
+} from '@/features/staff/types/get-staff-coordinate-schedules-by-category.response';
+import type { GetStaffCoordinateSchedulesByStaffRequest } from '@/features/staff/types/get-staff-coordinate-schedules-by-staff.request';
 import type { GetStaffCoordinateCommentsByStaffRequest } from '@/features/staff/types/get-staff-coordinate-comments-by-staff.request';
 import type { ActiveStaffProcessRequest } from '@/features/staff/types/active-staff-process.request';
 import type { ActiveStaffProcessResponse } from '@/features/staff/types/active-staff-process.response';
@@ -174,6 +200,69 @@ export function useStaffCoordinateCommentsByStaffNoneApproveQuery(
   });
 }
 
+export function useStaffCoordinateSchedulesByCategoryQuery(
+  request: GetStaffCoordinateSchedulesByCategoryRequest,
+  enabled = true,
+) {
+  const { categoryId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateSchedulesByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_SCHEDULE_CATEGORY(categoryId, { sz, nu }),
+    queryFn: () => getStaffCoordinateSchedulesByCategory(request),
+    enabled: enabled && categoryId !== undefined && categoryId !== null && categoryId !== '',
+  });
+}
+
+export function useStaffCoordinateSchedulesByStaffQuery(
+  request: GetStaffCoordinateSchedulesByStaffRequest,
+  enabled = true,
+) {
+  const { staffId, sz, nu } = request;
+
+  return useQuery<GetStaffCoordinateSchedulesByCategoryResponse>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_SCHEDULE_STAFF(staffId, { sz, nu }),
+    queryFn: () => getStaffCoordinateSchedulesByStaff(request),
+    enabled: enabled && staffId !== undefined && staffId !== null && staffId !== '',
+  });
+}
+
+export function useStaffCoordinateScheduleQuery(
+  request: GetStaffCoordinateScheduleRequest,
+  enabled = true,
+) {
+  const { staffId, categoryId } = request;
+
+  return useQuery<StaffCoordinateScheduleItem>({
+    queryKey: QUERY_KEY.STAFF_COORDINATE_SCHEDULE_STAFF_CATEGORY(
+      staffId,
+      categoryId,
+    ),
+    queryFn: () => getStaffCoordinateSchedule(request),
+    enabled:
+      enabled &&
+      staffId !== undefined &&
+      staffId !== null &&
+      staffId !== "" &&
+      categoryId !== undefined &&
+      categoryId !== null &&
+      categoryId !== "",
+  });
+}
+
+export function useStaffCoordinateScheduleByIdQuery(
+  id?: number | string,
+  enabled = true,
+) {
+  return useQuery<StaffCoordinateScheduleItem>({
+    queryKey:
+      id !== undefined && id !== null && id !== ""
+        ? QUERY_KEY.STAFF_COORDINATE_SCHEDULE(id)
+        : QUERY_KEY.STAFF_COORDINATE_SCHEDULE(""),
+    queryFn: () => getStaffCoordinateScheduleById(id as number | string),
+    enabled: enabled && id !== undefined && id !== null && id !== "",
+  });
+}
+
 export function useCreateStaffProcessMutation() {
   const queryClient = useQueryClient();
 
@@ -233,6 +322,96 @@ export function useCreateStaffCoordinateCommentProcessMutation() {
     mutationFn: createStaffCoordinateCommentProcess,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF });
+    },
+  });
+}
+
+export function useCreateStaffCoordinateScheduleProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    CreateStaffCoordinateScheduleProcessResponse,
+    Error,
+    CreateStaffCoordinateScheduleProcessRequest
+  >({
+    mutationFn: createStaffCoordinateScheduleProcess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF }),
+        queryClient.invalidateQueries({ queryKey: ["schedules"] }),
+      ]);
+    },
+  });
+}
+
+export function useEditStaffCoordinateScheduleProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    EditStaffCoordinateScheduleProcessResponse,
+    Error,
+    EditStaffCoordinateScheduleProcessRequest
+  >({
+    mutationFn: editStaffCoordinateScheduleProcess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF }),
+        queryClient.invalidateQueries({ queryKey: ["schedules"] }),
+      ]);
+    },
+  });
+}
+
+export function useDeactiveStaffCoordinateScheduleProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    DeactiveStaffCoordinateScheduleProcessResponse,
+    Error,
+    DeactiveStaffCoordinateScheduleProcessRequest
+  >({
+    mutationFn: deactiveStaffCoordinateScheduleProcess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF }),
+        queryClient.invalidateQueries({ queryKey: ["schedules"] }),
+      ]);
+    },
+  });
+}
+
+export function useActiveStaffCoordinateScheduleProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ActiveStaffCoordinateScheduleProcessResponse,
+    Error,
+    ActiveStaffCoordinateScheduleProcessRequest
+  >({
+    mutationFn: activeStaffCoordinateScheduleProcess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF }),
+        queryClient.invalidateQueries({ queryKey: ["schedules"] }),
+      ]);
+    },
+  });
+}
+
+export function useRemoveStaffCoordinateScheduleProcessMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    RemoveStaffCoordinateScheduleProcessResponse,
+    Error,
+    RemoveStaffCoordinateScheduleProcessRequest
+  >({
+    mutationFn: removeStaffCoordinateScheduleProcess,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY.STAFF }),
+        queryClient.invalidateQueries({ queryKey: ["schedules"] }),
+      ]);
     },
   });
 }

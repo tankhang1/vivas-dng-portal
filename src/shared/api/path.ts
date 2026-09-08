@@ -20,6 +20,11 @@ export const API_PATH = {
     COORDINATE_COMMENT_DEACTIVE_PROCESS: '/admin/staff/coordinate-comment/deactive/process',
     COORDINATE_COMMENT_ACTIVE_PROCESS: '/admin/staff/coordinate-comment/active/process',
     COORDINATE_COMMENT_REMOVE_PROCESS: '/admin/staff/coordinate-comment/remove/process',
+    COORDINATE_SCHEDULE_CREATE_PROCESS: '/admin/staff/coordinate-schedule/create/process',
+    COORDINATE_SCHEDULE_EDIT_PROCESS: '/admin/staff/coordinate-schedule/edit/process',
+    COORDINATE_SCHEDULE_DEACTIVE_PROCESS: '/admin/staff/coordinate-schedule/deactive/process',
+    COORDINATE_SCHEDULE_ACTIVE_PROCESS: '/admin/staff/coordinate-schedule/active/process',
+    COORDINATE_SCHEDULE_REMOVE_PROCESS: '/admin/staff/coordinate-schedule/remove/process',
   },
   HOTLINE: {
     CREATE_PROCESS: '/admin/hotline/create/process',
@@ -30,6 +35,10 @@ export const API_PATH = {
   },
   DASHBOARD: {
     EDIT_PROCESS: '/admin/dashboard/edit/process',
+  },
+  SCHEDULE: {
+    CONFIRM_PROCESS: '/admin/schedule/confirm/process',
+    RESOLVE_PROCESS: '/admin/schedule/resolve/process',
   },
   FEEDBACK: {
     CREATE_PROCESS: '/admin/feedback/create/process',
@@ -105,6 +114,8 @@ export const API_PATH = {
       `/common-portal/comments/citizen/${zaloUserId}`,
     CITIZEN: '/common-portal/citizen',
     CITIZEN_PROFILE: (zaloUserId: number | string) => `/common-portal/profile/${zaloUserId}`,
+    SCHEDULES_BY_CATEGORY: (categoryId: number | string) =>
+      `/common-portal/schedules/${categoryId}`,
     STAFF: '/common-portal/staff',
     STAFF_DETAIL: (id: number | string) => `/common-portal/staff/detail/${id}`,
     STAFF_BY_DEPARTMENT: (departmentId: number | string) =>
@@ -121,6 +132,16 @@ export const API_PATH = {
       `/common-portal/staff-coordinate-comments/staff-none-approve/${staffId}`,
     STAFF_COORDINATE_COMMENTS_STAFF: (staffId: number | string) =>
       `/common-portal/staff-coordinate-comments/staff/${staffId}`,
+    STAFF_COORDINATE_SCHEDULE_CATEGORY: (categoryId: number | string) =>
+      `/common-portal/staff-coordinate-schedule/category/${categoryId}`,
+    STAFF_COORDINATE_SCHEDULE_STAFF: (staffId: number | string) =>
+      `/common-portal/staff-coordinate-schedule/staff/${staffId}`,
+    STAFF_COORDINATE_SCHEDULE_STAFF_CATEGORY: (
+      staffId: number | string,
+      categoryId: number | string,
+    ) => `/common-portal/staff-coordinate-schedule/staff-${staffId}/category-${categoryId}`,
+    STAFF_COORDINATE_SCHEDULE: (id: number | string) =>
+      `/common-portal/staff-coordinate-schedule/get/${id}`,
     NEWS: '/common-portal/news',
     NEWS_DETAIL: (id: number | string) => `/common-portal/news/${id}`,
     NEWS_SEARCH: '/common-portal/news/search',
