@@ -13,46 +13,36 @@ import {
   Input,
 } from "../../shared/components/ui";
 import { Spinner } from "../../shared/components/ui/spinner";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
+import { useInfiniteScheduleCategoriesQuery } from "@/features/category-schedule/hooks/category-schedule.hook";
 import {
   useSearchStaffQuery,
-  useStaffCoordinateCommentsByCategoryApproveQuery,
-  useStaffCoordinateCommentsByCategoryNoneApproveQuery,
-  useCreateStaffCoordinateCommentProcessMutation,
-  useEditStaffCoordinateCommentProcessMutation,
-  useRemoveStaffCoordinateCommentProcessMutation,
+  useStaffCoordinateSchedulesByCategoryQuery,
+  useCreateStaffCoordinateScheduleProcessMutation,
+  useRemoveStaffCoordinateScheduleProcessMutation,
 } from "@/features/staff/hooks/staff.hook";
-import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
-import { RoutingStaffDialog } from "./components/RoutingStaffDialog";
-import { Edit2, Phone, Plus, Search, Shield, Trash2, Waypoints } from "lucide-react";
+import type { StaffCoordinateScheduleItem } from "@/features/staff/types/get-staff-coordinate-schedules-by-category.response";
+import { RoutingScheduleStaffDialog } from "./components/RoutingScheduleStaffDialog";
+import { Phone, Plus, Search, Shield, Trash2, Waypoints } from "lucide-react";
 
 const CATEGORY_LIST_SIZE = 10;
 const STAFF_LIST_SIZE = 200;
 
-export default function RoutingPage() {
+export default function RoutingSchedulePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
-  const [activeTab, setActiveTab] = useState<"approved" | "pending">(
-    "approved",
-  );
   const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = useState(false);
-  const [editingStaffLink, setEditingStaffLink] =
-    useState<StaffCoordinateCommentItem | null>(null);
   const [pendingStaffSave, setPendingStaffSave] = useState<{
     staffId: string;
-    approval: boolean;
-    editingItem: StaffCoordinateCommentItem | null;
     categoryId: number;
     categoryName: string;
     staffName: string;
   } | null>(null);
   const [pendingStaffDelete, setPendingStaffDelete] =
-    useState<StaffCoordinateCommentItem | null>(null);
+    useState<StaffCoordinateScheduleItem | null>(null);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const categoryLoadMoreRef = useRef<HTMLDivElement>(null);
 
-  const categoriesQuery = useInfiniteCommentCategoriesQuery({
+  const categoriesQuery = useInfiniteScheduleCategoriesQuery({
     sz: CATEGORY_LIST_SIZE,
   });
   const categories = useMemo(
@@ -108,77 +98,36 @@ export default function RoutingPage() {
     return map;
   }, [staffList]);
 
-  const approveQuery = useStaffCoordinateCommentsByCategoryApproveQuery({
+  const staffQuery = useStaffCoordinateSchedulesByCategoryQuery({
     categoryId: activeCategoryId,
     sz: 200,
     nu: 0,
   });
-  const pendingQuery = useStaffCoordinateCommentsByCategoryNoneApproveQuery({
-    categoryId: activeCategoryId,
-    sz: 200,
-    nu: 0,
-  });
-
-  const approvedRows = approveQuery.data?.content ?? [];
-  const pendingRows = pendingQuery.data?.content ?? [];
-  const isLoadingRows = approveQuery.isLoading || pendingQuery.isLoading;
+  const staffRows = staffQuery.data?.content ?? [];
+  const isLoadingRows = staffQuery.isLoading;
 
   const assignedStaffIds = useMemo(
-    () => new Set([...approvedRows, ...pendingRows].map((r) => r.staff_item)),
-    [approvedRows, pendingRows],
+    () => new Set(staffRows.map((r) => r.staff_item)),
+    [staffRows],
   );
   const assignableStaff = staffList.filter(
-    (staff) =>
-      !assignedStaffIds.has(staff.id) ||
-      staff.id === editingStaffLink?.staff_item,
+    (staff) => !assignedStaffIds.has(staff.id),
   );
 
-  const createMutation = useCreateStaffCoordinateCommentProcessMutation();
-  const editMutation = useEditStaffCoordinateCommentProcessMutation();
-  const removeMutation = useRemoveStaffCoordinateCommentProcessMutation();
-  const isToggling =
-    createMutation.isPending ||
-    editMutation.isPending ||
-    removeMutation.isPending;
+  const createMutation = useCreateStaffCoordinateScheduleProcessMutation();
+  const removeMutation = useRemoveStaffCoordinateScheduleProcessMutation();
+  const isToggling = createMutation.isPending || removeMutation.isPending;
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategoryId(id);
   };
 
-  const handleOpenEditStaff = (item: StaffCoordinateCommentItem) => {
-    setEditingStaffLink(item);
-    setIsAddStaffDialogOpen(true);
-  };
-
-  const executeDeleteStaffLink = async (item: StaffCoordinateCommentItem) => {
-    try {
-      await removeMutation.mutateAsync({
-        id: item.id,
-        staff_item: item.staff_item,
-      });
-      if (editingStaffLink?.id === item.id) {
-        setEditingStaffLink(null);
-      }
-    } catch {
-      window.alert("Xoá cán bộ điều phối thất bại. Vui lòng thử lại.");
-    } finally {
-      setPendingStaffDelete(null);
-    }
-  };
-
-  const handleDeleteStaffLink = (item: StaffCoordinateCommentItem) => {
-    setPendingStaffDelete(item);
-  };
-
   const handleOpenAddStaffDialog = () => {
-    setEditingStaffLink(null);
     setIsAddStaffDialogOpen(true);
   };
 
   const executeAddStaff = async (pending: {
     staffId: string;
-    approval: boolean;
-    editingItem: StaffCoordinateCommentItem | null;
     categoryId: number;
     categoryName: string;
   }) => {
@@ -186,28 +135,14 @@ export default function RoutingPage() {
     if (!staff) return;
 
     try {
-      if (pending.editingItem) {
-        await editMutation.mutateAsync({
-          id: pending.editingItem.id,
-          staff_item: staff.id,
-          staff_name: staff.name,
-          approval: pending.approval ? 1 : 0,
-          comments_category_item: pending.categoryId,
-          comments_category_name: pending.categoryName,
-        });
-      } else {
-        await createMutation.mutateAsync({
-          id: 0,
-          staff_item: staff.id,
-          staff_name: staff.name,
-          approval: pending.approval ? 1 : 0,
-          comments_category_item: pending.categoryId,
-          comments_category_name: pending.categoryName,
-        });
-      }
+      await createMutation.mutateAsync({
+        id: 0,
+        staff_item: staff.id,
+        staff_name: staff.name,
+        schedule_category_item: pending.categoryId,
+        schedule_category_name: pending.categoryName,
+      });
       setIsAddStaffDialogOpen(false);
-      setEditingStaffLink(null);
-      setActiveTab(pending.approval ? "approved" : "pending");
     } catch {
       window.alert("Thêm cán bộ thất bại. Vui lòng thử lại.");
     } finally {
@@ -215,23 +150,33 @@ export default function RoutingPage() {
     }
   };
 
-  const handleAddStaff = async (values: {
-    staffId: string;
-    approval: boolean;
-  }) => {
+  const handleAddStaff = async (values: { staffId: string }) => {
     if (!activeCategory || values.staffId === "") return;
     const staff = staffById.get(Number(values.staffId));
     if (!staff) return;
     setPendingStaffSave({
       ...values,
-      editingItem: editingStaffLink,
       categoryId: activeCategory.id,
       categoryName: activeCategory.name,
       staffName: staff.name,
     });
   };
 
-  const renderStaffRow = (item: StaffCoordinateCommentItem) => {
+  const handleDeleteStaffLink = (item: StaffCoordinateScheduleItem) => {
+    setPendingStaffDelete(item);
+  };
+
+  const executeDeleteStaffLink = async (item: StaffCoordinateScheduleItem) => {
+    try {
+      await removeMutation.mutateAsync({ id: item.id });
+    } catch {
+      window.alert("Xoá cán bộ điều phối thất bại. Vui lòng thử lại.");
+    } finally {
+      setPendingStaffDelete(null);
+    }
+  };
+
+  const renderStaffRow = (item: StaffCoordinateScheduleItem) => {
     const staff = staffById.get(item.staff_item);
     return (
       <div
@@ -259,15 +204,6 @@ export default function RoutingPage() {
           <Button
             variant="outline"
             size="sm"
-            disabled={isToggling}
-            onClick={() => handleOpenEditStaff(item)}
-          >
-            <Edit2 className="mr-2 h-4 w-4" />
-            Sửa
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
             disabled={isToggling}
             onClick={() => handleDeleteStaffLink(item)}
@@ -286,11 +222,10 @@ export default function RoutingPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Điều phối (Phản ánh - Kiến nghị)
+              Điều phối (Đặt lịch hẹn)
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Chọn một điều phối chuyên trách để xem và điều phối cán bộ xử lý
-              tương ứng.
+              Chọn một danh mục đặt lịch hẹn để điều phối cán bộ phụ trách.
             </p>
           </div>
         </div>
@@ -300,9 +235,7 @@ export default function RoutingPage() {
             <CardHeader className="border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <Waypoints className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">
-                  Danh mục phản ánh kiến nghị
-                </CardTitle>
+                <CardTitle className="text-lg">Danh mục đặt lịch hẹn</CardTitle>
               </div>
               <div className="relative mt-3">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -368,8 +301,7 @@ export default function RoutingPage() {
                     Danh sách cán bộ điều phối
                   </CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Mỗi nhóm có thể mở ra để xem cán bộ được gán, kèm số điện
-                    thoại, chức vụ và thao tác phê duyệt nhanh.
+                    Danh sách cán bộ được gán cho danh mục đặt lịch hẹn này.
                   </p>
                 </div>
                 <Button
@@ -384,7 +316,7 @@ export default function RoutingPage() {
               <CardContent className="space-y-3 pt-4">
                 {!activeCategory && (
                   <p className="py-8 text-center text-sm text-muted-foreground">
-                    Chọn một điều phối ở bên phải để xem cán bộ phụ trách.
+                    Chọn một danh mục ở bên phải để xem cán bộ phụ trách.
                   </p>
                 )}
                 {activeCategory && isLoadingRows && (
@@ -393,38 +325,15 @@ export default function RoutingPage() {
                   </div>
                 )}
                 {activeCategory && !isLoadingRows && (
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={(value) =>
-                      setActiveTab(value as "approved" | "pending")
-                    }
-                  >
-                    <TabsList className="w-full">
-                      <TabsTrigger value="approved" className="flex-1">
-                        Quyền phê duyệt ({approvedRows.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="pending" className="flex-1">
-                        Quyền xử lý ({pendingRows.length})
-                      </TabsTrigger>
-                    </TabsList>
-                    <div className="mt-3 overflow-hidden rounded-lg border border-border">
-                      {activeTab === "approved" ? (
-                        approvedRows.length === 0 ? (
-                          <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                            Chưa có cán bộ nào được quyền phê duyệt.
-                          </p>
-                        ) : (
-                          approvedRows.map(renderStaffRow)
-                        )
-                      ) : pendingRows.length === 0 ? (
-                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                          Chưa có cán bộ được quyền xử lý.
-                        </p>
-                      ) : (
-                        pendingRows.map(renderStaffRow)
-                      )}
-                    </div>
-                  </Tabs>
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    {staffRows.length === 0 ? (
+                      <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                        Chưa có cán bộ nào được gán vào danh mục này.
+                      </p>
+                    ) : (
+                      staffRows.map(renderStaffRow)
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -432,19 +341,12 @@ export default function RoutingPage() {
         </div>
       </div>
 
-      <RoutingStaffDialog
+      <RoutingScheduleStaffDialog
         open={isAddStaffDialogOpen}
-        onOpenChange={(open) => {
-          setIsAddStaffDialogOpen(open);
-          if (!open) {
-            setEditingStaffLink(null);
-          }
-        }}
+        onOpenChange={setIsAddStaffDialogOpen}
         categoryName={activeCategory?.name ?? ""}
         staffOptions={assignableStaff}
-        isSaving={createMutation.isPending || editMutation.isPending}
-        mode={editingStaffLink ? "edit" : "create"}
-        editingItem={editingStaffLink}
+        isSaving={createMutation.isPending}
         onSubmit={handleAddStaff}
       />
 
@@ -455,16 +357,10 @@ export default function RoutingPage() {
         }}
       >
         <DialogHeader>
-          <DialogTitle>
-            {pendingStaffSave?.editingItem
-              ? "Xác nhận cập nhật phân công?"
-              : "Xác nhận thêm cán bộ?"}
-          </DialogTitle>
+          <DialogTitle>Xác nhận thêm cán bộ?</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          {pendingStaffSave?.editingItem
-            ? `Bạn có chắc muốn cập nhật quyền của cán bộ "${pendingStaffSave?.staffName ?? ""}" không?`
-            : `Bạn có chắc muốn thêm cán bộ "${pendingStaffSave?.staffName ?? ""}" vào điều phối này không?`}
+          {`Bạn có chắc muốn thêm cán bộ "${pendingStaffSave?.staffName ?? ""}" vào điều phối này không?`}
         </p>
         <DialogFooter>
           <Button

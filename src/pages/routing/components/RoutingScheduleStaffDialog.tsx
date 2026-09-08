@@ -11,7 +11,6 @@ import {
   Input,
   Label,
 } from "../../../shared/components/ui";
-import { Switch } from "../../../shared/components/ui/switch";
 import {
   Command,
   CommandEmpty,
@@ -28,29 +27,24 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import type { StaffItem } from "@/features/staff/types/get-staffs.response";
-import type { StaffCoordinateCommentItem } from "@/features/staff/types/get-staff-coordinate-comment.response";
 
-const routingStaffSchema = z.object({
-  staffId: z.string().min(1, "Vui lòng chọn cán bộ xử lý"),
-  approval: z.boolean().default(false),
+const routingScheduleStaffSchema = z.object({
+  staffId: z.string().min(1, "Vui lòng chọn cán bộ điều phối"),
 });
 
-type RoutingStaffFormValues = z.infer<typeof routingStaffSchema>;
+type RoutingScheduleStaffFormValues = z.infer<typeof routingScheduleStaffSchema>;
 
-type RoutingStaffDialogProps = {
+type RoutingScheduleStaffDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryName: string;
   staffOptions: StaffItem[];
   isSaving: boolean;
-  mode?: "create" | "edit";
-  editingItem?: StaffCoordinateCommentItem | null;
-  onSubmit: (values: RoutingStaffFormValues) => Promise<void>;
+  onSubmit: (values: RoutingScheduleStaffFormValues) => Promise<void>;
 };
 
-const defaultValues: RoutingStaffFormValues = {
+const defaultValues: RoutingScheduleStaffFormValues = {
   staffId: "",
-  approval: false,
 };
 
 function FieldError({ message }: { message?: string }) {
@@ -58,20 +52,18 @@ function FieldError({ message }: { message?: string }) {
   return <p className="text-sm text-red-600">{message}</p>;
 }
 
-export function RoutingStaffDialog({
+export function RoutingScheduleStaffDialog({
   open,
   onOpenChange,
   categoryName,
   staffOptions,
   isSaving,
-  mode = "create",
-  editingItem,
   onSubmit,
-}: RoutingStaffDialogProps) {
+}: RoutingScheduleStaffDialogProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-  const form = useForm<RoutingStaffFormValues>({
-    resolver: zodResolver(routingStaffSchema),
+  const form = useForm<RoutingScheduleStaffFormValues>({
+    resolver: zodResolver(routingScheduleStaffSchema),
     defaultValues,
   });
 
@@ -85,17 +77,10 @@ export function RoutingStaffDialog({
 
   useEffect(() => {
     if (open) {
-      reset(
-        editingItem
-          ? {
-              staffId: String(editingItem.staff_item),
-              approval: editingItem.approval === 1,
-            }
-          : defaultValues,
-      );
+      reset(defaultValues);
       setIsPickerOpen(false);
     }
-  }, [editingItem, open, reset]);
+  }, [open, reset]);
 
   const selectedStaffId = watch("staffId");
   const selectedStaff = useMemo(
@@ -111,9 +96,7 @@ export function RoutingStaffDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "edit" ? "Cập nhật cán bộ điều phối" : "Thêm cán bộ vào điều phối"}
-          </DialogTitle>
+          <DialogTitle>Thêm cán bộ vào điều phối</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -135,7 +118,6 @@ export function RoutingStaffDialog({
                       variant="outline"
                       role="combobox"
                       aria-expanded={isPickerOpen}
-                      disabled={mode === "edit"}
                       className="w-full justify-between font-normal"
                     >
                       <span className="truncate">
@@ -191,28 +173,6 @@ export function RoutingStaffDialog({
               </p>
             )}
           </div>
-
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-2.5">
-            <div>
-              <Label htmlFor="new-staff-approval" required>
-                Cho phép duyệt
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Bật để phê duyệt cán bộ ngay khi thêm, thay vì chờ xử lý sau.
-              </p>
-            </div>
-            <Controller
-              control={control}
-              name="approval"
-              render={({ field }) => (
-                <Switch
-                  id="new-staff-approval"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              )}
-            />
-          </div>
         </div>
 
         <DialogFooter>
@@ -220,11 +180,7 @@ export function RoutingStaffDialog({
             Hủy
           </Button>
           <Button type="submit" disabled={saveDisabled}>
-            {saveDisabled
-              ? "Đang lưu..."
-              : mode === "edit"
-                ? "Cập nhật"
-                : "Thêm cán bộ"}
+            {saveDisabled ? "Đang lưu..." : "Thêm cán bộ"}
           </Button>
         </DialogFooter>
       </form>

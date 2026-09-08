@@ -12,6 +12,7 @@ import NewsCreate from "@/pages/news/Create";
 import NewsEdit from "@/pages/news/Edit";
 import CategoriesPage from "@/pages/categories";
 import RoutingPage from "@/pages/routing/RoutingPage";
+import RoutingSchedulePage from "@/pages/routing/RoutingSchedulePage";
 import Citizens from "@/pages/citizens";
 import CitizensCreate from "@/pages/citizens/Create";
 import CitizenDetail from "@/pages/citizens/Detail";
@@ -109,17 +110,27 @@ function Router() {
       </Route>
       <Route path="/routing/list">
         <RoleGate adminOnly>
-          <Redirect to="/routing" />
+          <Redirect to="/routing/feedback" />
         </RoleGate>
       </Route>
       <Route path="/routing/setup">
         <RoleGate adminOnly>
-          <Redirect to="/routing" />
+          <Redirect to="/routing/feedback" />
         </RoleGate>
       </Route>
       <Route path="/routing">
         <RoleGate adminOnly>
+          <Redirect to="/routing/feedback" />
+        </RoleGate>
+      </Route>
+      <Route path="/routing/feedback">
+        <RoleGate adminOnly>
           <RoutingPage />
+        </RoleGate>
+      </Route>
+      <Route path="/routing/schedule">
+        <RoleGate adminOnly>
+          <RoutingSchedulePage />
         </RoleGate>
       </Route>
       <Route path="/feedback" component={Feedback} />

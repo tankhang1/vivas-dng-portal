@@ -71,7 +71,15 @@ const navItems: NavItem[] = [
   { name: 'Công dân', href: '/citizens', icon: BookUser },
   { name: 'Phản ánh - Kiến nghị', href: '/feedback', icon: MessageSquareWarning },
   { name: 'Đặt lịch hẹn', href: '/appointments', icon: CalendarClock },
-  { name: 'Điều phối', href: '/routing', icon: Waypoints },
+  {
+    name: 'Điều phối',
+    menuKey: 'routing',
+    icon: Waypoints,
+    children: [
+      { name: 'Phản ánh - kiến nghị', href: '/routing/feedback', icon: MessageSquareWarning },
+      { name: 'Đặt lịch hẹn', href: '/routing/schedule', icon: CalendarClock },
+    ],
+  },
   {
     name: 'Cài đặt',
     menuKey: 'settings',
@@ -131,6 +139,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     cms:
       location.startsWith('/news') ||
       location.startsWith('/categories'),
+    routing: location.startsWith('/routing'),
     settings: location.startsWith('/settings'),
   });
 
