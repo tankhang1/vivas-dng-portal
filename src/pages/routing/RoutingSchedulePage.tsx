@@ -168,7 +168,7 @@ export default function RoutingSchedulePage() {
 
   const executeDeleteStaffLink = async (item: StaffCoordinateScheduleItem) => {
     try {
-      await removeMutation.mutateAsync({ id: item.id });
+      await removeMutation.mutateAsync({ id: item.id, staff_item: item.staff_item });
     } catch {
       window.alert("Xoá cán bộ điều phối thất bại. Vui lòng thử lại.");
     } finally {
