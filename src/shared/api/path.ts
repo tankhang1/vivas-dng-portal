@@ -93,6 +93,7 @@ export const API_PATH = {
   COMMON: {
     HOTLINE: '/common/hotline',
     DASHBOARD: '/common/dashboard',
+    QUEUE: '/common/queue',
     TIME_SCHEDULE: '/common/time-schedule',
     DEPARTMENTS: '/common/departments',
     DEPARTMENTS_SUB: (idRoot: number | string) => `/common/departments/sub/${idRoot}`,
@@ -117,6 +118,8 @@ export const API_PATH = {
     CITIZEN_PROFILE: (zaloUserId: number | string) => `/common-portal/profile/${zaloUserId}`,
     SCHEDULES_BY_CATEGORY: (categoryId: number | string) =>
       `/common-portal/schedules/${categoryId}`,
+    NUMBERS_BY_QUEUE: (queueId: number | string) =>
+      `/common-portal/number/queue/${queueId}`,
     STAFF: '/common-portal/staff',
     STAFF_DETAIL: (id: number | string) => `/common-portal/staff/detail/${id}`,
     STAFF_BY_DEPARTMENT: (departmentId: number | string) =>

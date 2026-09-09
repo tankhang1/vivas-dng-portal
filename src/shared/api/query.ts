@@ -6,6 +6,7 @@ export const QUERY_KEY = {
   },
   DASHBOARD: ['dashboard'] as const,
   HOTLINE: ['hotline'] as const,
+  QUEUE: ['queue'] as const,
   TIME_SCHEDULE: ['time-schedule'] as const,
   CATEGORY_COMMENT: ['category-comment'] as const,
   CATEGORY_MEDIA: ['category-media'] as const,
@@ -106,6 +107,10 @@ export const QUERY_KEY = {
     categoryId: number | string,
     params: { sz?: number; nu?: number },
   ) => ['schedules', 'category', categoryId, params] as const,
+  NUMBERS_BY_QUEUE: (
+    queueId: number | string,
+    params: { sz?: number; nu?: number },
+  ) => ['numbers', 'queue', queueId, params] as const,
   NEWS_SEARCH: (params: {
     key?: string;
     category_item?: number;
