@@ -371,10 +371,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                     control={control}
                     name="department"
                     render={({ field }) => (
-                      <Select
-                        id="staff-department"
-                        {...field}
-                      >
+                      <Select id="staff-department" {...field}>
                         <option value="">Chọn...</option>
                         {departmentsData?.content.map((department) => (
                           <option
@@ -393,7 +390,9 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                 <div className="grid gap-2">
                   <Label htmlFor="staff-field">
                     Lĩnh vực{" "}
-                    {mode === "create" && <span className="text-red-500">*</span>}
+                    {mode === "create" && (
+                      <span className="text-red-500">*</span>
+                    )}
                   </Label>
                   <Controller
                     control={control}
@@ -423,6 +422,8 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                       <Input
                         id="staff-position"
                         {...field}
+                        type="text"
+                        autoComplete="off"
                         placeholder="Developer"
                       />
                     )}
@@ -459,6 +460,7 @@ export function StaffFormPage({ mode, staffId }: StaffFormPageProps) {
                         <Input
                           id="staff-password"
                           type="password"
+                          autoComplete="new-password"
                           {...field}
                           placeholder="••••••••"
                         />
