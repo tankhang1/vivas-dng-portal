@@ -15,6 +15,11 @@ type OverviewBlock = {
   color: string;
 };
 
+const formatDashboardNumber = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 20,
+  }).format(value);
+
 export function StatsOverviewCards({
   dashboardData,
   isLoading,
@@ -23,21 +28,23 @@ export function StatsOverviewCards({
     {
       label: "Tổng diện tích",
       value: dashboardData
-        ? `${dashboardData.total_acreage.toLocaleString("vi-VN")} ha`
+        ? `${formatDashboardNumber(dashboardData.total_acreage)} ha`
         : "—",
       icon: MapPinned,
       color: "text-blue-600 bg-blue-50",
     },
     {
       label: "Chỉ số hài lòng",
-      value: dashboardData ? `${dashboardData.satisfaction_index}%` : "—",
+      value: dashboardData
+        ? `${formatDashboardNumber(dashboardData.satisfaction_index)}%`
+        : "—",
       icon: Smile,
       color: "text-emerald-600 bg-emerald-50",
     },
     {
       label: "Dịch vụ công",
       value: dashboardData
-        ? dashboardData.total_public_service.toLocaleString("vi-VN")
+        ? formatDashboardNumber(dashboardData.total_public_service)
         : "—",
       icon: Briefcase,
       color: "text-purple-600 bg-purple-50",
@@ -45,7 +52,7 @@ export function StatsOverviewCards({
     {
       label: "Tổng công dân",
       value: dashboardData
-        ? dashboardData.total_citizen.toLocaleString("vi-VN")
+        ? formatDashboardNumber(dashboardData.total_citizen)
         : "—",
       icon: BookUser,
       color: "text-amber-600 bg-amber-50",
