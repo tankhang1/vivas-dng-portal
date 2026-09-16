@@ -102,6 +102,7 @@ export const API_PATH = {
     DIVISION: '/common/division',
     NEWS_PUBLIC_SEARCH: '/common/news/public/search',
     CATEGORIES: (type: number) => `/common/categorys/${type}`,
+    COMMENT_PUBLIC: (cUuid: string) => `/common/comments/public/${cUuid}`,
   },
   COMMON_PORTAL: {
     COMMENTS: '/common-portal/comments',

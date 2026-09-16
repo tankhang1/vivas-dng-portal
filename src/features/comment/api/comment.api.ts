@@ -120,6 +120,12 @@ export async function getCommentByUuid(cUuid: string): Promise<CommentItem> {
   return response.data;
 }
 
+export async function getPublicCommentByUuid(cUuid: string): Promise<CommentItem> {
+  const response = await apiClient.get<CommentItem>(API_PATH.COMMON.COMMENT_PUBLIC(cUuid));
+
+  return response.data;
+}
+
 export async function getCitizenComments(
   request: GetCitizenCommentsRequest,
 ): Promise<GetCommentsResponse> {

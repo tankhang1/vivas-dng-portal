@@ -1,5 +1,6 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "wouter";
 import { Layout } from "../shared/components/Layout";
 import {
   Badge,
@@ -37,6 +38,7 @@ import {
 import { useInfiniteCommentCategoriesQuery } from "@/features/category-comment/hooks/category-comment.hook";
 import { useInfiniteCommentsByCategoryQuery } from "@/features/comment/hooks/comment.hook";
 import { useInfiniteStaffCoordinateCommentsByStaffQuery } from "@/features/staff/hooks/staff.hook";
+import { getPublicCommentByUuid } from "@/features/comment/api/comment.api";
 import type { CommentItem } from "@/features/comment/types/get-comment.response";
 import type { CategoryItem } from "@/features/category-news/types/get-categories.response";
 import {
@@ -143,7 +145,9 @@ function CategorySidebar({
   const filteredCategories = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
     return query
-      ? categories.filter((category) => category.name.toLowerCase().includes(query))
+      ? categories.filter((category) =>
+          category.name.toLowerCase().includes(query),
+        )
       : categories;
   }, [categories, searchTerm]);
 
@@ -180,37 +184,43 @@ function CategorySidebar({
         </div>
       </CardHeader>
       <CardContent className="pt-4">
-        <div ref={scrollContainerRef} className="max-h-[620px] space-y-2 overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="max-h-[620px] space-y-2 overflow-y-auto"
+        >
           {isLoading && categories.length === 0 && (
-          <div className="flex justify-center py-8">
-            <Spinner className="h-5 w-5" />
-          </div>
+            <div className="flex justify-center py-8">
+              <Spinner className="h-5 w-5" />
+            </div>
           )}
           {!isLoading && filteredCategories.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Không tìm thấy danh mục nào.
-          </p>
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Không tìm thấy danh mục nào.
+            </p>
           )}
           {filteredCategories.map((category) => {
-          const isSelected = category.id === selectedCategoryId;
+            const isSelected = category.id === selectedCategoryId;
 
-          return (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => onSelectCategory(category.id)}
-              className={[
-                "w-full rounded-lg border px-3 py-3 text-left transition-colors",
-                isSelected
-                  ? "border-primary bg-primary/5 text-primary"
-                : "border-transparent hover:border-border hover:bg-slate-50",
-              ].join(" ")}
-            >
-              <span className="font-medium">{category.name}</span>
-            </button>
-          );
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => onSelectCategory(category.id)}
+                className={[
+                  "w-full rounded-lg border px-3 py-3 text-left transition-colors",
+                  isSelected
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-transparent hover:border-border hover:bg-slate-50",
+                ].join(" ")}
+              >
+                <span className="font-medium">{category.name}</span>
+              </button>
+            );
           })}
-          <div ref={loadMoreRef} className="flex min-h-10 items-center justify-center">
+          <div
+            ref={loadMoreRef}
+            className="flex min-h-10 items-center justify-center"
+          >
             {isFetchingNextPage && <Spinner className="h-4 w-4" />}
           </div>
         </div>
@@ -232,7 +242,8 @@ function FeedbackTable({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const showInitialLoading = isLoading && items.length === 0;
-  const showRefetchOverlay = isFetching && !isFetchingNextPage && !showInitialLoading;
+  const showRefetchOverlay =
+    isFetching && !isFetchingNextPage && !showInitialLoading;
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -251,7 +262,11 @@ function FeedbackTable({
 
   return (
     <div className="relative">
-      <div ref={scrollContainerRef} className="overflow-y-auto" style={{ maxHeight: "480px" }}>
+      <div
+        ref={scrollContainerRef}
+        className="overflow-y-auto"
+        style={{ maxHeight: "480px" }}
+      >
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-white">
             <TableRow>
@@ -342,7 +357,10 @@ function FeedbackTable({
             )}
           </TableBody>
         </Table>
-        <div ref={loadMoreRef} className="flex min-h-10 items-center justify-center">
+        <div
+          ref={loadMoreRef}
+          className="flex min-h-10 items-center justify-center"
+        >
           {isFetchingNextPage && <Spinner className="h-4 w-4" />}
         </div>
       </div>
@@ -681,7 +699,10 @@ function FeedbackDetailDialog({
                 {isSendingReply ? "Đang lưu..." : replyActionLabel}
               </Button>
               {canApprove && (
-                <Button onClick={onApprove} disabled={isApproved || isApproving}>
+                <Button
+                  onClick={onApprove}
+                  disabled={isApproved || isApproving}
+                >
                   {isApproved
                     ? "Đã duyệt"
                     : isApproving
@@ -710,6 +731,8 @@ export default function Feedback() {
   const [replyFileName, setReplyFileName] = useState("");
   const [pendingAction, setPendingAction] =
     useState<PendingFeedbackAction | null>(null);
+  const [deepLinkError, setDeepLinkError] = useState<string | null>(null);
+  const search = useSearch();
 
   const adminCategoriesQuery = useInfiniteCommentCategoriesQuery(
     { sz: PAGE_SIZE },
@@ -719,41 +742,52 @@ export default function Feedback() {
     { staffId: CURRENT_STAFF.id, sz: PAGE_SIZE },
     canManageFeedback,
   );
-  const categoriesQuery = isAdminRole ? adminCategoriesQuery : staffCategoriesQuery;
-  const categories = useMemo(
-    () => {
-      const unique = new Map<number, Pick<CategoryItem, "id" | "name"> & { approval: number }>();
-      if (isAdminRole) {
-        adminCategoriesQuery.data?.pages.forEach((pageData) => {
-          pageData.content.forEach((item) => {
-            unique.set(item.id, { id: item.id, name: item.name, approval: 0 });
+  const categoriesQuery = isAdminRole
+    ? adminCategoriesQuery
+    : staffCategoriesQuery;
+  const categories = useMemo(() => {
+    const unique = new Map<
+      number,
+      Pick<CategoryItem, "id" | "name"> & { approval: number }
+    >();
+    if (isAdminRole) {
+      adminCategoriesQuery.data?.pages.forEach((pageData) => {
+        pageData.content.forEach((item) => {
+          unique.set(item.id, { id: item.id, name: item.name, approval: 0 });
+        });
+      });
+    } else {
+      staffCategoriesQuery.data?.pages.forEach((pageData) => {
+        pageData.content.forEach((item) => {
+          unique.set(item.comments_category_item, {
+            id: item.comments_category_item,
+            name: item.comments_category_name ?? "Không rõ danh mục",
+            approval: item.approval,
           });
         });
-      } else {
-        staffCategoriesQuery.data?.pages.forEach((pageData) => {
-          pageData.content.forEach((item) => {
-            unique.set(item.comments_category_item, {
-              id: item.comments_category_item,
-              name: item.comments_category_name ?? "Không rõ danh mục",
-              approval: item.approval,
-            });
-          });
-        });
-      }
-      return Array.from(unique.values());
-    },
-    [adminCategoriesQuery.data?.pages, isAdminRole, staffCategoriesQuery.data?.pages],
-  );
+      });
+    }
+    return Array.from(unique.values());
+  }, [
+    adminCategoriesQuery.data?.pages,
+    isAdminRole,
+    staffCategoriesQuery.data?.pages,
+  ]);
 
   useEffect(() => {
-    if (categories.length > 0 && !categories.some((item) => item.id === selectedCategoryId)) {
+    if (
+      categories.length > 0 &&
+      !categories.some((item) => item.id === selectedCategoryId)
+    ) {
       setSelectedCategoryId(categories[0].id);
     }
   }, [categories, selectedCategoryId]);
 
   const selectedCategoryName = useMemo(() => {
     if (selectedCategoryId === "") return "";
-    return categories.find((item) => item.id === selectedCategoryId)?.name ?? "";
+    return (
+      categories.find((item) => item.id === selectedCategoryId)?.name ?? ""
+    );
   }, [categories, selectedCategoryId]);
   const selectedCategoryCanApprove =
     categories.find((item) => item.id === selectedCategoryId)?.approval === 1;
@@ -778,7 +812,10 @@ export default function Feedback() {
   }, [activeTab, allItems]);
   const items = filteredItems;
   const showInitialLoading = viewQuery.isLoading && items.length === 0;
-  const showRefetchOverlay = viewQuery.isFetching && !viewQuery.isFetchingNextPage && !showInitialLoading;
+  const showRefetchOverlay =
+    viewQuery.isFetching &&
+    !viewQuery.isFetchingNextPage &&
+    !showInitialLoading;
 
   const replyMutation = useCreateFeedbackProcessMutation();
   const editReplyMutation = useEditFeedbackProcessMutation();
@@ -827,6 +864,32 @@ export default function Feedback() {
     setIsDialogOpen(true);
   };
 
+  useEffect(() => {
+    const uuid = new URLSearchParams(search).get("uuid");
+    if (!uuid) return;
+
+    let cancelled = false;
+
+    getPublicCommentByUuid(uuid)
+      .then((item) => {
+        if (cancelled) return;
+        setSelectedCategoryId(item.category_item);
+        setActiveTab(item.status === 1 ? "approved" : "pending");
+        handleOpenDetail(item);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDeepLinkError(
+          "Không có phản ánh - kiến nghị này, vui lòng thử lại sau.",
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
   const handleReplyFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -856,7 +919,9 @@ export default function Feedback() {
     setReplyFileName("");
   };
 
-  const executeSendReply = async (action: Extract<PendingFeedbackAction, { type: "reply" }>) => {
+  const executeSendReply = async (
+    action: Extract<PendingFeedbackAction, { type: "reply" }>,
+  ) => {
     try {
       const payload = {
         comment_item: action.commentId,
@@ -902,7 +967,9 @@ export default function Feedback() {
     });
   };
 
-  const executeApprove = async (action: Extract<PendingFeedbackAction, { type: "approve" }>) => {
+  const executeApprove = async (
+    action: Extract<PendingFeedbackAction, { type: "approve" }>,
+  ) => {
     try {
       await approveMutation.mutateAsync({
         comment_item: action.commentId,
@@ -996,7 +1063,6 @@ export default function Feedback() {
               />
             </CardContent>
           </Card>
-
         </div>
       </div>
 
@@ -1024,6 +1090,19 @@ export default function Feedback() {
         canManageFeedback={canManageFeedback}
         canApproveCategory={selectedCategoryCanApprove}
       />
+
+      <Dialog
+        open={deepLinkError !== null}
+        onOpenChange={() => setDeepLinkError(null)}
+      >
+        <DialogHeader>
+          <DialogTitle>Không tìm thấy phản ánh</DialogTitle>
+        </DialogHeader>
+        <p className="py-2 text-sm text-muted-foreground">{deepLinkError}</p>
+        <DialogFooter>
+          <Button onClick={() => setDeepLinkError(null)}>Đóng</Button>
+        </DialogFooter>
+      </Dialog>
 
       <Dialog
         open={pendingAction !== null}
