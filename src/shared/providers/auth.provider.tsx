@@ -41,6 +41,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [role, setRole] = React.useState<UserRole>(getCurrentRole());
   const initialLocationRef = React.useRef(location);
+  const initialFullPathRef = React.useRef(
+    `${window.location.pathname}${window.location.search}`,
+  );
+
+  const redirectToLogin = React.useCallback(() => {
+    const target = initialFullPathRef.current;
+    const redirectParam =
+      target && target !== '/login'
+        ? `?redirect=${encodeURIComponent(target)}`
+        : '';
+
+    setLocation(`/login${redirectParam}`);
+  }, [setLocation]);
 
   const bootstrapAuth = React.useCallback(async () => {
     const token = getAccessToken();
@@ -53,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
 
       if (initialLocationRef.current !== '/login') {
-        setLocation('/login');
+        redirectToLogin();
       }
 
       return;
@@ -71,7 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
 
       if (initialLocationRef.current === '/login') {
-        setLocation('/dashboard');
+        const redirectParam = new URLSearchParams(window.location.search).get(
+          'redirect',
+        );
+        setLocation(redirectParam || '/dashboard');
       }
     } catch {
       clearAccessToken();
@@ -81,10 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsReady(true);
 
       if (initialLocationRef.current !== '/login') {
-        setLocation('/login');
+        redirectToLogin();
       }
     }
-  }, [setLocation]);
+  }, [redirectToLogin, setLocation]);
 
   React.useEffect(() => {
     void bootstrapAuth();

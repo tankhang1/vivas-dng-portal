@@ -43,7 +43,11 @@ export default function Login() {
   const handleLogin = async (values: LoginFormValues) => {
     await loginMutation.mutateAsync(values);
     await refreshSession();
-    setLocation('/dashboard');
+
+    const redirectParam = new URLSearchParams(window.location.search).get(
+      'redirect',
+    );
+    setLocation(redirectParam || '/dashboard');
   };
 
   return (
