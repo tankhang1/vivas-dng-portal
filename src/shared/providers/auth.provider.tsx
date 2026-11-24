@@ -11,6 +11,8 @@ import {
   getCurrentRole,
   type UserRole,
 } from '@/shared/api';
+import { SESSION_EXPIRED_EVENT } from '@/shared/api/client';
+import { Button, Dialog, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui';
 
 type AuthContextValue = {
   isReady: boolean;
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = React.useState(false);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [role, setRole] = React.useState<UserRole>(getCurrentRole());
+  const [sessionExpired, setSessionExpired] = React.useState(false);
   const initialLocationRef = React.useRef(location);
   const initialFullPathRef = React.useRef(
     `${window.location.pathname}${window.location.search}`,
@@ -115,6 +118,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLocation('/login');
   }, [queryClient, setLocation]);
 
+  React.useEffect(() => {
+    const handleExpired = () => setSessionExpired(true);
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleExpired);
+  }, []);
+
+  const handleReLogin = React.useCallback(async () => {
+    const current = `${window.location.pathname}${window.location.search}`;
+    await queryClient.cancelQueries();
+    clearAllClientStorage();
+    queryClient.clear();
+    setIsAuthenticated(false);
+    setRole(getCurrentRole());
+    setSessionExpired(false);
+    setLocation(
+      current.includes('/login') ? '/login' : `/login?redirect=${encodeURIComponent(current)}`,
+    );
+  }, [queryClient, setLocation]);
+
   const refreshSession = React.useCallback(async () => {
     if (!getAccessToken()) {
       throw new Error('Missing access token.');
@@ -148,5 +170,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <Dialog open={sessionExpired} onOpenChange={() => {}} className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Phiên đăng nhập đã hết hạn</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Vui lòng đăng nhập lại để tiếp tục sử dụng hệ thống.
+          </p>
+        </DialogHeader>
+        <DialogFooter>
+          <Button onClick={() => void handleReLogin()}>Đăng nhập lại</Button>
+        </DialogFooter>
+      </Dialog>
+    </AuthContext.Provider>
+  );
 }

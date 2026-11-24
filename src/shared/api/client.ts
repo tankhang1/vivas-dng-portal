@@ -12,6 +12,13 @@ export const apiClient = axios.create({
   },
 });
 
+export const SESSION_EXPIRED_EVENT = "auth:session-expired";
+
+function notifySessionExpired() {
+  clearAccessToken();
+  window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+}
+
 let refreshPromise: Promise<string> | null = null;
 
 function isAuthRequest(url?: string) {
@@ -71,7 +78,7 @@ apiClient.interceptors.response.use(
       const nextToken = await refreshAccessTokenOnce();
 
       if (!nextToken) {
-        clearAccessToken();
+        notifySessionExpired();
         return Promise.reject(error);
       }
 
@@ -81,7 +88,7 @@ apiClient.interceptors.response.use(
 
       return apiClient(originalRequest);
     } catch (refreshError) {
-      clearAccessToken();
+      notifySessionExpired();
       return Promise.reject(refreshError);
     }
   },
