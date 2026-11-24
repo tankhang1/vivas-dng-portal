@@ -172,7 +172,18 @@ export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLD
 
 export function Pagination({ page, totalPages, onPageChange, totalItems, pageSize }: { page: number; totalPages: number; onPageChange: (page: number) => void; totalItems?: number; pageSize?: number }) {
   if (totalPages <= 1) return null;
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const pages: (number | 'ellipsis-left' | 'ellipsis-right')[] = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (page <= 4) {
+    pages.push(1, 2, 3, 4, 5, 'ellipsis-right');
+  } else if (page >= totalPages - 3) {
+    pages.push(1, 'ellipsis-left');
+    for (let i = totalPages - 4; i < totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1, 'ellipsis-left', page - 1, page, page + 1, 'ellipsis-right');
+  }
+  if (totalPages > 7) pages.push(totalPages);
   return (
     <div className="flex flex-col gap-3 border-t border-border px-1 pt-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-muted-foreground">
@@ -182,7 +193,9 @@ export function Pagination({ page, totalPages, onPageChange, totalItems, pageSiz
       </p>
       <div className="flex items-center gap-1">
         <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>Trước</Button>
-        {pages.map(p => (
+        {pages.map(p => typeof p !== 'number' ? (
+          <span key={p} className="flex h-9 w-9 items-center justify-center text-sm text-muted-foreground">…</span>
+        ) : (
           <Button
             key={p}
             variant={p === page ? 'default' : 'outline'}
